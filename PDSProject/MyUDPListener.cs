@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PDSProject
@@ -45,10 +46,16 @@ namespace PDSProject
                 if (_referenceData.Users.ContainsKey(receivedIpEndPoint.Address.ToString())){
                     if (!_referenceData.Users[receivedIpEndPoint.Address.ToString()].Equals(received)){
                         _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
-                        MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                        {
-                            MainWindow.main.textNToInsert.Text = received.Name;
-                            MainWindow.main.textSToInsert.Text = received.Status;
+
+                        //TODO: da riorganizzare bene che è un po' confusionario
+
+                        if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash)) {
+                            //Da aggiornare immagine profilo
+                            _referenceData.Users[receivedIpEndPoint.Address.ToString()].ProfileImagePath = _referenceData.UserImageChange[received.ProfileImageHash];
+                        }
+                        string ip = receivedIpEndPoint.Address.ToString();
+                        MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.UpdateProfileHost(ip);
                         }));
 
                     }
@@ -56,10 +63,14 @@ namespace PDSProject
                 else{
                     // Se invece non esiste, viene inserito
                     _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
-                    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash))
                     {
-                        MainWindow.main.textNToInsert.Text = received.Name;
-                        MainWindow.main.textSToInsert.Text = received.Status;
+                        //Da aggiornare immagine profilo
+                        _referenceData.Users[receivedIpEndPoint.Address.ToString()].ProfileImagePath = _referenceData.UserImageChange[received.ProfileImageHash];
+                    }
+                    string ip = receivedIpEndPoint.Address.ToString();
+                    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.UpdateProfileHost(ip);
                     }));
                 }
             }

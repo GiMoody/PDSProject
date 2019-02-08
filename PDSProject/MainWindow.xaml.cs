@@ -69,6 +69,10 @@ namespace PDSProject
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
 
+            //Avvio thread che invia immagine di profilo
+            //TODO: da gestire path!!!
+            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
+
             // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
@@ -159,12 +163,29 @@ namespace PDSProject
                         ImageProfile.Source = new BitmapImage(new Uri(filename));
                         string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
 
-                        _referenceData.LocalUser.ProfileImageHash = hashImage;
-                        _referenceData.LocalUser.ProfileImagePath = filename;
-                        _referenceData.SaveJson();
+                        if (!hashImage.Equals(_referenceData.LocalUser.ProfileImageHash))
+                        {
+                            _referenceData.LocalUser.ProfileImageHash = hashImage;
+                            _referenceData.LocalUser.ProfileImagePath = filename;
+                            _referenceData.SaveJson();
+
+                            //TODO: invio a tutti gli host in rete
+                            _TCPSender.Send(filename); // Deve essere inviato a tutti gli utenti connessi 
+                        }
+
                     }
                 }
             }
+        }
+
+        public void UpdateProfileHost(string ip) {
+            MainWindow.main.textNToInsert.Text = _referenceData.Users[ip].Name;
+            MainWindow.main.textSToInsert.Text = _referenceData.Users[ip].Status;
+
+            HostImage.Width = 50; HostImage.Height = 50;
+            var file = File.OpenRead(_referenceData.Users[ip].ProfileImagePath);
+            HostImage.Source = new BitmapImage(new Uri(_referenceData.Users[ip].ProfileImagePath));
+            file.Close();
         }
 
     }

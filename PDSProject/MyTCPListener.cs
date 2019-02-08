@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,15 +105,43 @@ namespace PDSProject
 
                     data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
                     string[] info = data.Split(' ');
-                    long dimfile = Convert.ToInt64(info[1]);
+                    long dimfile = 0; 
+                    string file_name = "";
+                    if (info[0].Equals("CHIMAGE")){
+                        file_name += "puserImage" + ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString() + info[1];
+                        dimfile = Convert.ToInt64(info[2]);
+                    }
+                    else{
+                        dimfile = Convert.ToInt64(info[1]);
+                        file_name = info[0];
+                    }
 
                     // Crea il file e lo riempie
-                    var file = File.Create(info[0]);
+                    var file = File.Create(file_name);
                     long dataReceived = 0;
                     while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived <= dimfile)
                     {
                         file.Write(bytes, 0, i);
                         dataReceived += i;
+                    }
+                    file.Close();
+
+                    // Avvisa che un'immagine è stata cambiata
+                    if (info[0].Equals("CHIMAGE")){
+                        //Salvo info e poi udp reciver aggiornerà le info
+
+                        using (SHA256 sha = SHA256.Create())
+                        {
+                            FileStream fs = File.OpenRead(file_name);
+                            byte[] hash = sha.ComputeHash(fs);
+                            if (!BitConverter.ToString(hash).Replace("-", String.Empty).Equals(_referenceData.LocalUser.ProfileImageHash))
+                            {
+                                string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
+
+                                _referenceData.UserImageChange[hashImage] = file_name;
+                            }
+                            fs.Close();
+                        }
                     }
                     file.Close();
                 }

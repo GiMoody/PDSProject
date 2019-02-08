@@ -27,9 +27,12 @@ namespace PDSProject
         /// Per ora invia un singolo file ad un singolo host.
         /// TODO: da fare gestiore di più file e verso più host
         /// </summary>
-        /// <param name="message">Messaggio generico</param>
-        public void Send(string message){
-            if (_referenceData.selectedHost.Equals("")) return;
+        /// <param name="message">Nome del file (path assoluto)</param>
+        /// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
+        public void Send(string filename){
+            // TODO: da cambiare!!!
+            if (_referenceData.selectedHost.Equals("")) return; 
+
             IPAddress serverAddr = IPAddress.Parse(_referenceData.selectedHost);//"192.168.1.69");
             TcpClient client = null;
 
@@ -38,12 +41,19 @@ namespace PDSProject
                 client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
 
                 UTF8Encoding encoder = new UTF8Encoding();
-                FileStream file = File.OpenRead("TestZIP.zip");
+                FileStream file = File.OpenRead(filename);//"Risultati.pdf");
 
                 // Invio primo pacchetto con nome e dimensione
                 // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
                 long dim = file.Length;
-                string firstmsg = "TestZIP.zip " + dim;
+                string firstmsg = "";
+
+                // Da cambiare
+                if (_referenceData.hasChangedProfileImage) {
+                    firstmsg += "CHIMAGE"; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+                    _referenceData.hasChangedProfileImage = false;
+                }
+                firstmsg += filename + " " + dim;
 
                 /* 
                  * Questa roba merita purtroppo 2 parole:
