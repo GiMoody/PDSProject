@@ -31,9 +31,14 @@ namespace PDSProject
         /// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
         public void Send(string filename){
             // TODO: da cambiare!!!
-            if (_referenceData.selectedHost.Equals("")) return; 
-
-            IPAddress serverAddr = IPAddress.Parse(_referenceData.selectedHost);//"192.168.1.69");
+            IPAddress serverAddr;
+            if (!_referenceData.hasChangedProfileImage) {
+                if (_referenceData.selectedHost.Equals("")) return;
+                serverAddr = IPAddress.Parse(_referenceData.selectedHost);
+            }
+            else{
+               serverAddr = IPAddress.Parse(_referenceData.Users.First().Key);//"192.168.1.69");
+            }
             TcpClient client = null;
 
             try
@@ -50,10 +55,12 @@ namespace PDSProject
 
                 // Da cambiare
                 if (_referenceData.hasChangedProfileImage) {
-                    firstmsg += "CHIMAGE"; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+                    firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
                     _referenceData.hasChangedProfileImage = false;
                 }
-                firstmsg += filename + " " + dim;
+
+                string[] infoImage = filename.Split(new string[] { "\\" }, StringSplitOptions.None);
+                firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
 
                 /* 
                  * Questa roba merita purtroppo 2 parole:
