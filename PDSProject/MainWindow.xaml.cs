@@ -71,11 +71,12 @@ namespace PDSProject
 
             //Avvio thread che invia immagine di profilo
             //TODO: da gestire path!!!
-            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
+            //Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
 
             // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
+            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
 
         }
 
@@ -188,12 +189,20 @@ namespace PDSProject
             {
                 string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 string archiveFolder = Path.Combine(currentDirectory, "Resources");
-                string[] files = Directory.GetFiles(archiveFolder, _referenceData.LocalUser.ProfileImagePath);
+                string[] files = Directory.GetFiles(archiveFolder, _referenceData.Users[ip].ProfileImagePath);
                 filename = files[0];
             }
-            else {
+            else if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
+            {
                 string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string[] files = Directory.GetFiles(currentDirectory, _referenceData.LocalUser.ProfileImagePath);
+                string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);
+                filename = files[0];
+            }
+            else
+            {
+                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string archiveFolder = Path.Combine(currentDirectory, "Resources");
+                string[] files = Directory.GetFiles(archiveFolder, _referenceData.defaultImage);
                 filename = files[0];
             }
             var file = File.OpenRead(filename);

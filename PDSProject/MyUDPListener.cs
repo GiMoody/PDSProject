@@ -45,6 +45,8 @@ namespace PDSProject
                 // Se l'utente è già presente all'interno della struttura dati e ha dati diversi, aggiorno
                 if (_referenceData.Users.ContainsKey(receivedIpEndPoint.Address.ToString())){
                     if (!_referenceData.Users[receivedIpEndPoint.Address.ToString()].Equals(received)){
+                        string[] infoImage = received.ProfileImagePath.Split(new string[] { "\\" }, StringSplitOptions.None);
+                        received.ProfileImagePath = infoImage[infoImage.Length - 1];
                         _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
 
                         //TODO: da riorganizzare bene che è un po' confusionario
@@ -62,6 +64,8 @@ namespace PDSProject
                 }
                 else{
                     // Se invece non esiste, viene inserito
+                    string[] infoImage = received.ProfileImagePath.Split(new string[] { "\\" }, StringSplitOptions.None);
+                    received.ProfileImagePath = infoImage[infoImage.Length - 1];
                     _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
                     if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash))
                     {
