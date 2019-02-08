@@ -16,7 +16,7 @@
             <TextBlock x:Name="textStatus" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="31" FontWeight="Bold" Width="45"><Run Text="Status"/><Run Text=":"/></TextBlock>
             <TextBlock x:Name="textNToInsert" Canvas.Left="60" TextWrapping="Wrap" Canvas.Top="10" Width="160"/>
             <TextBlock x:Name="textSToInsert" Canvas.Left="60" TextWrapping="Wrap" Canvas.Top="32" Width="160"/>
-            <Image x:Name="HostImage" Height="50" Canvas.Left="240" Stretch="None" Width="50" MouseDown="Image_MouseDown" RenderTransformOrigin="0.5,0.5" Canvas.Top="6" Source="Resources/defaultProfile.png"/>
+            <Image x:Name="HostImage" Height="50" Canvas.Left="240" Stretch="None" Width="50" RenderTransformOrigin="0.5,0.5" Canvas.Top="6" Source="Resources/defaultProfile.png"/>
         </Canvas>
         <Canvas x:Name="Body" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="253" Margin="20,189,0,-85" VerticalAlignment="Top" Width="300">
             <TextBox x:Name="WriteMessage" HorizontalAlignment="Left" Height="48" TextWrapping="Wrap" Text="Insert message to send..." VerticalAlignment="Top" Width="300"/>

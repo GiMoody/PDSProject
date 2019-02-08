@@ -183,8 +183,22 @@ namespace PDSProject
             MainWindow.main.textSToInsert.Text = _referenceData.Users[ip].Status;
 
             HostImage.Width = 50; HostImage.Height = 50;
-            var file = File.OpenRead(_referenceData.Users[ip].ProfileImagePath);
-            HostImage.Source = new BitmapImage(new Uri(_referenceData.Users[ip].ProfileImagePath));
+            string filename = "";
+            if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage))
+            {
+                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string archiveFolder = Path.Combine(currentDirectory, "Resources");
+                string[] files = Directory.GetFiles(archiveFolder, _referenceData.LocalUser.ProfileImagePath);
+                filename = files[0];
+            }
+            else {
+                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string[] files = Directory.GetFiles(currentDirectory, _referenceData.LocalUser.ProfileImagePath);
+                filename = files[0];
+            }
+            var file = File.OpenRead(filename);
+
+            HostImage.Source = new BitmapImage(new Uri(filename));
             file.Close();
         }
 
