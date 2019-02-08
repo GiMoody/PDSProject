@@ -108,7 +108,7 @@ namespace PDSProject
                     long dimfile = 0; 
                     string file_name = "";
                     if (info[0].Equals("CHIMAGE")){
-                        file_name += "puserImage" + ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString() + info[1];
+                        file_name += "puserImage" + info[1];
                         dimfile = Convert.ToInt64(info[2]);
                     }
                     else{
@@ -134,12 +134,9 @@ namespace PDSProject
                         {
                             FileStream fs = File.OpenRead(file_name);
                             byte[] hash = sha.ComputeHash(fs);
-                            if (!BitConverter.ToString(hash).Replace("-", String.Empty).Equals(_referenceData.LocalUser.ProfileImageHash))
-                            {
-                                string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
-
-                                _referenceData.UserImageChange[hashImage] = file_name;
-                            }
+                            string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
+                            string[] infoImage = file_name.Split(new string[] { "\\" }, StringSplitOptions.None);
+                            _referenceData.UserImageChange[hashImage] = infoImage[infoImage.Length-1];
                             fs.Close();
                         }
                     }

@@ -41,7 +41,7 @@ namespace PDSProject
         public bool hasChangedProfileImage = false; // Usato per inviare immagine profilo utente corrente
 
         //TODO: cose temporanea per invio immagine profilo
-        public Dictionary<string, string> UserImageChange; // Key = hash - Value = namefile
+        public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 

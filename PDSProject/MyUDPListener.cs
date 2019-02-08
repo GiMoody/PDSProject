@@ -62,6 +62,8 @@ namespace PDSProject
                 }
                 else{
                     // Se invece non esiste, viene inserito
+                    string[] infoImage = received.ProfileImagePath.Split(new string[] { "\\" }, StringSplitOptions.None);
+                    received.ProfileImagePath = infoImage[infoImage.Length - 1];
                     _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
                     if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash))
                     {
