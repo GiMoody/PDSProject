@@ -71,6 +71,7 @@ namespace PDSProject
 
             //Avvio thread che invia immagine di profilo
             //TODO: da gestire path!!!
+            //Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
 
             // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
@@ -197,8 +198,10 @@ namespace PDSProject
                 string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);
                 filename = files[0];
             }
-            else {
+            else
+            {
                 string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
                 string archiveFolder = Path.Combine(currentDirectory, "Resources");
                 string[] files = Directory.GetFiles(archiveFolder, _referenceData.defaultImage);
                 filename = files[0];

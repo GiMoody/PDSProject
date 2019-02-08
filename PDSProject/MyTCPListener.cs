@@ -118,11 +118,14 @@ namespace PDSProject
 
                     // Crea il file e lo riempie
                     var file = File.Create(file_name);
-                    long dataReceived = 0;
-                    while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived <= dimfile)
+                    long dataReceived = dimfile;
+                    while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
                     {
-                        file.Write(bytes, 0, i);
-                        dataReceived += i;
+                        if (dataReceived > 0 && dataReceived < bufferSize)
+                            file.Write(bytes, 0, Convert.ToInt32(dataReceived));
+                        else
+                            file.Write(bytes, 0, i);
+                        dataReceived -= i;
                     }
                     file.Close();
 
@@ -136,7 +139,8 @@ namespace PDSProject
                             byte[] hash = sha.ComputeHash(fs);
                             string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
                             string[] infoImage = file_name.Split(new string[] { "\\" }, StringSplitOptions.None);
-                            _referenceData.UserImageChange[hashImage] = infoImage[infoImage.Length-1];
+
+                            _referenceData.UserImageChange[hashImage] = infoImage[infoImage.Length - 1];
                             fs.Close();
                         }
                     }
