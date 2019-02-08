@@ -31,7 +31,8 @@ namespace PDSProject
         /// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
         public void Send(string filename){
             // TODO: da cambiare!!!
-            if (_referenceData.selectedHost.Equals("")) return; 
+            if(!_referenceData.hasChangedProfileImage)
+                if (_referenceData.selectedHost.Equals("")) return; 
 
             IPAddress serverAddr = IPAddress.Parse(_referenceData.selectedHost);//"192.168.1.69");
             TcpClient client = null;
