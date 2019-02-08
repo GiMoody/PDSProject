@@ -38,6 +38,7 @@ namespace PDSProject
 
         //TODO: cose temporanee
         public string selectedHost = "";
+        public bool isFirst = true;
         public bool hasChangedProfileImage = false; // Usato per inviare immagine profilo utente corrente
 
         //TODO: cose temporanea per invio immagine profilo
