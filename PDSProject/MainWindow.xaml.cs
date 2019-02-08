@@ -76,8 +76,7 @@ namespace PDSProject
             // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
-            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
-
+            
         }
 
         private void dispatcherTimer_Tick(object sender, EventArgs e){
@@ -211,6 +210,10 @@ namespace PDSProject
             HostImage.Source = new BitmapImage(new Uri(filename));
             file.Close();
         }
+
+        public void SendProfileImage() {
+            _referenceData.hasChangedProfileImage = true;
+            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });        }
 
     }
 }
