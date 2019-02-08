@@ -171,7 +171,6 @@ namespace PDSProject
                             _referenceData.LocalUser.ProfileImagePath = filename;
                             _referenceData.SaveJson();
                             _referenceData.hasChangedProfileImage = true;
-
                             //TODO: invio a tutti gli host in rete
                             _TCPSender.Send(filename); // Deve essere inviato a tutti gli utenti connessi 
                         }
@@ -203,6 +202,7 @@ namespace PDSProject
             else
             {
                 string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
                 string archiveFolder = Path.Combine(currentDirectory, "Resources");
                 string[] files = Directory.GetFiles(archiveFolder, _referenceData.defaultImage);
                 filename = files[0];
