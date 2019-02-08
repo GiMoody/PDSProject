@@ -76,6 +76,7 @@ namespace PDSProject
             // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
+            _referenceData.hasChangedProfileImage = true;
             Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
 
         }
@@ -169,6 +170,7 @@ namespace PDSProject
                             _referenceData.LocalUser.ProfileImageHash = hashImage;
                             _referenceData.LocalUser.ProfileImagePath = filename;
                             _referenceData.SaveJson();
+                            _referenceData.hasChangedProfileImage = true;
 
                             //TODO: invio a tutti gli host in rete
                             _TCPSender.Send(filename); // Deve essere inviato a tutti gli utenti connessi 
