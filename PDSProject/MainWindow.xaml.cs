@@ -212,7 +212,8 @@ namespace PDSProject
 
         public void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });        }
+            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
+        }
 
     }
 }
