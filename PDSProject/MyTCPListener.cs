@@ -138,9 +138,8 @@ namespace PDSProject
                             FileStream fs = File.OpenRead(file_name);
                             byte[] hash = sha.ComputeHash(fs);
                             string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
-                            string[] infoImage = file_name.Split(new string[] { "\\" }, StringSplitOptions.None);
 
-                            _referenceData.UserImageChange[hashImage] = infoImage[infoImage.Length - 1];
+                            _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
                             fs.Close();
                         }
                     }
