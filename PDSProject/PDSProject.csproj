@@ -78,6 +78,7 @@
     <Compile Include="MyUDPSender.cs" />
     <Compile Include="SharedInfo.cs" />
     <Compile Include="MyTCPListener.cs" />
+    <Compile Include="Utility.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -131,7 +132,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\defaultProfile.png">
+    <EmbeddedResource Include="Resources\Host\HostProfileImage\defaultProfile.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\search-filled.png" />

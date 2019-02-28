@@ -17,6 +17,10 @@ using System.Security.Cryptography;
 using System.IO;
 using Path = System.IO.Path;
 using System.Reflection;
+using Microsoft.Win32;
+using System.Diagnostics;
+using System.IO.Pipes;
+using System.Security.Principal;
 
 namespace PDSProject
 {
@@ -34,9 +38,13 @@ namespace PDSProject
         MyUDPListener _UDPListener;
         MyUDPSender _UDPSender;
 
+        private string[] test = null;
+
         public MainWindow()
         {
+            
             InitializeComponent();
+            
             main = this;
             _TCPListener = new MyTCPListener();
             _TCPSender = new MyTCPSender();
@@ -45,6 +53,8 @@ namespace PDSProject
             
             // Inizializzo  info user
             textUNInfo.Text = _referenceData.LocalUser.Name;
+            if (test != null && test.Length > 0)
+                textInfoMessage.Text = test.Length.ToString();
             if (_referenceData.LocalUser.Status.Equals("online"))
                 checkUSBox.IsChecked = false;
             else
@@ -54,12 +64,7 @@ namespace PDSProject
             // TODO: vedere se fare una copia o no e lasciarla interna al sistema
             string filename = _referenceData.LocalUser.ProfileImagePath;
             if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage))
-            {
-                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string archiveFolder = Path.Combine(currentDirectory, "Resources");
-                string[] files = Directory.GetFiles(archiveFolder, _referenceData.LocalUser.ProfileImagePath);
-                filename = files[0];
-            }
+                filename = Utility.FileNameToPath("Resources", _referenceData.defaultImage);
             ImageProfile.Source = new BitmapImage(new Uri(filename));
 
             // Ogni secondo invia un pacchetto UDP per avvisare gli altri di possibili aggiornamenti sullo stato, nome o immagine
@@ -69,13 +74,93 @@ namespace PDSProject
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
 
-            //Avvio thread che invia immagine di profilo
-            //TODO: da gestire path!!!
-            //Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
-
-            // Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
+            //Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
+            Task.Run(() => { PipeClient(); });
+
+            // Aggiunge registri per menù contestuale
+            /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
+             * configurazioni una sola volta in modalità Admin. Per adesso il codice si limita a controllare se l'esecuzione è in
+             * modalità admin o no ed esegue il metodo di conseguenza */
+            AddOptionContextMenu();
+        }
+        
+        /// <summary>
+        /// Test inserimento opzione menù contestuale (tasto destro), funziona per ora ma non fa nulla
+        /// da gestire la comunicazione tra processi o trovare un modo per evitare di avere 2 istanze dello stesso processo
+        /// </summary>
+        private void AddOptionContextMenu(){
+            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            if (principal.IsInRole(WindowsBuiltInRole.Administrator)) {
+                string nameExe = Process.GetCurrentProcess().ProcessName + ".exe";
+                string pathExe = Utility.FileNameToPath("", nameExe);
+
+                // Set RegistryKey per file
+                //RegistryKey _key = Registry.ClassesRoot.OpenSubKey("Directory\\Shell", true);
+                RegistryKey _key = Registry.ClassesRoot.OpenSubKey("*\\Shell", true);
+                RegistryKey newkey = _key.CreateSubKey("PDSApp Invia File");
+                RegistryKey subNewkey = newkey.CreateSubKey("Command");
+                
+                //subNewkey.SetValue("", "D:\\Utenti\\GMoody\\Documents\\Università\\Primo Anno Magistrale\\2 - Programmazione di Sistema\\MalnatiProgetto\\PDSProjectGIT\\PDSProject\\PDSProject\\bin\\Debug\\PDSProject.exe %1");//"C:\\Program Files\\7-Zip\\7zG.exe");
+                subNewkey.SetValue("", pathExe + " %1");
+
+                // Set RegistryKey per directory
+                _key = Registry.ClassesRoot.OpenSubKey("Directory\\Shell", true);
+                newkey = _key.CreateSubKey("PDSApp Invia Cartella");
+                subNewkey = newkey.CreateSubKey("Command");
+                
+                subNewkey.SetValue("", pathExe + " %1");
+
+                subNewkey.Close();
+                newkey.Close();
+                _key.Close();
+            }
+        }
+
+        /// <summary>
+        /// Implementazione della NamedPipeClient
+        /// Questa rimane in ascolto di possibili istanze PSDProject istanziate col menù contestuale, queste inviano il path del file da inviare all'istanza principale
+        /// e termina l'esecuzione subito dopo
+        /// /// </summary>
+        /// <param name="e"></param>
+        private void PipeClient()
+        {
+            while (true)
+            {
+                using (NamedPipeClientStream pipeClient =
+                new NamedPipeClientStream(".", "PSDPipe", PipeDirection.In))
+                {
+                    pipeClient.Connect();
+
+                    Console.WriteLine("Connected to pipe.");
+                    Console.WriteLine("There are currently {0} pipe server instances open.",
+                       pipeClient.NumberOfServerInstances);
+                    using (StreamReader sr = new StreamReader(pipeClient))
+                    {
+                        // Display the read text to the console
+                        string temp;
+                        while ((temp = sr.ReadLine()) != null)
+                        {
+                            Console.WriteLine("Received from server: {0}", temp);
+                            string copia = temp;
+                            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                            {
+                                Test(copia);
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Test(string e){
+            /*test = e;
+            foreach(string s in e) {
+                textInfoMessage.Text += s;
+            }*/
+            textInfoMessage.Text += e;
+
         }
 
         private void dispatcherTimer_Tick(object sender, EventArgs e){
@@ -87,6 +172,9 @@ namespace PDSProject
             Task.Run(() => { _TCPSender.Send(message); });
         }
 
+        /**
+         * TODO: da modificare il sistema di invio file, per ora si clicca un bottone. L'obbiettivo sarebbe inviarlo solo tramite il menù contestuale
+         */
         private void HostInfo_MouseUp(object sender, MouseButtonEventArgs e){
             // Per ora è solo un elemento, quindi prendo primo elemeto lista
             if (_referenceData.selectedHost.Equals("")) {
@@ -183,27 +271,24 @@ namespace PDSProject
 
             HostImage.Width = 50; HostImage.Height = 50;
             string filename = "";
-            if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage))
+            if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage) || !_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
+                filename = Utility.FileNameToPath("Resources",_referenceData.defaultImage);
+            else //if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
             {
-                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string archiveFolder = Path.Combine(currentDirectory, "Resources");
-                string[] files = Directory.GetFiles(archiveFolder, _referenceData.Users[ip].ProfileImagePath);
-                filename = files[0];
-            }
-            else if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
-            {
-                string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                filename = Utility.FileNameToPath("Resources", _referenceData.Users[ip].ProfileImagePath);
+
+                /*string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);
-                filename = files[0];
+                filename = files[0];*/
             }
-            else
+            /*else
             {
                 string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
                 string archiveFolder = Path.Combine(currentDirectory, "Resources");
                 string[] files = Directory.GetFiles(archiveFolder, _referenceData.defaultImage);
                 filename = files[0];
-            }
+            }*/
             var file = File.OpenRead(filename);
 
             HostImage.Source = new BitmapImage(new Uri(filename));
