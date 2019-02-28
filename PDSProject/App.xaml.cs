@@ -53,7 +53,7 @@ namespace PDSProject
         private void PipeServer(string path)
         {
             using (NamedPipeServerStream pipeServer =
-                new NamedPipeServerStream("testpipe", PipeDirection.Out))
+                new NamedPipeServerStream("PSDPipe", PipeDirection.Out))
             {
                 Console.WriteLine("NamedPipeServerStream object created.");
 
