@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -32,7 +33,7 @@ namespace PDSProject
                 ser.WriteObject(ms, _referenceData.LocalUser);
                 ms.Position = 0;
                 byte[] buffer = ms.ToArray();
-                sender.Send(buffer, buffer.Length, _referenceData.BroadcastIPAddress, _referenceData.UDPReceivedPort);
+                sender.Send(buffer, buffer.Length, /*_referenceData.BroadcastIPAddress*/ "192.168.255.255", _referenceData.UDPReceivedPort);
                 sender.Close();
             }
             catch (Exception e) {

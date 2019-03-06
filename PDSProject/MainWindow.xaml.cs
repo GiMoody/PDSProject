@@ -37,9 +37,7 @@ namespace PDSProject
         MyTCPSender _TCPSender;
         MyUDPListener _UDPListener;
         MyUDPSender _UDPSender;
-
-        private string[] test = null;
-
+        
         public MainWindow()
         {
             
@@ -50,11 +48,14 @@ namespace PDSProject
             _TCPSender = new MyTCPSender();
             _UDPListener = new MyUDPListener();
             _UDPSender = new MyUDPSender();
-            
+
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
+
             // Inizializzo  info user
-            textUNInfo.Text = _referenceData.LocalUser.Name;
-            if (test != null && test.Length > 0)
-                textInfoMessage.Text = test.Length.ToString();
+            /*textUNInfo.Text = _referenceData.LocalUser.Name;
             if (_referenceData.LocalUser.Status.Equals("online"))
                 checkUSBox.IsChecked = false;
             else
@@ -78,12 +79,13 @@ namespace PDSProject
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
             Task.Run(() => { PipeClient(); });
+            _referenceData.isFirst = true;*/
 
             // Aggiunge registri per menù contestuale
             /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
              * configurazioni una sola volta in modalità Admin. Per adesso il codice si limita a controllare se l'esecuzione è in
              * modalità admin o no ed esegue il metodo di conseguenza */
-            AddOptionContextMenu();
+            //AddOptionContextMenu();
         }
         
         /// <summary>
@@ -144,6 +146,7 @@ namespace PDSProject
                         {
                             Console.WriteLine("Received from server: {0}", temp);
                             string copia = temp;
+                            _referenceData.PathFileToSend.Add(copia);
                             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
                                 Test(copia);
@@ -167,9 +170,13 @@ namespace PDSProject
             _UDPSender.Sender();
         }
 
+        
+
         private void ButtonSend_Click(object sender, RoutedEventArgs e){
             string message = WriteMessage.Text;
-            Task.Run(() => { _TCPSender.Send(message); });
+            if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHost!= "") {
+                Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
+            }
         }
 
         /**
@@ -202,7 +209,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// In caso di cambiamento di state, vengono aggiornate le informazioni dell'utente e salvate su disco
+        /// In caso di cambiamento di stato, vengono aggiornate le informazioni dell'utente e salvate su disco
         /// </summary>
         /// <param name="sender">Non usato</param>
         /// <param name="e">Non usato</param>
@@ -257,7 +264,7 @@ namespace PDSProject
                             _referenceData.SaveJson();
                             _referenceData.hasChangedProfileImage = true;
                             //TODO: invio a tutti gli host in rete
-                            _TCPSender.Send(filename); // Deve essere inviato a tutti gli utenti connessi 
+                            _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
                         }
 
                     }
@@ -271,15 +278,20 @@ namespace PDSProject
 
             HostImage.Width = 50; HostImage.Height = 50;
             string filename = "";
-            if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage) || !_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
-                filename = Utility.FileNameToPath("Resources",_referenceData.defaultImage);
-            else //if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
-            {
-                filename = Utility.FileNameToPath("Resources", _referenceData.Users[ip].ProfileImagePath);
 
-                /*string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);
-                filename = files[0];*/
+            if (File.Exists(Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath)))
+                filename = Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath);
+            else {
+                if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage) || !_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
+                    filename = Utility.FileNameToPath("Resources", _referenceData.defaultImage);
+                else //if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
+                {
+                    filename = Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath);
+
+                    /*string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                    string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);
+                    filename = files[0];*/
+                }
             }
             /*else
             {
@@ -297,8 +309,9 @@ namespace PDSProject
 
         public void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            Task.Run(() => { _TCPSender.Send(_referenceData.LocalUser.ProfileImagePath); });
+            Task.Run(() => { _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); });
         }
 
     }
 }
+    

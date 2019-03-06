@@ -19,7 +19,7 @@
             <Image x:Name="HostImage" Height="50" Canvas.Left="240" Stretch="Fill" Width="50" RenderTransformOrigin="0.5,0.5" Canvas.Top="6" Source="Resources/defaultProfile.png"/>
         </Canvas>
         <Canvas x:Name="Body" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="253" Margin="20,189,0,-85" VerticalAlignment="Top" Width="300">
-            <TextBox x:Name="WriteMessage" HorizontalAlignment="Left" Height="48" TextWrapping="Wrap" Text="Insert message to send..." VerticalAlignment="Top" Width="300"/>
+            <TextBox x:Name="WriteMessage" HorizontalAlignment="Left" Height="48" TextWrapping="Wrap" VerticalAlignment="Top" Width="300"/>
             <Button x:Name="ButtonSend" Content="Send Message" HorizontalAlignment="Left" VerticalAlignment="Top" Width="90" Click="ButtonSend_Click" Canvas.Left="95" Canvas.Top="59"/>
             <TextBlock x:Name="textWaiting" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Width="300" Canvas.Top="88"><Run Text="Wait for connection"/><Run Text="..."/></TextBlock>
             <TextBlock x:Name="textConnection" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Width="70" Canvas.Top="109" Text="Connection:" FontWeight="Bold"/>

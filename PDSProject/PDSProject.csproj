@@ -132,10 +132,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Host\HostProfileImage\defaultProfile.png">
+    <EmbeddedResource Include="Resources\defaultProfile.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\search-filled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Host\HostProfileImage\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -108,7 +108,7 @@ namespace PDSProject
                     long dimfile = 0; 
                     string file_name = "";
                     if (info[0].Equals("CHIMAGE")){
-                        file_name += "puserImage" + info[1];
+                        file_name += /*"puserImage" +*/ info[1];
                         dimfile = Convert.ToInt64(info[2]);
                     }
                     else{
@@ -117,6 +117,11 @@ namespace PDSProject
                     }
 
                     // Crea il file e lo riempie
+                    if (File.Exists(file_name)) {
+                        string[] splits = file_name.Split('.');
+                        splits[splits.Length -2] += "_Copia";
+                        file_name = string.Join(".", splits);
+                    }
                     var file = File.Create(file_name);
                     long dataReceived = dimfile;
                     while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
@@ -143,7 +148,6 @@ namespace PDSProject
                             fs.Close();
                         }
                     }
-                    file.Close();
                 }
                 /*
                 // CODICE VECCHIO, tengo per sicurezza // 

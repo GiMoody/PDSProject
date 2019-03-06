@@ -29,7 +29,7 @@ namespace PDSProject
         /// </summary>
         /// <param name="message">Nome del file (path assoluto)</param>
         /// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
-        public void Send(string filename){
+        public void Send(List<string> filenames){
             // TODO: da cambiare!!!
             IPAddress serverAddr;
             if (!_referenceData.hasChangedProfileImage) {
@@ -43,51 +43,58 @@ namespace PDSProject
 
             try
             {
-                client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
+                
+                foreach (string path in filenames)
+                {
+                    client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
 
-                UTF8Encoding encoder = new UTF8Encoding();
-                FileStream file = File.OpenRead(filename);//"Risultati.pdf");
+                    UTF8Encoding encoder = new UTF8Encoding();
+                    FileStream file = File.OpenRead(@path);//"Risultati.pdf");
 
-                // Invio primo pacchetto con nome e dimensione
-                // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-                long dim = file.Length;
-                string firstmsg = "";
+                    // Invio primo pacchetto con nome e dimensione
+                    // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
+                    long dim = file.Length;
+                    string firstmsg = "";
 
-                // Da cambiare
-                if (_referenceData.hasChangedProfileImage) {
-                    firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-                    _referenceData.hasChangedProfileImage = false;
+                    // Da cambiare
+                    if (_referenceData.hasChangedProfileImage)
+                    {
+                        firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+                        _referenceData.hasChangedProfileImage = false;
+                    }
+
+                    string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
+                    firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
+
+                    /* 
+                     * Questa roba merita purtroppo 2 parole:
+                     * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
+                     * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
+                     * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
+                     */
+                    byte[] bytes = new byte[bufferSize];
+                    encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
+                    Random rand = new Random();
+                    for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
+                    {
+                        byte b = 1;
+                        bytes.Append(b);
+                    }
+                    NetworkStream stream = client.GetStream();
+                    stream.Write(bytes, 0, bufferSize);
+
+                    // Invio effettivo del file
+                    long numbPackets = dim / bufferSize;
+                    for (int i = 0; i <= numbPackets; i++)
+                    {
+                        bytes = new byte[bufferSize];
+                        file.Read(bytes, 0, bytes.Length);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                    file.Close();
+                    stream.Close();
                 }
-
-                string[] infoImage = filename.Split(new string[] { "\\" }, StringSplitOptions.None);
-                firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
-
-                /* 
-                 * Questa roba merita purtroppo 2 parole:
-                 * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
-                 * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
-                 * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
-                 */
-                byte[] bytes = new byte[bufferSize];
-                encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-                Random rand = new Random();
-                for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++){
-                    byte b = 1;
-                    bytes.Append(b);
-                }
-                NetworkStream stream = client.GetStream();
-                stream.Write(bytes, 0, bufferSize);
-
-                // Invio effettivo del file
-                long numbPackets = dim / bufferSize;
-                for (int i = 0; i <= numbPackets; i++){
-                    bytes = new byte[bufferSize];
-                    file.Read(bytes, 0, bytes.Length);
-                    stream.Write(bytes, 0, bytes.Length);
-                }
-                file.Close();
-                stream.Close();
-
+                _referenceData.PathFileToSend.Clear();
                 // OLD CODE
                 /*Byte[] bytes = encoder.GetBytes(message);
 
@@ -106,5 +113,6 @@ namespace PDSProject
                 client.Close();
             }
         }
+
     }
 }

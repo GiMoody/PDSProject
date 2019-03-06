@@ -44,6 +44,8 @@ namespace PDSProject
         //TODO: cose temporanea per invio immagine profilo
         public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
+        public List<string> PathFileToSend = new List<string>();
+        
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
         /// </summary>
@@ -100,21 +102,62 @@ namespace PDSProject
              */
             foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && item.OperationalStatus == OperationalStatus.Up)
+                if (/*item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && */item.OperationalStatus == OperationalStatus.Up)
                 {
                     foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
                     {
                         if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             // Questo snippet permette di definire l'indirizzo broadcast della sottorete
-                            Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
+                            //Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
 
+                            Console.WriteLine("Local Ip " + item.NetworkInterfaceType + " :" + ip.Address.ToString());
+
+                            /*
                             LocalIPAddress = ip.Address.ToString();
                             string[] parts = LocalIPAddress.Split('.');
                             parts[3] = "255";
                             BroadcastIPAddress = string.Join(".", parts);
 
-                            Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);
+                            Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);*/
+                        }
+                    }
+                }
+            }
+
+            // Test avviso cambio di rete
+            NetworkChange.NetworkAddressChanged += new NetworkAddressChangedEventHandler(AddressChangedCallback);
+        }
+
+        static void AddressChangedCallback(object sender, EventArgs e)
+        {
+
+            NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface n in adapters)
+            {
+                if (/*item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && */n.OperationalStatus == OperationalStatus.Up)
+                {
+                    if (!n.Name.Contains("Network Adapter") && !n.Name.Contains("Loopback"))
+                    {
+                        Console.WriteLine("   {0} is {1}", n.Name, n.OperationalStatus);
+
+                        foreach (UnicastIPAddressInformation ip in n.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                            {
+                                // Questo snippet permette di definire l'indirizzo broadcast della sottorete
+                                //Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
+
+                                Console.WriteLine("Local Ip " + n.NetworkInterfaceType + " :" + ip.Address.ToString());
+
+                                /*
+                                LocalIPAddress = ip.Address.ToString();
+                                string[] parts = LocalIPAddress.Split('.');
+                                parts[3] = "255";
+                                BroadcastIPAddress = string.Join(".", parts);
+
+                                Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);*/
+                            }
                         }
                     }
                 }
