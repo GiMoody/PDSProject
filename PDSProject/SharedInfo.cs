@@ -29,8 +29,9 @@ namespace PDSProject
         // TODO: da rivedere
         public string defaultImage = "defaultProfile.png"; 
 
-        public string LocalIPAddress;
-        public string BroadcastIPAddress;
+        // IP usati nella configurazione corrente
+        public string LocalIPAddress = "";
+        public string BroadcastIPAddress = "";
 
         // TODO: da rivedere, per ora sono fisse
         public Int32 TCPPort = 13000;
@@ -45,7 +46,13 @@ namespace PDSProject
         public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         public List<string> PathFileToSend = new List<string>();
-        
+
+        // Data structures di supporto da usare nella ricerca della sottorete in cui sono presenti degli Host
+        public List<string> LocalIps = new List<string>();
+        public List<string> BroadcastIps = new List<string>();
+        public Dictionary<string, string> Ips =new Dictionary<string, string>();
+    
+
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
         /// </summary>
@@ -100,69 +107,79 @@ namespace PDSProject
              *  Poichè a ho solo una scheda di rete Wifi e non posso connettermi col cavo Ethernet il codice seguente funziona solo per LAN Wifi.
              *  Sarebbe da gestire il caso dove ci sono più reti LAN
              */
-            foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (/*item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && */item.OperationalStatus == OperationalStatus.Up)
-                {
-                    foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            // Questo snippet permette di definire l'indirizzo broadcast della sottorete
-                            //Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
+            //foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
+            //{
+            //    if (/*item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && */item.OperationalStatus == OperationalStatus.Up)
+            //    {
+            //        foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
+            //        {
+            //            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+            //            {
+            //                // Questo snippet permette di definire l'indirizzo broadcast della sottorete
+            //                //Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
 
-                            Console.WriteLine("Local Ip " + item.NetworkInterfaceType + " :" + ip.Address.ToString());
+            //                Console.WriteLine("Local Ip " + item.NetworkInterfaceType + " :" + ip.Address.ToString());
 
-                            /*
-                            LocalIPAddress = ip.Address.ToString();
-                            string[] parts = LocalIPAddress.Split('.');
-                            parts[3] = "255";
-                            BroadcastIPAddress = string.Join(".", parts);
+            //                /*
+            //                LocalIPAddress = ip.Address.ToString();
+            //                string[] parts = LocalIPAddress.Split('.');
+            //                parts[3] = "255";
+            //                BroadcastIPAddress = string.Join(".", parts);
 
-                            Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);*/
-                        }
-                    }
-                }
-            }
+            //                Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);*/
+            //            }
+            //        }
+            //    }
+            //}
 
-            // Test avviso cambio di rete
+            // Aggiungo delegato all'evento che si occupa di segnalare cambi di rete
             NetworkChange.NetworkAddressChanged += new NetworkAddressChangedEventHandler(AddressChangedCallback);
+
+            FindAllNetworkInterface();
         }
 
-        static void AddressChangedCallback(object sender, EventArgs e)
-        {
+        private void FindAllNetworkInterface() {
+            // Prima di tutto pulisco le strutture dati di supporto
+            Ips.Clear();
+            LocalIPAddress = "";
+            BroadcastIPAddress = "";
 
-            NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface n in adapters)
-            {
-                if (/*item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && */n.OperationalStatus == OperationalStatus.Up)
-                {
-                    if (!n.Name.Contains("Network Adapter") && !n.Name.Contains("Loopback"))
-                    {
-                        Console.WriteLine("   {0} is {1}", n.Name, n.OperationalStatus);
+            // Listo tutte i possibili IP delle Network Interface attive sul dispositivo che non siano Loopback o Virtuali
+            foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) {
+                if (item.OperationalStatus == OperationalStatus.Up && 
+                    !item.Description.Contains("Virtual") && !item.Description.Contains("Loopback")) {
+                    foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses) {
+                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork) {
+                            // Questo snippet permette di definire l'indirizzo broadcast della sottorete
+                            Console.WriteLine("Local Ip on " + item.NetworkInterfaceType + " LAN:" + ip.Address.ToString());
 
-                        foreach (UnicastIPAddressInformation ip in n.GetIPProperties().UnicastAddresses)
-                        {
-                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                            {
-                                // Questo snippet permette di definire l'indirizzo broadcast della sottorete
-                                //Console.WriteLine("Local Ip on Wireless LAN:" + ip.Address.ToString());
+                            // Salvo dati all'interno delle struture dati di supporto 
+                            /// TODO: vedere se posso sfoltirle un po'
+                            if (!LocalIps.Contains(ip.Address.ToString()))
+                                LocalIps.Add(ip.Address.ToString());
+                            string BroadcastIPAddress = Utility.GetMulticastAddress(ip.Address.ToString());
 
-                                Console.WriteLine("Local Ip " + n.NetworkInterfaceType + " :" + ip.Address.ToString());
+                            if (!BroadcastIps.Contains(BroadcastIPAddress))
+                                BroadcastIps.Add(BroadcastIPAddress);
 
-                                /*
-                                LocalIPAddress = ip.Address.ToString();
-                                string[] parts = LocalIPAddress.Split('.');
-                                parts[3] = "255";
-                                BroadcastIPAddress = string.Join(".", parts);
+                            if (!Ips.ContainsKey(ip.Address.ToString()))
+                                Ips.Add(BroadcastIPAddress, ip.Address.ToString());
+                            else
+                                Ips[BroadcastIPAddress] = ip.Address.ToString();
 
-                                Console.WriteLine("Local Ip on Wireless LAN: " + BroadcastIPAddress);*/
-                            }
+
+                            Console.WriteLine("Multicast address on " + item.NetworkInterfaceType + " LAN:" + BroadcastIPAddress);
                         }
                     }
                 }
             }
         }
+        
+        static void AddressChangedCallback(object sender, EventArgs e) {
+            Instance.FindAllNetworkInterface();
+        }
+        
+
 
         /// <summary>
         /// Proprietà che ritorna una copia del rifierimento all'istanza

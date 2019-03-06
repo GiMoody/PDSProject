@@ -167,7 +167,14 @@ namespace PDSProject
         }
 
         private void dispatcherTimer_Tick(object sender, EventArgs e){
-            _UDPSender.Sender();
+            // Controllo se c'è stato un cambio di rete 
+            if(_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals("")) {
+                foreach(KeyValuePair<string,string> t in _referenceData.Ips) {
+                    _UDPSender.Sender(t.Key);                
+                }
+            }
+            else
+                _UDPSender.Sender(_referenceData.BroadcastIPAddress);
         }
 
         

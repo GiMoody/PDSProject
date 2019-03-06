@@ -39,5 +39,16 @@ namespace PDSProject
 
             return infoImage[infoImage.Length - 1];
         }
+
+        /// <summary>
+        /// Ritorna l'indirizzo multicast dell'indirizzo IP ricevuto come paramentro
+        /// </summary>
+        /// <param name="IP">Indirizzo IP</param>
+        /// <returns>Indirizzo multicast</returns>
+        static public string GetMulticastAddress(string IP) {
+            string[] parts = IP.Split('.');
+            parts[3] = "255";
+            return string.Join(".", parts);
+        }
     }
 }

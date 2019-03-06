@@ -40,7 +40,21 @@ namespace PDSProject
                 Host received = (Host)ser.ReadObject(stream);
 
                 // Controlla che il mittente non siamo noi
-                if (receivedIpEndPoint.Address.ToString().Equals(_referenceData.LocalIPAddress)) continue;
+                if (_referenceData.LocalIps.Contains(receivedIpEndPoint.Address.ToString())) continue;
+                
+                // Nel caso ci sia stat un cambio di rete avvisa in questo modo
+                if(_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals("")) {
+                    if(_referenceData.Ips.Count > 0) {
+                        string MulticastAddrs = Utility.GetMulticastAddress(receivedIpEndPoint.Address.ToString());
+                        if (_referenceData.BroadcastIps.Contains(MulticastAddrs))
+                        {
+                            _referenceData.BroadcastIPAddress = MulticastAddrs;
+                            _referenceData.LocalIPAddress = _referenceData.Ips[MulticastAddrs];
+                            Console.WriteLine("Find subnet with multicast address: " + MulticastAddrs);
+                        }
+                    }
+                }
+
 
                 // Se l'utente è già presente all'interno della struttura dati e ha dati diversi, aggiorno
                 if (_referenceData.Users.ContainsKey(receivedIpEndPoint.Address.ToString())){
