@@ -53,6 +53,7 @@ namespace PDSProject
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
+            Task.Run(() => { _UDPListener.Listener(); });
 
             // Inizializzo  info user
             /*textUNInfo.Text = _referenceData.LocalUser.Name;
@@ -87,7 +88,7 @@ namespace PDSProject
              * modalità admin o no ed esegue il metodo di conseguenza */
             //AddOptionContextMenu();
         }
-        
+
         /// <summary>
         /// Test inserimento opzione menù contestuale (tasto destro), funziona per ora ma non fa nulla
         /// da gestire la comunicazione tra processi o trovare un modo per evitare di avere 2 istanze dello stesso processo
