@@ -49,13 +49,8 @@ namespace PDSProject
             _UDPListener = new MyUDPListener();
             _UDPSender = new MyUDPSender();
 
-            DispatcherTimer dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
-            dispatcherTimer.Start();
-
             // Inizializzo  info user
-            /*textUNInfo.Text = _referenceData.LocalUser.Name;
+            textUNInfo.Text = _referenceData.LocalUser.Name;
             if (_referenceData.LocalUser.Status.Equals("online"))
                 checkUSBox.IsChecked = false;
             else
@@ -79,13 +74,13 @@ namespace PDSProject
             Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
             Task.Run(() => { PipeClient(); });
-            _referenceData.isFirst = true;*/
+            _referenceData.isFirst = true;
 
             // Aggiunge registri per menù contestuale
             /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
              * configurazioni una sola volta in modalità Admin. Per adesso il codice si limita a controllare se l'esecuzione è in
              * modalità admin o no ed esegue il metodo di conseguenza */
-            //AddOptionContextMenu();
+            AddOptionContextMenu();
         }
         
         /// <summary>
@@ -271,7 +266,7 @@ namespace PDSProject
                             _referenceData.SaveJson();
                             _referenceData.hasChangedProfileImage = true;
                             //TODO: invio a tutti gli host in rete
-                            _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+                            //_TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
                         }
 
                     }
@@ -316,7 +311,7 @@ namespace PDSProject
 
         public void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            Task.Run(() => { _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); });
+            //Task.Run(() => { _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); });
         }
 
     }
