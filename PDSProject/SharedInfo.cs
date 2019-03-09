@@ -176,6 +176,7 @@ namespace PDSProject
         }
         
         static void AddressChangedCallback(object sender, EventArgs e) {
+            Console.WriteLine("AddressShcangedCallback");
             Instance.FindAllNetworkInterface();
         }
         

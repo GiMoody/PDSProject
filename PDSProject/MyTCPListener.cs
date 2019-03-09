@@ -176,7 +176,7 @@ namespace PDSProject
                     })
                 );
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 Console.WriteLine($"SocketException: {e}");
             }

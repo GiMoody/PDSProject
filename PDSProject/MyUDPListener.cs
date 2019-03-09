@@ -50,6 +50,9 @@ namespace PDSProject
                         {
                             _referenceData.BroadcastIPAddress = MulticastAddrs;
                             _referenceData.LocalIPAddress = _referenceData.Ips[MulticastAddrs];
+                            MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                MainWindow.main.StartTCPListener();
+                            }));
                             Console.WriteLine("Find subnet with multicast address: " + MulticastAddrs);
                         }
                     }

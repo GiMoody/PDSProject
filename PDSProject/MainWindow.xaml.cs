@@ -56,6 +56,7 @@ namespace PDSProject
             else
                 checkUSBox.IsChecked = true;
 
+            
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
             // TODO: vedere se fare una copia o no e lasciarla interna al sistema
             string filename = _referenceData.LocalUser.ProfileImagePath;
@@ -71,7 +72,7 @@ namespace PDSProject
             dispatcherTimer.Start();
 
             //Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
-            Task.Run(() => { _TCPListener.Listener(); });
+            //Task.Run(() => { _TCPListener.Listener(); });
             Task.Run(() => { _UDPListener.Listener(); });
             Task.Run(() => { PipeClient(); });
             _referenceData.isFirst = true;
@@ -114,6 +115,12 @@ namespace PDSProject
                 _key.Close();
             }
         }
+
+        public void StartTCPListener ()
+        {
+            Task.Run(() => { _TCPListener.Listener(); });
+        }
+
 
         /// <summary>
         /// Implementazione della NamedPipeClient
