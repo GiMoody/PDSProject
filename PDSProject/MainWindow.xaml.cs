@@ -191,7 +191,6 @@ namespace PDSProject {
             _TCPListener.StopServer();
         }
 
-
         public void Test(string e) {
             /*test = e;
             foreach(string s in e) {
@@ -261,11 +260,15 @@ namespace PDSProject {
                 SendButton.Visibility = Visibility.Visible;
                 UndoButton.Visibility = Visibility.Visible;
                 selected = true;
+                if (_referenceData.Users.Count > 0) {
+                    _referenceData.selectedHost = _referenceData.Users.First().Key;
+                }
             } else {
                 canvasSelect.Background = new SolidColorBrush(Colors.AliceBlue);
                 SendButton.Visibility = Visibility.Hidden;
                 UndoButton.Visibility = Visibility.Hidden;
                 selected = false;
+                _referenceData.selectedHost = "";
             }
         }
 
