@@ -27,7 +27,7 @@ namespace PDSProject
         public Host LocalUser = new Host();
 
         // TODO: da rivedere
-        public string defaultImage = "defaultProfile.png"; 
+        public string defaultImage = "fox.jpg"; 
 
         public string LocalIPAddress;
         public string BroadcastIPAddress;
@@ -76,7 +76,7 @@ namespace PDSProject
                 {
                     // Costruisco il path assoluto dell'immagine di profilo
                     string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                    string archiveFolder = Path.Combine(currentDirectory, "Resources");
+                    string archiveFolder = Path.Combine(currentDirectory);//, "Resources");
                     string[] files = Directory.GetFiles(archiveFolder, defaultImage);
                     FileStream file = File.OpenRead(files[0]);
 

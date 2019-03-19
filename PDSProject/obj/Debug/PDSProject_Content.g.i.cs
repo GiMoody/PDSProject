@@ -8,7 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("file/defaultprofile.png")]
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("file/search-filled.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/host/hostprofileimage/edit.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/host/hostprofileimage/fox.jpg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/host/hostprofileimage/pikachu.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/host/hostprofileimage/settings.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/host/hostprofileimage/share_white.ico")]
 
 

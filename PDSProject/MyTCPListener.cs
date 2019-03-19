@@ -79,13 +79,13 @@ namespace PDSProject
                 Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
 
                 //Da rivedere. Di base permette di richiamare la finestra principale e di accedere al Dispatcher ma non so quanto corretto
-                MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "CONNENCTED"; }));
-                MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
-                    DispatcherPriority.Normal, new Action(() =>
-                    {
-                        MainWindow.main.textCheckConnection.Text = $"Client connected!";
-                    })
-                );
+                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "CONNENCTED"; }));
+                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
+                //    DispatcherPriority.Normal, new Action(() =>
+                //    {
+                //        MainWindow.main.textCheckConnection.Text = $"Client connected!";
+                //    })
+                //);
 
                 Byte[] bytes = new Byte[bufferSize];
                 string data = null;
@@ -163,14 +163,14 @@ namespace PDSProject
                 }
                 Thread.Sleep(2000);
                 */
-                //Da rivedere
-                MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "NOT CONNENCTED"; }));
-                MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
-                    DispatcherPriority.Normal, new Action(() =>
-                    {
-                        MainWindow.main.textCheckConnection.Text = $"Client disconnected!";
-                    })
-                );
+                ////Da rivedere
+                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "NOT CONNENCTED"; }));
+                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
+                //    DispatcherPriority.Normal, new Action(() =>
+                //    {
+                //        MainWindow.main.textCheckConnection.Text = $"Client disconnected!";
+                //    })
+                //);
             }
             catch (Exception e)
             {

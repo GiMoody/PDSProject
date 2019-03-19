@@ -3,7 +3,7 @@ Cose da fare:
 ### Host: 
 * Aggiungere informazioni di configurazione per l'utente locale.
 ### MyTCPListener:
-* Controllare se un fikle con lo steso nome esiste/ meccanismo di richiesta di ricezione file (dipende configurazione).
+* Controllare se un file con lo stesso nome esiste/ meccanismo di richiesta di ricezione file (dipende configurazione).
 * Aggiungere eccezioni in caso di: congestione di rete, file non completamente inviato, fine già esistente.
 * Pensare ad un sistema che crea nuovi thread in base al numero di thread fisici supportati dalla CPU e in caso quanti siano attivi in quel momento dal processo.
 * Aggiungere meccanismo per sapere la percentuale di completamento del file ricevuto.
