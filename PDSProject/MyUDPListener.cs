@@ -49,9 +49,11 @@ namespace PDSProject
                         string MulticastAddrs = Utility.GetMulticastAddress(receivedIpEndPoint.Address.ToString());
                         if (_referenceData.BroadcastIps.Contains(MulticastAddrs))
                         {
-                            MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                MainWindow.main.SendCallback();// StartTCPListener();
-                            }));
+                            if (!_referenceData.isFirst) {
+                                MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.SendCallback();// StartTCPListener();
+                                }));
+                            }
                             _referenceData.BroadcastIPAddress = MulticastAddrs;
                             _referenceData.LocalIPAddress = _referenceData.Ips[MulticastAddrs];
                             _referenceData.Users.Clear();
@@ -141,9 +143,11 @@ namespace PDSProject
                             string MulticastAddrs = Utility.GetMulticastAddress(receivedIpEndPoint.Address.ToString());
                             if (_referenceData.BroadcastIps.Contains(MulticastAddrs))
                             {
-                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.SendCallback();// StartTCPListener();
-                                }));
+                                if (!_referenceData.isFirst) {
+                                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                        MainWindow.main.SendCallback();// StartTCPListener();
+                                    }));
+                                }
                                 _referenceData.BroadcastIPAddress = MulticastAddrs;
                                 _referenceData.LocalIPAddress = _referenceData.Ips[MulticastAddrs];
                                 _referenceData.Users.Clear();

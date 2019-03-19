@@ -53,8 +53,7 @@ namespace PDSProject {
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            ni.Icon = new System.Drawing.Icon(
-                @"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
+            ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
             ni.Visible = true;
             ni.DoubleClick +=
                 delegate(object sender, EventArgs args) {
@@ -469,7 +468,9 @@ namespace PDSProject {
             _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
             if (_referenceData.useTask)
             {
-                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+                await Task.Run(async() => {
+                    await _TCPSender.SendA(new List<string>() {_referenceData.LocalUser.ProfileImagePath});
+                }); // Deve essere inviato a tutti gli utenti connessi 
             }
             else
             {
