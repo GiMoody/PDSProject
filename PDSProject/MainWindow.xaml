@@ -50,7 +50,7 @@
                 <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Text="NO MESSAGE YET..." Canvas.Top="380" Width="355" />
 
 
-                <Button x:Name="SendButton" Visibility="Hidden" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
+                <Button x:Name="SendButton" Click="ButtonSend_Click" Visibility="Hidden" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
                 <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64" Canvas.Left="243" Canvas.Top="512"/>
 
             </Canvas>

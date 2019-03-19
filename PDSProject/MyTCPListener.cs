@@ -12,6 +12,28 @@ using System.Windows.Threading;
 
 namespace PDSProject
 {
+    static class TestCancellation
+    {
+        public static async Task<T> WithWaitCancellation<T> (
+            this Task<T> task, CancellationToken cancellationToken )
+        {
+            // The tasck completion source. 
+            var tcs = new TaskCompletionSource<bool>();
+
+            // Register with the cancellation token.
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            {
+                // If the task waited on is the cancellation token...
+                if (task != await Task.WhenAny(task, tcs.Task))
+                    throw new OperationCanceledException(cancellationToken);
+            }
+
+            // Wait for one or the other to complete.
+            return await task;
+        }
+    }
+
+
     /// <summary>
     /// Classe che gestisce il TCPListener, ovvero il server.
     /// Per ora client e server sono stati separati, ma se non risulta funzionale è possibile unirli in un'unica classe.
@@ -21,8 +43,10 @@ namespace PDSProject
     {
         SharedInfo _referenceData;
         long bufferSize = 1024;
+        CancellationTokenSource source;
+        TcpListener server = null;
 
-        public MyTCPListener() {
+        public MyTCPListener () {
             _referenceData = SharedInfo.Instance;
         }
 
@@ -36,8 +60,8 @@ namespace PDSProject
             // Caratteristiche base per tcp lister: porta ed indirizzo
             IPAddress localAddr = IPAddress.Parse(_referenceData.LocalIPAddress);
             TcpListener server = null;
-            
-            try{
+            try
+            {
                 //Creo server definendo un oggetto TCPListener con porta ed indirizzo
                 server = new TcpListener(localAddr, _referenceData.TCPPort);
                 server.Start();
@@ -62,30 +86,129 @@ namespace PDSProject
             }
         }
 
-        /// <summary>
-        /// Metodo chiamato da un thread secondario che gestisce il client connesso.
-        /// Riceve un file e lo salva nel file system, nel caso esista già per ora lo sovrascrive e non fa nessun controllo in caso non esista o di problemi di rete.
-        /// TODO: vedere caso di file con lo stesso nome e come gestirli, gestire le varie casistiche di congestione di rete etc...
-        /// </summary>
-        /// <param name="result">Oggetto TCPClient connesso al server TCPListener corrente</param>
-        public void ServeClient(Object result){
+
+        // Alternativa listener precendente in modo tale che supporti i cambi di rete
+        public void ListenerB ()// CancellationToken tokenEndListener )
+        {
+            while (true)//!tokenEndListener.IsCancellationRequested)
+            {
+                //source = new CancellationTokenSource();
+                //CancellationToken tokenListener = source.Token;
+
+                Console.WriteLine("Wait for change");
+                lock (_referenceData.cvListener)
+                {
+                    while (_referenceData.LocalIPAddress.Equals(""))
+                        Monitor.Wait(_referenceData.cvListener);
+                }
+                Console.WriteLine("Change Listener local IP:" + _referenceData.LocalIPAddress);
+
+                IPAddress localAddr = IPAddress.Parse(_referenceData.LocalIPAddress);
+                //TcpListener server = null;
+
+                try
+                {
+                    //Creo server definendo un oggetto TCPListener con porta ed indirizzo
+                    server = new TcpListener(localAddr, _referenceData.TCPPort);
+                    server.Start();
+
+                    // Loop ascolto
+                    while (true)
+                    {
+                        Console.WriteLine("Waiting for connection...");
+                        TcpClient client = server.AcceptTcpClient();
+                        Thread t = new Thread(new ParameterizedThreadStart(ServeClient));
+                        t.Start(client);
+                        //await ServeClientA(client);
+                    }
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine($"SocketException: {e}");
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine($"Exception: {e}");
+                }
+                finally
+                {
+                    if (server != null)
+                        server.Stop();
+                }
+
+            }
+        }
+
+        // Alternativa listener precendente in modo tale che supporti i cambi di rete
+        public async Task ListenerA (CancellationToken tokenEndListener) {
+            while (!tokenEndListener.IsCancellationRequested) {
+                source = new CancellationTokenSource();
+                CancellationToken tokenListener = source.Token;
+
+                Console.WriteLine("Wait for change");
+                lock (_referenceData.cvListener)
+                {
+                    while (_referenceData.LocalIPAddress.Equals(""))
+                        Monitor.Wait(_referenceData.cvListener);
+                }
+                Console.WriteLine("Change Listener local IP:" + _referenceData.LocalIPAddress);
+
+                IPAddress localAddr = IPAddress.Parse(_referenceData.LocalIPAddress);
+                //TcpListener server = null;
+
+                try
+                {
+                    //Creo server definendo un oggetto TCPListener con porta ed indirizzo
+                    server = new TcpListener(localAddr, _referenceData.TCPPort);
+                    server.Start();
+                    
+                    // Loop ascolto
+                    while (!tokenListener.IsCancellationRequested)
+                    {
+                        Console.WriteLine("Waiting for connection...");
+                        TcpClient client = await server.AcceptTcpClientAsync().WithWaitCancellation(tokenListener);
+                        //Thread t = new Thread(new ParameterizedThreadStart(ServeClientA));
+                        //t.Start(client);
+                        await ServeClientA(client);
+                    }
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine($"SocketException: {e}");
+                }
+                finally
+                {
+                    if(server!= null)
+                    server.Stop();
+                }
+
+            }
+        }
+
+        public void StopServer ()
+        {
+            Console.WriteLine("On stop server");
+            if (_referenceData.useTask)
+                source.Cancel();
+            else
+            {
+                server.Stop();
+                server = null;
+            }
+        }
+
+
+        public async Task ServeClientA ( Object result)
+        {
             // Gestione base problemi rete
             NetworkStream stream = null;
             TcpClient client = null;
+            
             try
             {
                 client = (TcpClient)result;
 
                 Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
-
-                //Da rivedere. Di base permette di richiamare la finestra principale e di accedere al Dispatcher ma non so quanto corretto
-                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "CONNENCTED"; }));
-                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
-                //    DispatcherPriority.Normal, new Action(() =>
-                //    {
-                //        MainWindow.main.textCheckConnection.Text = $"Client connected!";
-                //    })
-                //);
 
                 Byte[] bytes = new Byte[bufferSize];
                 string data = null;
@@ -93,7 +216,7 @@ namespace PDSProject
                 stream = client.GetStream();
 
                 int i = 0;
-                if ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                if ((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0)
                 {
 
                     // Il primo pacchetto contiene solo il nome del file e la dimensione del file
@@ -105,81 +228,180 @@ namespace PDSProject
 
                     data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
                     string[] info = data.Split(' ');
-                    long dimfile = 0; 
+                    long dimfile = 0;
                     string file_name = "";
-                    if (info[0].Equals("CHIMAGE")){
-                        file_name += "puserImage" + info[1];
-                        dimfile = Convert.ToInt64(info[2]);
-                    }
-                    else{
-                        dimfile = Convert.ToInt64(info[1]);
-                        file_name = info[0];
-                    }
-
-                    // Crea il file e lo riempie
-                    var file = File.Create(file_name);
-                    long dataReceived = dimfile;
-                    while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
+                    if (info[0].Equals("CHNETWORK"))
+                        source.Cancel();
+                        //Console.WriteLine("On CHNET");
+                    else
                     {
-                        if (dataReceived > 0 && dataReceived < bufferSize)
-                            file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-                        else
-                            file.Write(bytes, 0, i);
-                        dataReceived -= i;
-                    }
-                    file.Close();
-
-                    // Avvisa che un'immagine è stata cambiata
-                    if (info[0].Equals("CHIMAGE")){
-                        //Salvo info e poi udp reciver aggiornerà le info
-
-                        using (SHA256 sha = SHA256.Create())
+                        if (info[0].Equals("CHIMAGE"))
                         {
-                            FileStream fs = File.OpenRead(file_name);
-                            byte[] hash = sha.ComputeHash(fs);
-                            string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
+                            file_name += /*"puserImage" +*/ info[1];
+                            dimfile = Convert.ToInt64(info[2]);
+                        }
+                        else
+                        {
+                            dimfile = Convert.ToInt64(info[1]);
+                            file_name = info[0];
+                        }
 
-                            _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
-                            fs.Close();
+                        // Crea il file e lo riempie
+                        if (File.Exists(file_name))
+                        {
+                            string[] splits = file_name.Split('.');
+                            splits[splits.Length - 2] += "_Copia";
+                            file_name = string.Join(".", splits);
+                        }
+                        var file = File.Create(file_name);
+                        long dataReceived = dimfile;
+                        bytes = new byte[bufferSize * 64];
+                        while (((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
+                        {
+                            if (dataReceived > 0 && dataReceived < i)// (bufferSize*64))
+                                file.Write(bytes, 0, Convert.ToInt32(dataReceived));
+                            else
+                                file.Write(bytes, 0, i);
+                            dataReceived -= i;
+                        }
+                        file.Close();
+
+                        // Avvisa che un'immagine è stata cambiata
+                        if (info[0].Equals("CHIMAGE"))
+                        {
+                            //Salvo info e poi udp reciver aggiornerà le info
+
+                            using (SHA256 sha = SHA256.Create())
+                            {
+                                FileStream fs = File.OpenRead(file_name);
+                                byte[] hash = sha.ComputeHash(fs);
+                                string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
+
+                                _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
+                                fs.Close();
+                            }
                         }
                     }
-                    file.Close();
-                }
-                /*
-                // CODICE VECCHIO, tengo per sicurezza // 
-                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-                {
-                    UTF8Encoding encoder = new UTF8Encoding();
-                    data = encoder.GetString(bytes);
-                    Console.WriteLine($"Received {data}");
-
-                    data = data.Replace("\0", string.Empty);
-
-                    MainWindow.main.textInfoMessage.Dispatcher.BeginInvoke(
-                    DispatcherPriority.Normal, new Action(() => {
-                        MainWindow.main.textInfoMessage.Text = $"Received {data}";
-                    }));
 
                 }
-                Thread.Sleep(2000);
-                */
-                ////Da rivedere
-                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { MainWindow.main.textCheckConnection.Text = "NOT CONNENCTED"; }));
-                //MainWindow.main.textCheckConnection.Dispatcher.BeginInvoke(
-                //    DispatcherPriority.Normal, new Action(() =>
-                //    {
-                //        MainWindow.main.textCheckConnection.Text = $"Client disconnected!";
-                //    })
-                //);
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 Console.WriteLine($"SocketException: {e}");
             }
-            finally {
+            finally
+            {
                 stream.Close();
                 client.Close();
             }
+        }
+
+
+    /// <summary>
+    /// Metodo chiamato da un thread secondario che gestisce il client connesso.
+    /// Riceve un file e lo salva nel file system, nel caso esista già per ora lo sovrascrive e non fa nessun controllo in caso non esista o di problemi di rete.
+    /// TODO: vedere caso di file con lo stesso nome e come gestirli, gestire le varie casistiche di congestione di rete etc...
+    /// </summary>
+    /// <param name="result">Oggetto TCPClient connesso al server TCPListener corrente</param>
+    public void ServeClient(Object result){
+        // Gestione base problemi rete
+        NetworkStream stream = null;
+        TcpClient client = null;
+        try
+        {
+            client = (TcpClient)result;
+
+            Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
+
+            
+            Byte[] bytes = new Byte[bufferSize];
+            string data = null;
+
+            stream = client.GetStream();
+
+            int i = 0;
+            if ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+            {
+
+                // Il primo pacchetto contiene solo il nome del file e la dimensione del file
+                // TODO: vedere quale carattere di terminazione scegliere, lo spazio potrebbe essere all'interno del nome del file
+                UTF8Encoding encoder = new UTF8Encoding(); // Da cambiare, mettere almeno UTF-16
+                data = encoder.GetString(bytes);
+
+                Console.WriteLine($"Received {data}");
+
+                data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
+                string[] info = data.Split(' ');
+                long dimfile = 0; 
+                string file_name = "";
+                if (info[0].Equals("CHIMAGE")){
+                    file_name += /*"puserImage" +*/ info[1];
+                    dimfile = Convert.ToInt64(info[2]);
+                }
+                else{
+                    dimfile = Convert.ToInt64(info[1]);
+                    file_name = info[0];
+                }
+
+                // Crea il file e lo riempie
+                if (File.Exists(file_name)) {
+                    string[] splits = file_name.Split('.');
+                    splits[splits.Length -2] += "_Copia";
+                    file_name = string.Join(".", splits);
+                }
+                var file = File.Create(file_name);
+                bytes = new byte[bufferSize * 64];
+                long dataReceived = dimfile;
+                while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
+                {
+                    if (dataReceived > 0 && dataReceived < i)//bufferSize)
+                        file.Write(bytes, 0, Convert.ToInt32(dataReceived));
+                    else
+                        file.Write(bytes, 0, i);
+                    dataReceived -= i;
+                }
+                file.Close();
+
+                // Avvisa che un'immagine è stata cambiata
+                if (info[0].Equals("CHIMAGE")){
+                    //Salvo info e poi udp reciver aggiornerà le info
+
+                    using (SHA256 sha = SHA256.Create())
+                    {
+                        FileStream fs = File.OpenRead(file_name);
+                        byte[] hash = sha.ComputeHash(fs);
+                        string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
+
+                        _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
+                        fs.Close();
+                    }
+                }
+            }
+            /*
+            // CODICE VECCHIO, tengo per sicurezza // 
+            while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+            {
+                UTF8Encoding encoder = new UTF8Encoding();
+                data = encoder.GetString(bytes);
+                Console.WriteLine($"Received {data}");
+                data = data.Replace("\0", string.Empty);
+                MainWindow.main.textInfoMessage.Dispatcher.BeginInvoke(
+                DispatcherPriority.Normal, new Action(() => {
+                    MainWindow.main.textInfoMessage.Text = $"Received {data}";
+                }));
+            }
+            Thread.Sleep(2000);
+            */
+            
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine($"SocketException: {e}");
+        }
+        finally {
+            stream.Close();
+            client.Close();
+        }
         }
     }
 }

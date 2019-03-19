@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -21,7 +22,7 @@ namespace PDSProject
             _referenceData = SharedInfo.Instance;
         }
 
-        public void Sender(){
+        public void Sender(string multicastAddr){
             UdpClient sender = new UdpClient();
 
             // Serializza il contenuto e lo invia
@@ -32,7 +33,7 @@ namespace PDSProject
                 ser.WriteObject(ms, _referenceData.LocalUser);
                 ms.Position = 0;
                 byte[] buffer = ms.ToArray();
-                sender.Send(buffer, buffer.Length, _referenceData.BroadcastIPAddress, _referenceData.UDPReceivedPort);
+                sender.Send(buffer, buffer.Length, multicastAddr, _referenceData.UDPReceivedPort);
                 sender.Close();
             }
             catch (Exception e) {
