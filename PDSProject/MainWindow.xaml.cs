@@ -21,6 +21,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Security.Principal;
+using System.Threading;
 
 namespace PDSProject
 {
@@ -37,7 +38,11 @@ namespace PDSProject
         MyTCPSender _TCPSender;
         MyUDPListener _UDPListener;
         MyUDPSender _UDPSender;
+        CancellationTokenSource source;
         
+        // task da attendere
+
+
         public MainWindow()
         {
             
@@ -48,6 +53,7 @@ namespace PDSProject
             _TCPSender = new MyTCPSender();
             _UDPListener = new MyUDPListener();
             _UDPSender = new MyUDPSender();
+            source = new CancellationTokenSource();
 
             // Inizializzo  info user
             textUNInfo.Text = _referenceData.LocalUser.Name;
@@ -72,9 +78,20 @@ namespace PDSProject
             dispatcherTimer.Start();
 
             //Avvia due ulteriori thread per gestire i due ascoltatori TCP e UDP
-            //Task.Run(() => { _TCPListener.Listener(); });
-            Task.Run(() => { _UDPListener.Listener(); });
-            Task.Run(() => { PipeClient(); });
+
+            if (_referenceData.useTask) {
+                Task.Run(async () => { await _UDPListener.ListenerA(source.Token); });
+                Task.Run(() => { PipeClient(); });
+            }
+            else
+            {
+                Thread t = new Thread(new ThreadStart(_UDPListener.Listener));
+                t.Start();
+                Thread tc = new Thread(new ThreadStart(PipeClient));
+                tc.Start();
+            }
+            StartTCPListener();
+
             _referenceData.isFirst = true;
 
             // Aggiunge registri per menù contestuale
@@ -118,9 +135,22 @@ namespace PDSProject
 
         public void StartTCPListener ()
         {
-            Task.Run(() => { _TCPListener.Listener(); });
+            if (_referenceData.useTask) {
+                CancellationToken token = source.Token;
+                Task.Run(async () => { await _TCPListener.ListenerA(token); });
+            }
+            else {
+                Thread t = new Thread(new ThreadStart(_TCPListener.ListenerB));
+                t.Start();
+            }
+            
         }
 
+        public void SendCallback ()
+        {
+            //_TCPSender. SendCallback();
+            _TCPListener.StopServer();
+        }
 
         /// <summary>
         /// Implementazione della NamedPipeClient
@@ -181,10 +211,21 @@ namespace PDSProject
 
         
 
-        private void ButtonSend_Click(object sender, RoutedEventArgs e){
+        private async void ButtonSend_Click(object sender, RoutedEventArgs e){
             string message = WriteMessage.Text;
             if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHost!= "") {
-                Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
+                //Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
+                foreach (string path in _referenceData.PathFileToSend)
+                    _referenceData.FileToFinish.Add(path, "start");
+                _referenceData.PathFileToSend.Clear();
+
+                if (_referenceData.useTask)
+                    await _TCPSender.SendA(_referenceData.FileToFinish.Keys.ToList());
+
+                else {
+                    Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
+                    t.Start(_referenceData.FileToFinish.Keys.ToList());
+                }
             }
         }
 
@@ -239,7 +280,7 @@ namespace PDSProject
         /// </summary>
         /// <param name="sender">Non usato</param>
         /// <param name="e">Non usato</param>
-        private void Image_MouseDown(object sender, MouseButtonEventArgs e){
+        private async void Image_MouseDown(object sender, MouseButtonEventArgs e){
             // Strumento base di windows per scegliere un file nel filesystem
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
@@ -273,7 +314,16 @@ namespace PDSProject
                             _referenceData.SaveJson();
                             _referenceData.hasChangedProfileImage = true;
                             //TODO: invio a tutti gli host in rete
-                            //_TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+
+                            if (_referenceData.useTask)
+                            {
+                                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+                            }
+                            else
+                            {
+                                Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
+                                t.Start(new List<string>() { _referenceData.LocalUser.ProfileImagePath });
+                            }
                         }
 
                     }
@@ -287,8 +337,9 @@ namespace PDSProject
 
             HostImage.Width = 50; HostImage.Height = 50;
             string filename = "";
+            string tmp_name  = "";
 
-            if (File.Exists(Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath)))
+            if (!(tmp_name = Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath)).Equals("") && File.Exists(tmp_name))
                 filename = Utility.FileNameToPath(/*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath);
             else {
                 if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage) || !_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
@@ -310,17 +361,45 @@ namespace PDSProject
                 string[] files = Directory.GetFiles(archiveFolder, _referenceData.defaultImage);
                 filename = files[0];
             }*/
-            var file = File.OpenRead(filename);
+            if (filename.Equals("")) return;
+            try
+            {
+                var file = File.OpenRead(filename);
 
-            HostImage.Source = new BitmapImage(new Uri(filename));
-            file.Close();
+                HostImage.Source = new BitmapImage(new Uri(filename));
+                file.Close();
+            }
+            catch(UnauthorizedAccessException e)
+            {
+                Console.WriteLine($"File not yet reciced : {e.Message}");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Exception : {e.Message}");
+            }
         }
 
-        public void SendProfileImage() {
+        public async void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            //Task.Run(() => { _TCPSender.Send(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); });
+            _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
+            if (_referenceData.useTask)
+            {
+                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+            }
+            else
+            {
+                
+                Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
+                t.Start(new List<string>() { _referenceData.LocalUser.ProfileImagePath });
+            }
         }
 
+        private void MainWindow_Closing ( object sender, System.ComponentModel.CancelEventArgs e )
+        {
+            //source.Cancel();
+            _TCPListener.StopServer();
+            //_TCPSender.SendCallback();
+        }
     }
 }
     

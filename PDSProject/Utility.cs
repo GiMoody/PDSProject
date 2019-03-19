@@ -26,7 +26,10 @@ namespace PDSProject
             
             string[] files = Directory.GetFiles(archiveFolder, filename);
 
-            return files[0];
+            if (files.Length > 0)
+                return files[0];
+            else
+                return "";
         }
 
         /// <summary>

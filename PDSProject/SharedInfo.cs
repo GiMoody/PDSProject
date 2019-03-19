@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using System.Reflection;
+using System.Windows.Threading;
 
 namespace PDSProject
 {
@@ -32,6 +33,8 @@ namespace PDSProject
         // IP usati nella configurazione corrente
         public string LocalIPAddress = "";
         public string BroadcastIPAddress = "";
+        public string CallBackIPAddress = "";
+
 
         // TODO: da rivedere, per ora sono fisse
         public Int32 TCPPort = 13000;
@@ -46,17 +49,21 @@ namespace PDSProject
         public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         public List<string> PathFileToSend = new List<string>();
+        public Dictionary<string, string> FileToFinish = new Dictionary<string,string>();
 
         // Data structures di supporto da usare nella ricerca della sottorete in cui sono presenti degli Host
         public List<string> LocalIps = new List<string>();
         public List<string> BroadcastIps = new List<string>();
         public Dictionary<string, string> Ips =new Dictionary<string, string>();
-    
+
+        public object cvListener = new object();
+
+        public bool useTask= false;
 
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
         /// </summary>
-        private SharedInfo()
+        private SharedInfo ()
         {
            /* TODO: da rivedere.
             *  Per ora crea un file JSON come profilo dell'utente.
@@ -141,8 +148,11 @@ namespace PDSProject
         private void FindAllNetworkInterface() {
             // Prima di tutto pulisco le strutture dati di supporto
             Ips.Clear();
+            if(!LocalIPAddress.Equals(""))
+                CallBackIPAddress = LocalIPAddress;
             LocalIPAddress = "";
             BroadcastIPAddress = "";
+            Users.Clear();
 
             // Listo tutte i possibili IP delle Network Interface attive sul dispositivo che non siano Loopback o Virtuali
             foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) {
@@ -177,6 +187,8 @@ namespace PDSProject
         
         static void AddressChangedCallback(object sender, EventArgs e) {
             Console.WriteLine("AddressShcangedCallback");
+            //Invio callback
+
             Instance.FindAllNetworkInterface();
         }
         
