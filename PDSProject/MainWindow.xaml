@@ -45,7 +45,7 @@
                     </Ellipse.Fill>-->
                 </Ellipse>
                 <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="119" Canvas.Top="282" Width="170"/>
-                <TextBlock x:Name="textSFriend" Foreground="Green" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="119" Canvas.Top="304" Width="170"/>
+                <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="119" Canvas.Top="304" Width="170"/>
 
                 <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Text="NO MESSAGE YET..." Canvas.Top="380" Width="355" />
 
@@ -66,7 +66,7 @@
                     </Ellipse.Fill>
                 </Ellipse>
                 <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Canvas.Left="174" Canvas.Top="50" Width="99" Height="19"/>
-                <TextBox x:Name="textChangeName" Height="26" Canvas.Left="174" TextWrapping="Wrap" Text="Rossella" Canvas.Top="74" Width="190"/>
+                <TextBox x:Name="textChangeName" Height="26" Canvas.Left="174" TextWrapping="Wrap" Canvas.Top="74" Width="190"/>
                 <Image x:Name="editIcon" Source="Resources/Host/HostProfileImage/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Canvas.Left="119" Canvas.Top="117"/>
 
 

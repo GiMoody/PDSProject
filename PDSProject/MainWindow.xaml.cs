@@ -45,6 +45,8 @@ namespace PDSProject {
         MyUDPSender _UDPSender;
         CancellationTokenSource source;
 
+        private System.Windows.Forms.ContextMenu contextMenu;
+        
         System.Windows.Forms.NotifyIcon ni = new System.Windows.Forms.NotifyIcon();
 
         public MainWindow() {
@@ -53,11 +55,19 @@ namespace PDSProject {
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
+            // Initialize contextMenu 
+            this.contextMenu = new System.Windows.Forms.ContextMenu();
+            this.contextMenu.MenuItems.Add(0, new System.Windows.Forms.MenuItem("Show", new System.EventHandler(Show_Click)));
+            this.contextMenu.MenuItems.Add(1, new System.Windows.Forms.MenuItem("Hide", new System.EventHandler(Hide_Click)));
+            this.contextMenu.MenuItems.Add(2, new System.Windows.Forms.MenuItem("Exit", new System.EventHandler(Exit_Click)));
+            
+            //Initialize icon
             ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
             ni.Visible = true;
+            ni.ContextMenu = this.contextMenu;
+            ni.Text = "PDS_Condividi";
             ni.DoubleClick +=
-                delegate (object sender, EventArgs args)
-                {
+                delegate (object sender, EventArgs args){
                     this.Show();
                     this.WindowState = WindowState.Normal;
                 };
@@ -70,19 +80,19 @@ namespace PDSProject {
 
             source = new CancellationTokenSource();
 
-            // Inizializzo  info user
+            // Inizializzo info user
             textUserName.Text = _referenceData.LocalUser.Name;
-            if (_referenceData.LocalUser.Status.Equals("online"))
+            if (_referenceData.LocalUser.Status.Equals("online")) {
                 comboStatus.Text = "Public";
-            else
+            } else {
                 comboStatus.Text = "Private";
+            }
 
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
             // TODO: vedere se fare una copia o no e lasciarla interna al sistema
             string filename = _referenceData.LocalUser.ProfileImagePath;
             if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage))
                 filename = Utility.FileNameToPath("", _referenceData.defaultImage);
-            //ImageProfile.Source = new BitmapImage(new Uri(filename));
             ImageBrush imgBrush = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
 
@@ -114,6 +124,21 @@ namespace PDSProject {
              * modalità admin o no ed esegue il metodo di conseguenza */
             AddOptionContextMenu();
         }
+        
+        /// <summary>
+        /// Gestione eventi del context menù (icona in basso)
+        /// </summary>
+        protected void Exit_Click(Object sender, System.EventArgs e){
+            Close();
+        }
+        protected void Hide_Click(Object sender, System.EventArgs e){
+            Hide();
+        }
+        protected void Show_Click(Object sender, System.EventArgs e) {
+            Show();
+        }
+        ///
+        
 
         /// <summary>
         /// Test inserimento opzione menù contestuale (tasto destro), funziona per ora ma non fa nulla
@@ -429,6 +454,12 @@ namespace PDSProject {
             MainWindow.main.textNFriend.Text = _referenceData.Users[ip].Name;
             MainWindow.main.textSFriend.Text = _referenceData.Users[ip].Status;
 
+            if (_referenceData.Users[ip].Status == "online") {
+                MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.Green);
+            } else if (_referenceData.Users[ip].Status == "offline" || _referenceData.Users[ip].Status == "") {
+                MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.DarkRed);
+            }
+
             //HostImage.Width = 50; HostImage.Height = 50;
             string filename = "";
             string tmp_name = "";
@@ -467,6 +498,9 @@ namespace PDSProject {
                 //HostImage.Source = new BitmapImage(new Uri(filename));
             }
         
+        /// <summary>
+        /// Aggiorna immagine del profilo (invia l'immagine)
+        /// </summary>
         public async void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
             _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
@@ -474,7 +508,7 @@ namespace PDSProject {
             {
                 await Task.Run(async() => {
                     await _TCPSender.SendA(new List<string>() {_referenceData.LocalUser.ProfileImagePath});
-                }); // Deve essere inviato a tutti gli utenti connessi 
+                }); 
             }
             else
             {
@@ -484,6 +518,9 @@ namespace PDSProject {
             }
         }
 
+        /// <summary>
+        /// Invio file
+        /// </summary>
         private async void ButtonSend_Click(object sender, RoutedEventArgs e) {
 
             if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHost != "") {
