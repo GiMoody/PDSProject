@@ -20,10 +20,10 @@
                         <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
                     </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Canvas.Left="158" Canvas.Top="49" Width="57"/>
-                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Canvas.Left="158" Canvas.Top="76" Width="100">
-                    <ComboBoxItem>Public</ComboBoxItem>
-                    <ComboBoxItem>Private</ComboBoxItem>
+                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Canvas.Left="193" Canvas.Top="46" Width="57"/>
+                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Canvas.Left="165" Canvas.Top="76" Width="100">
+                    <ComboBoxItem>Online</ComboBoxItem>
+                    <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>
 
                 <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources/Host/HostProfileImage/settings.png" RenderTransformOrigin="0.48,0.47" Height="38" Width="46" Canvas.Left="348" Canvas.Top="10"/>
@@ -46,6 +46,7 @@
                 </Ellipse>
                 <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="119" Canvas.Top="282" Width="170"/>
                 <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="119" Canvas.Top="304" Width="170"/>
+                <Image x:Name="statusImage" Height="16" Canvas.Left="166" Canvas.Top="46" Width="20"/>
 
                 <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Text="NO MESSAGE YET..." Canvas.Top="380" Width="355" />
 

@@ -50,6 +50,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>share_white.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Windows.Shell, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Windows.Shell.3.0.1.0\lib\net40\Microsoft.Windows.Shell.dll</HintPath>
@@ -163,6 +166,13 @@
     <Resource Include="Resources\Host\HostProfileImage\pikachu.png" />
     <Resource Include="Resources\Host\HostProfileImage\settings.png" />
     <Resource Include="Resources\Host\HostProfileImage\share_white.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="share_white.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Host\HostProfileImage\green_dot.png" />
+    <Resource Include="Resources\Host\HostProfileImage\red_dot.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

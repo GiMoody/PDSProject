@@ -62,7 +62,7 @@ namespace PDSProject {
             this.contextMenu.MenuItems.Add(2, new System.Windows.Forms.MenuItem("Exit", new System.EventHandler(Exit_Click)));
             
             //Initialize icon
-            ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
+            ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\share_white.ico");
             ni.Visible = true;
             ni.ContextMenu = this.contextMenu;
             ni.Text = "PDS_Condividi";
@@ -81,11 +81,14 @@ namespace PDSProject {
             source = new CancellationTokenSource();
 
             // Inizializzo info user
+            // da modificare parte URI
             textUserName.Text = _referenceData.LocalUser.Name;
             if (_referenceData.LocalUser.Status.Equals("online")) {
-                comboStatus.Text = "Public";
+                comboStatus.Text = "Online";
+                statusImage.Source = new BitmapImage(new Uri(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\green_dot.png"));
             } else {
-                comboStatus.Text = "Private";
+                comboStatus.Text = "Offline";
+                statusImage.Source = new BitmapImage(new Uri(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\red_dot.png"));
             }
 
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
@@ -438,10 +441,10 @@ namespace PDSProject {
         /// Combobox Status changed (non sicura funzionamento)
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (comboStatus.Text == "Private") {
+            if (comboStatus.Text == "Online") {
                 _referenceData.LocalUser.Status = "offline";
                 _referenceData.SaveJson();
-            } else if (comboStatus.Text == "Public") {
+            } else if (comboStatus.Text == "Offline") {
                 _referenceData.LocalUser.Status = "online";
                 _referenceData.SaveJson();
             }
