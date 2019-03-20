@@ -56,7 +56,8 @@ namespace PDSProject {
             ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
             ni.Visible = true;
             ni.DoubleClick +=
-                delegate(object sender, EventArgs args) {
+                delegate (object sender, EventArgs args)
+                {
                     this.Show();
                     this.WindowState = WindowState.Normal;
                 };

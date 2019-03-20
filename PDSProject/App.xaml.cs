@@ -33,7 +33,7 @@ namespace PDSProject
             {
                 string path = string.Join("", e.Args);
                 PipeServer(path);
-                ActivateOtherWindow();
+                //ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));
                 Shutdown();
             }
@@ -41,7 +41,7 @@ namespace PDSProject
 
         private static void ActivateOtherWindow()
         {
-            var other = FindWindow(null, "MainWindow");
+            var other = FindWindow(null, "Condividi");
             if (other != IntPtr.Zero)
             {
                 SetForegroundWindow(other);
