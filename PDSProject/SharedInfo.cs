@@ -27,7 +27,7 @@ namespace PDSProject
         public Host LocalUser = new Host();
 
         // TODO: da rivedere
-        public string defaultImage = "fox.jpg"; 
+        public string defaultImage = "default-user.png"; 
 
         public string LocalIPAddress = "";
         public string BroadcastIPAddress = "";
@@ -87,11 +87,8 @@ namespace PDSProject
                  */
                 using (SHA256 sha = SHA256.Create())
                 {
-                    // Costruisco il path assoluto dell'immagine di profilo
-                    string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                    string archiveFolder = Path.Combine(currentDirectory);//, "Resources");
-                    string[] files = Directory.GetFiles(archiveFolder, defaultImage);
-                    FileStream file = File.OpenRead(files[0]);
+                    string file_name = Utility.FileNameToHost(defaultImage);//Directory.GetFiles(archiveFolder, defaultImage);
+                    FileStream file = File.OpenRead(file_name);
 
                     // Calcolo effettivo dell'hash
                     byte[] hash = sha.ComputeHash(file);

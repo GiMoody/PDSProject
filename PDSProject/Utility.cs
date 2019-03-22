@@ -32,6 +32,41 @@ namespace PDSProject
                 return "";
         }
 
+        public static string FileNameToSystem(string filename) {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            archiveFolder = Path.Combine(archiveFolder, "System");
+            
+            string[] files = Directory.GetFiles(archiveFolder, filename);
+
+            if (files.Length > 0)
+                return files[0];
+            else
+                return "";
+        }
+        public static string PathSystem() {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            archiveFolder = Path.Combine(archiveFolder, "System");
+            return archiveFolder.ToString();
+        }
+
+        public static string FileNameToHost(string filename) {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            archiveFolder = Path.Combine(archiveFolder, "Host");
+            
+            string[] files = Directory.GetFiles(archiveFolder, filename);
+
+            if (files.Length > 0)
+                return files[0];
+            else
+                return "";
+        }
+
         /// <summary>
         /// Dal path assoluto ottiene il nome del file
         /// </summary>

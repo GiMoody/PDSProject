@@ -26,7 +26,7 @@
                     <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>
 
-                <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources/Host/HostProfileImage/settings.png" RenderTransformOrigin="0.48,0.47" Height="38" Width="46" Canvas.Left="348" Canvas.Top="10"/>
+                <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources\System\settings.png" RenderTransformOrigin="0.48,0.47" Height="34" Width="36" Canvas.Left="350" Canvas.Top="10"/>
 
                 <!--Progress File-->
                 <TextBlock x:Name="textFile" Visibility="Hidden" TextWrapping="Wrap" Text="prova.pdf" RenderTransformOrigin="0.488,0.535" Canvas.Left="24" Canvas.Top="164"/>
@@ -62,13 +62,13 @@
 
                 <!--User Settings-->
                 <Ellipse x:Name="ImageSettingsProfile" Stroke="DodgerBlue" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
-                    <Ellipse.Fill>
+                    <!--<Ellipse.Fill>
                         <ImageBrush ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
-                    </Ellipse.Fill>
+                    </Ellipse.Fill>-->
                 </Ellipse>
                 <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Canvas.Left="174" Canvas.Top="50" Width="99" Height="19"/>
                 <TextBox x:Name="textChangeName" Height="26" Canvas.Left="174" TextWrapping="Wrap" Canvas.Top="74" Width="190"/>
-                <Image x:Name="editIcon" Source="Resources/Host/HostProfileImage/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Canvas.Left="119" Canvas.Top="117"/>
+                <Image x:Name="editIcon" Source="Resources/System/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Canvas.Left="119" Canvas.Top="117"/>
 
 
                 <!--System Settings-->

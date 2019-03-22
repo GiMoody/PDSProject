@@ -224,7 +224,7 @@ namespace PDSProject
                     TcpClient client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
 
                     UTF8Encoding encoder = new UTF8Encoding();
-                    FileStream file = File.OpenRead(@path);//"Risultati.pdf");
+                    FileStream file = File.OpenRead(path);//"Risultati.pdf");
 
                     // Invio primo pacchetto con nome e dimensione
                     // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file

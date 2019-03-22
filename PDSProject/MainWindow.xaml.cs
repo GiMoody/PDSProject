@@ -62,7 +62,7 @@ namespace PDSProject {
             this.contextMenu.MenuItems.Add(2, new System.Windows.Forms.MenuItem("Exit", new System.EventHandler(Exit_Click)));
             
             //Initialize icon
-            ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\share_white.ico");
+            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_white.ico"));
             ni.Visible = true;
             ni.ContextMenu = this.contextMenu;
             ni.Text = "PDS_Condividi";
@@ -83,19 +83,19 @@ namespace PDSProject {
             // Inizializzo info user
             // da modificare parte URI
             textUserName.Text = _referenceData.LocalUser.Name;
-            if (_referenceData.LocalUser.Status.Equals("online")) {
+            if (_referenceData.LocalUser.Status.Equals("Online")) {
                 comboStatus.Text = "Online";
-                statusImage.Source = new BitmapImage(new Uri(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\green_dot.png"));
+                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
             } else {
                 comboStatus.Text = "Offline";
-                statusImage.Source = new BitmapImage(new Uri(@"C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\HostProfileImage\red_dot.png"));
+                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
             }
 
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
             // TODO: vedere se fare una copia o no e lasciarla interna al sistema
             string filename = _referenceData.LocalUser.ProfileImagePath;
             if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage))
-                filename = Utility.FileNameToPath("", _referenceData.defaultImage);
+                filename = Utility.FileNameToHost(_referenceData.defaultImage);
             ImageBrush imgBrush = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
 
@@ -398,7 +398,7 @@ namespace PDSProject {
                 this.textUserName.Text = this.textChangeName.Text;
 
                 _referenceData.LocalUser.Name = this.textChangeName.Text;
-//                  _referenceData.SaveJson();
+                _referenceData.SaveJson();
             }
 
         }
@@ -442,9 +442,11 @@ namespace PDSProject {
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (comboStatus.Text == "Online") {
+                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
                 _referenceData.LocalUser.Status = "offline";
                 _referenceData.SaveJson();
             } else if (comboStatus.Text == "Offline") {
+                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
                 _referenceData.LocalUser.Status = "online";
                 _referenceData.SaveJson();
             }
@@ -467,16 +469,15 @@ namespace PDSProject {
             string filename = "";
             string tmp_name = "";
 
-            if (!(tmp_name = Utility.FileNameToPath( /*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath))
-                    .Equals("") && File.Exists(tmp_name))
-                filename = Utility.FileNameToPath( /*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath);
+            if (!(tmp_name = _referenceData.Users[ip].ProfileImagePath).Equals("") && File.Exists(tmp_name))
+                filename = _referenceData.Users[ip].ProfileImagePath;
             else {
                 if (_referenceData.Users[ip].ProfileImagePath.Equals(_referenceData.defaultImage) ||
                     !_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
-                    filename = Utility.FileNameToPath("Resources", _referenceData.defaultImage);
+                    filename = Utility.FileNameToHost(_referenceData.defaultImage);
                 else //if (_referenceData.UserImageChange.ContainsKey(_referenceData.Users[ip].ProfileImageHash))
                 {
-                    filename = Utility.FileNameToPath( /*"Resources"*/ "", _referenceData.Users[ip].ProfileImagePath);
+                    filename = _referenceData.Users[ip].ProfileImagePath;
 
                     /*string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                     string[] files = Directory.GetFiles(currentDirectory, _referenceData.Users[ip].ProfileImagePath);

@@ -235,9 +235,9 @@ namespace PDSProject
                         //Console.WriteLine("On CHNET");
                     else
                     {
-                        if (info[0].Equals("CHIMAGE"))
-                        {
-                            file_name += /*"puserImage" +*/ info[1];
+                        if (info[0].Equals("CHIMAGE")) {
+                            file_name += Utility.PathSystem();
+                            file_name += /*"puserImage" +*/ "\\" + info[1];
                             dimfile = Convert.ToInt64(info[2]);
                         }
                         else
@@ -277,7 +277,7 @@ namespace PDSProject
                                 byte[] hash = sha.ComputeHash(fs);
                                 string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
 
-                                _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
+                                _referenceData.UserImageChange[hashImage] = file_name;
                                 fs.Close();
                             }
                         }
@@ -335,7 +335,8 @@ namespace PDSProject
                 long dimfile = 0; 
                 string file_name = "";
                 if (info[0].Equals("CHIMAGE")){
-                    file_name += /*"puserImage" +*/ info[1];
+                    file_name += Utility.PathSystem();
+                    file_name += /*"puserImage" +*/ "\\" + info[1];
                     dimfile = Convert.ToInt64(info[2]);
                 }
                 else{
@@ -372,7 +373,7 @@ namespace PDSProject
                         byte[] hash = sha.ComputeHash(fs);
                         string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
 
-                        _referenceData.UserImageChange[hashImage] = Utility.PathToFileName(file_name);
+                        _referenceData.UserImageChange[hashImage] = file_name;
                         fs.Close();
                     }
                 }
