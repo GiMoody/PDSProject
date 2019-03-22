@@ -36,7 +36,7 @@ namespace PDSProject
                 //ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));
                 //Application.Current.Shutdown(); //Shutdown();
-                Environment.Exit(0); 
+                Environment.Exit(0);
             }
         }
 
