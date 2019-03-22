@@ -27,7 +27,7 @@ namespace PDSProject
         public Host LocalUser = new Host();
 
         // TODO: da rivedere
-        public string defaultImage = "default-user.png"; 
+        public string defaultImage = "user.png"; 
 
         public string LocalIPAddress = "";
         public string BroadcastIPAddress = "";
