@@ -35,13 +35,13 @@ namespace PDSProject
                 PipeServer(path);
                 ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));
-                Shutdown();
+                Application.Current.Shutdown(); //Shutdown();
             }
         }
 
         private static void ActivateOtherWindow()
         {
-            var other = FindWindow(null, "MainWindow");
+            var other = FindWindow(null, "Condividi");
             if (other != IntPtr.Zero)
             {
                 SetForegroundWindow(other);
