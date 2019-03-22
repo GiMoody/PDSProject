@@ -35,7 +35,7 @@ namespace PDSProject
                 PipeServer(path);
                 //ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));
-                Shutdown();
+                Application.Current.Shutdown(); //Shutdown();
             }
         }
 
