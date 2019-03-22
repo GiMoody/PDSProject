@@ -53,13 +53,14 @@ namespace PDSProject {
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            //ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
-            //ni.Visible = true;
-            //ni.DoubleClick +=
-            //    delegate(object sender, EventArgs args) {
-            //        this.Show();
-            //        this.WindowState = WindowState.Normal;
-            //    };
+            ni.Icon = new System.Drawing.Icon(@"C:\Users\Rossella\source\repos\WpfApp1\WpfApp1\Resources\share_white.ico");
+            ni.Visible = true;
+            ni.DoubleClick +=
+                delegate (object sender, EventArgs args)
+                {
+                    this.Show();
+                    this.WindowState = WindowState.Normal;
+                };
 
             main = this;
             _TCPListener = new MyTCPListener();

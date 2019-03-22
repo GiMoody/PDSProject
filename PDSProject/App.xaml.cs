@@ -33,7 +33,7 @@ namespace PDSProject
             {
                 string path = string.Join("", e.Args);
                 PipeServer(path);
-                ActivateOtherWindow();
+                //ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));
                 Application.Current.Shutdown(); //Shutdown();
             }
