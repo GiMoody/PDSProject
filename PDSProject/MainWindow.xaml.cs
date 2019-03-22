@@ -342,6 +342,7 @@ namespace PDSProject {
                             //TODO: invio a tutti gli host in rete
                             if (_referenceData.useTask)
                             {
+                                _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
                                 await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
                             }
                             else
