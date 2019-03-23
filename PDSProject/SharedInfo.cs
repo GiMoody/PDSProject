@@ -96,7 +96,7 @@ namespace PDSProject
                     LocalUser.ProfileImagePath = defaultImage;
                 }
 
-                // Operaizione di deserializzazione
+                // Operazione di deserializzazione
                 DataContractJsonSerializer sr = new DataContractJsonSerializer(typeof(Host));
                 using (var stream = File.Create("test.json"))
                 {
@@ -105,7 +105,7 @@ namespace PDSProject
             }
 
             /* TODO: funzionale per ogni rete locale.
-             *  Poichè a ho solo una scheda di rete Wifi e non posso connettermi col cavo Ethernet il codice seguente funziona solo per LAN Wifi.
+             *  Poichè ho solo una scheda di rete Wifi e non posso connettermi col cavo Ethernet il codice seguente funziona solo per LAN Wifi.
              *  Sarebbe da gestire il caso dove ci sono più reti LAN
              */
           

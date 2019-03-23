@@ -53,7 +53,7 @@ namespace PDSProject {
 
             InitializeComponent();
             ChoosePath.IsChecked = true;
-            pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
             // Initialize contextMenu 
             this.contextMenu = new System.Windows.Forms.ContextMenu();
@@ -81,14 +81,13 @@ namespace PDSProject {
             source = new CancellationTokenSource();
 
             // Inizializzo info user
-            // da modificare parte URI
             textUserName.Text = _referenceData.LocalUser.Name;
             if (_referenceData.LocalUser.Status.Equals("Online")) {
                 comboStatus.Text = "Online";
-                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
             } else {
                 comboStatus.Text = "Offline";
-                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
             }
 
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
@@ -363,6 +362,18 @@ namespace PDSProject {
         private void Settings_visible(object sender, MouseButtonEventArgs e) {
             SettingsCanvas.Visibility = Visibility.Visible;
             MainCanvas.Visibility = Visibility.Hidden;
+
+            //carico l'immagine di profilo
+            string filename = _referenceData.LocalUser.ProfileImagePath;
+            if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage))
+                filename = Utility.FileNameToHost(_referenceData.defaultImage);
+            ImageBrush imgBrush = new ImageBrush();
+            imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+
+            ImageSettingsProfile.Fill = imgBrush;
+
+            //carico l'ultimo username che avevo
+            textChangeName.Text = _referenceData.LocalUser.Name;
         }
 
         /// <summary>
@@ -420,7 +431,7 @@ namespace PDSProject {
             folderButton.Visibility = Visibility.Hidden;
             pathName.IsReadOnly = true;
             pathName.Background = new SolidColorBrush(Colors.LightGray);
-            pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         }
 
         /// <summary>
@@ -429,7 +440,7 @@ namespace PDSProject {
         private void FolderButton_OnClick(object sender, RoutedEventArgs e) {
 
             var save_dlg = new CommonOpenFileDialog();
-            save_dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            save_dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             save_dlg.IsFolderPicker = true;
             CommonFileDialogResult result = save_dlg.ShowDialog();
             if (result.ToString() == "Ok") {
@@ -443,11 +454,11 @@ namespace PDSProject {
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (comboStatus.Text == "Online") {
-                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
                 _referenceData.LocalUser.Status = "offline";
                 _referenceData.SaveJson();
             } else if (comboStatus.Text == "Offline") {
-                statusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
                 _referenceData.LocalUser.Status = "online";
                 _referenceData.SaveJson();
             }
@@ -462,8 +473,10 @@ namespace PDSProject {
 
             if (_referenceData.Users[ip].Status == "online") {
                 MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.Green);
+                friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
             } else if (_referenceData.Users[ip].Status == "offline" || _referenceData.Users[ip].Status == "") {
                 MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.DarkRed);
+                friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
             }
 
             //HostImage.Width = 50; HostImage.Height = 50;

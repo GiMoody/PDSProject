@@ -15,16 +15,18 @@
             <Canvas x:Name="MainCanvas" Background="AliceBlue" Margin="10,10,10,16" RenderTransformOrigin="0.516,0.543">
 
                 <!--Local User-->
-                <Ellipse x:Name="ImageProfile" Stroke="Orange" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
+                <Ellipse x:Name="ImageProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
                     <!--<Ellipse.Fill>
                         <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
                     </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Canvas.Left="193" Canvas.Top="46" Width="57"/>
+                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Canvas.Left="193" Canvas.Top="46" Width="152"/>
+                <Image x:Name="localStatusImage" Height="16" Canvas.Left="166" Canvas.Top="46" Width="20"/>
                 <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Canvas.Left="165" Canvas.Top="76" Width="100">
                     <ComboBoxItem>Online</ComboBoxItem>
                     <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>
+
 
                 <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources\System\settings.png" RenderTransformOrigin="0.48,0.47" Height="34" Width="36" Canvas.Left="358" Canvas.Top="10"/>
 
@@ -38,17 +40,17 @@
 
                 <!--Friends-->
                 <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Canvas.Left="24" Canvas.Top="235" Width="47"/>
-                <Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="368"/>
-                <Ellipse x:Name="imageFriend" MouseDown="Canvas_Visible" Stroke="Orange" RenderTransformOrigin="-0.038,-1.145" Height="74" Width="71" Canvas.Left="31" Canvas.Top="268">
-                    <!--<Ellipse.Fill>
-                        <ImageBrush ImageSource="Resources/Host/HostProfileImage/pikachu.png" />
-                    </Ellipse.Fill>-->
-                </Ellipse>
-                <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="119" Canvas.Top="282" Width="170"/>
-                <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="119" Canvas.Top="304" Width="170"/>
-                <Image x:Name="statusImage" Height="16" Canvas.Left="166" Canvas.Top="46" Width="20"/>
-
-                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Text="NO MESSAGE YET..." Canvas.Top="380" Width="355" />
+                <Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="361">
+                    <Ellipse x:Name="imageFriend" MouseDown="Canvas_Visible" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="78" Width="83" Canvas.Left="10" Canvas.Top="10">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\pikachu.png" />
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="132" Canvas.Top="28" Width="199"/>
+                    <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="106" Canvas.Top="50" Width="199"/>
+                    <Image x:Name="friendStatusImage" Height="16" Canvas.Left="112" Canvas.Top="34" Width="20"/>
+                </Canvas>
+                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Canvas.Top="380" Width="340" />
 
 
                 <Button x:Name="SendButton" Click="ButtonSend_Click" Visibility="Hidden" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
@@ -58,10 +60,10 @@
 
 
             <!--Settings-->
-            <Canvas x:Name="SettingsCanvas" Visibility="Hidden"  Background="AliceBlue" Margin="10,10,10,16" RenderTransformOrigin="0.516,0.543">
+            <Canvas x:Name="SettingsCanvas" Visibility="Hidden" Background="AliceBlue" Margin="10,10,10,16" RenderTransformOrigin="0.516,0.543">
 
                 <!--User Settings-->
-                <Ellipse x:Name="ImageSettingsProfile" Stroke="DodgerBlue" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
+                <Ellipse x:Name="ImageSettingsProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
                     <!--<Ellipse.Fill>
                         <ImageBrush ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
                     </Ellipse.Fill>-->
@@ -79,8 +81,8 @@
                 <Button x:Name="folderButton" Click="FolderButton_OnClick" Visibility="Hidden" Content="Cambia" Height="22" Width="64" Canvas.Left="310" Canvas.Top="326"/>
 
 
-                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
-                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Canvas.Left="243" Canvas.Top="512"/>
+                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Canvas.Left="310" Canvas.Top="497"/>
+                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Canvas.Left="232" Canvas.Top="497"/>
 
             </Canvas>
 
