@@ -236,7 +236,7 @@ namespace PDSProject
                     else
                     {
                         if (info[0].Equals("CHIMAGE")) {
-                            file_name += Utility.PathSystem();
+                            file_name += Utility.PathHost();
                             file_name += /*"puserImage" +*/ "\\" + info[1];
                             dimfile = Convert.ToInt64(info[2]);
                         }
@@ -247,24 +247,35 @@ namespace PDSProject
                         }
 
                         // Crea il file e lo riempie
-                        if (File.Exists(file_name))
-                        {
-                            string[] splits = file_name.Split('.');
-                            splits[splits.Length - 2] += "_Copia";
-                            file_name = string.Join(".", splits);
+                        bool isChImage = false;
+                        // Crea il file e lo riempie
+                        if (File.Exists(file_name)) {
+                            if (info[0].Equals("CHIMAGE")) {
+                                isChImage = true;
+                            } else {
+                                string[] splits = file_name.Split('.');
+                                splits[splits.Length - 2] += "_Copia";
+                                file_name = string.Join(".", splits);
+                            }
                         }
-                        var file = File.Create(file_name);
-                        long dataReceived = dimfile;
-                        bytes = new byte[bufferSize * 64];
-                        while (((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
-                        {
-                            if (dataReceived > 0 && dataReceived < i)// (bufferSize*64))
-                                file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-                            else
-                                file.Write(bytes, 0, i);
-                            dataReceived -= i;
+
+                        if (!isChImage) {
+                            var file = File.Create(file_name);
+                            bytes = new byte[bufferSize * 64];
+                            long dataReceived = dimfile;
+                            while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
+                                if (dataReceived > 0 && dataReceived < i) //bufferSize)
+                                    file.Write(bytes, 0, Convert.ToInt32(dataReceived));
+                                else
+                                    file.Write(bytes, 0, i);
+                                dataReceived -= i;
+                            }
+
+                            file.Close();
                         }
-                        file.Close();
+                        else{
+                            while (stream.Read(bytes, 0, bytes.Length) != 0);
+                        }
 
                         // Avvisa che un'immagine è stata cambiata
                         if (info[0].Equals("CHIMAGE"))
@@ -335,7 +346,7 @@ namespace PDSProject
                 long dimfile = 0; 
                 string file_name = "";
                 if (info[0].Equals("CHIMAGE")){
-                    file_name += Utility.PathSystem();
+                    file_name += Utility.PathHost();
                     file_name += /*"puserImage" +*/ "\\" + info[1];
                     dimfile = Convert.ToInt64(info[2]);
                 }
@@ -344,24 +355,35 @@ namespace PDSProject
                     file_name = info[0];
                 }
 
+                bool isChImage = false;
                 // Crea il file e lo riempie
                 if (File.Exists(file_name)) {
-                    string[] splits = file_name.Split('.');
-                    splits[splits.Length -2] += "_Copia";
-                    file_name = string.Join(".", splits);
+                    if (info[0].Equals("CHIMAGE")) {
+                        isChImage = true;
+                    } else {
+                        string[] splits = file_name.Split('.');
+                        splits[splits.Length - 2] += "_Copia";
+                        file_name = string.Join(".", splits);
+                    }
                 }
-                var file = File.Create(file_name);
-                bytes = new byte[bufferSize * 64];
-                long dataReceived = dimfile;
-                while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0)
-                {
-                    if (dataReceived > 0 && dataReceived < i)//bufferSize)
-                        file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-                    else
-                        file.Write(bytes, 0, i);
-                    dataReceived -= i;
+
+                if (!isChImage) {
+                    var file = File.Create(file_name);
+                    bytes = new byte[bufferSize * 64];
+                    long dataReceived = dimfile;
+                    while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
+                        if (dataReceived > 0 && dataReceived < i) //bufferSize)
+                            file.Write(bytes, 0, Convert.ToInt32(dataReceived));
+                        else
+                            file.Write(bytes, 0, i);
+                        dataReceived -= i;
+                    }
+
+                    file.Close();
                 }
-                file.Close();
+                else{
+                 while (stream.Read(bytes, 0, bytes.Length) != 0);
+                }
 
                 // Avvisa che un'immagine è stata cambiata
                 if (info[0].Equals("CHIMAGE")){

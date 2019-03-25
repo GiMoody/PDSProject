@@ -24,6 +24,7 @@ namespace PDSProject
         [DataMember]
         public string ProfileImagePath { get; set; }
 
+        public string ip { get; set; }
 
         /// <summary>
         /// Controlla se due Host sono uguali o no

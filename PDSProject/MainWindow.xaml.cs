@@ -518,12 +518,28 @@ namespace PDSProject {
 
                     //imageFriend.Fill = imgBrush;
                     file.Close();
+                    List<Host> lista = new List<Host>();
+                    foreach (var item in lbTodoList.SelectedItems) {
+                        lista.Add((Host)item);
+                    }
+                    lbTodoList.Items.Refresh();
+                    foreach (var item in lbTodoList.Items) {
+                        if (lista.Contains(item)) {
+                            lbTodoList.SelectedItem = item;
+                        }
+                        if(((Host)item).ip.Equals(ip))
+                        lbTodoList.SelectedItem = item;
+
+                        
+                    }
+                    
+
                 } catch (UnauthorizedAccessException e) {
                     Console.WriteLine($"File not yet reciced : {e.Message}");
                 } catch (Exception e) {
                     Console.WriteLine($"Exception : {e.Message}");
                 }
-                lbTodoList.Items.Refresh();
+
                 //HostImage.Source = new BitmapImage(new Uri(filename));
             }
         
@@ -568,7 +584,17 @@ namespace PDSProject {
             }
         }
 
-     }
+        private void LbTodoList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+            if (_referenceData.Users.Count > 0){
+                _referenceData.selectedHost = _referenceData.Users.First().Key;
+                Console.WriteLine("UTENTE SELEZIONATO");
+            } else {
+                 _referenceData.selectedHost = "";
+                Console.WriteLine("UTENTE DESELEZIONATO");
+            }
+        }
+    }
 }
 
 

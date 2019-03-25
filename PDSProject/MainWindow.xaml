@@ -41,7 +41,7 @@
                 <!--Friends-->
                 <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Canvas.Left="24" Canvas.Top="235" Width="47"/>
 
-                <ListBox Name="lbTodoList" Background="AliceBlue" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Height="153" Width="376" Canvas.Left="10" Canvas.Top="256">
+                <ListBox Name="lbTodoList" SelectionChanged="LbTodoList_OnSelectionChanged" Background="AliceBlue" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Height="153" Width="376" Canvas.Left="10" Canvas.Top="256">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,2">
@@ -76,10 +76,10 @@
                     <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="106" Canvas.Top="50" Width="199"/>
                     <Image x:Name="friendStatusImage" Height="16" Canvas.Left="112" Canvas.Top="34" Width="20"/>
                 </Canvas>-->
-                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="438" Width="340" />
+                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="46" TextWrapping="Wrap" Canvas.Top="149" Width="340" />
 
 
-                <Button x:Name="SendButton" Click="ButtonSend_Click" Visibility="Hidden" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
+                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
                 <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64" Canvas.Left="243" Canvas.Top="512"/>
 
             </Canvas>

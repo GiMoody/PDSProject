@@ -53,6 +53,14 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        public static string PathHost() {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            archiveFolder = Path.Combine(archiveFolder, "Host");
+            return archiveFolder.ToString();
+        }
+
         public static string FileNameToHost(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
