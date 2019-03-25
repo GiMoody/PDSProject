@@ -16,13 +16,13 @@ namespace PDSProject
     public class Host
     {
         [DataMember]
-        public string Name;
+        public string Name { get; set; }
         [DataMember]
-        public string Status;
+        public string Status { get; set; }
         [DataMember]
-        public string ProfileImageHash; // Vedere se tenerlo
+        public string ProfileImageHash { get; set; } // Vedere se tenerlo
         [DataMember]
-        public string ProfileImagePath;
+        public string ProfileImagePath { get; set; }
 
 
         /// <summary>

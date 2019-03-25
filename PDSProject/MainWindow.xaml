@@ -40,18 +40,43 @@
 
                 <!--Friends-->
                 <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Canvas.Left="24" Canvas.Top="235" Width="47"/>
-                
-                <Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="361">
+
+                <ListBox Name="lbTodoList" Background="AliceBlue" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Height="153" Width="376" Canvas.Left="10" Canvas.Top="256">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse x:Name="imageFriend" Stroke="White" Height="78" Width="83">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="{Binding ProfileImagePath}" />
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <TextBlock Text="{Binding Name}" Grid.Column="1" />
+                                <TextBlock Text="{Binding Status}" Grid.Column="2" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+
+
+                <!--<Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="361">
                     <Ellipse x:Name="imageFriend" MouseDown="Canvas_Visible" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="78" Width="83" Canvas.Left="10" Canvas.Top="10">
-                        <!--<Ellipse.Fill>
+                        
+                        <Ellipse.Fill>
                             <ImageBrush ImageSource="C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\pikachu.png" />
-                        </Ellipse.Fill>-->
+                        </Ellipse.Fill>
+                
                     </Ellipse>
                     <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="132" Canvas.Top="28" Width="199"/>
                     <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="106" Canvas.Top="50" Width="199"/>
                     <Image x:Name="friendStatusImage" Height="16" Canvas.Left="112" Canvas.Top="34" Width="20"/>
-                </Canvas>
-                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="24" TextWrapping="Wrap" Canvas.Top="380" Width="340" />
+                </Canvas>-->
+                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="438" Width="340" />
 
 
                 <Button x:Name="SendButton" Click="ButtonSend_Click" Visibility="Hidden" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>

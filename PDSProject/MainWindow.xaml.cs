@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -26,6 +28,7 @@ using Application = System.Windows.Application;
 using CheckBox = System.Windows.Controls.CheckBox;
 using MessageBox = System.Windows.MessageBox;
 using System.Threading;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace PDSProject {
     /// <summary>
@@ -63,6 +66,14 @@ namespace PDSProject {
 
             source = new CancellationTokenSource();
 
+            //initialize listBox
+            //ObservableCollection<Host> items = new ObservableCollection<Host>(_referenceData.Users.Values);
+            //items.Add(new Host() { Name = "Giulia", Status = "online", ProfileImageHash = "", ProfileImagePath = ""});
+            //items.Add(new Host() { Name = "Rossella", Status = "offline", ProfileImageHash = "", ProfileImagePath = ""});
+            //items.Add(new TodoItem() { Title = "Wash the car", Completion = 0 });
+
+            lbTodoList.ItemsSource = _referenceData.Users.Values;
+           
             // Initialize contextMenu 
             this.contextMenu = new System.Windows.Forms.ContextMenu();
             this.contextMenu.MenuItems.Add(0, new System.Windows.Forms.MenuItem("Show", new System.EventHandler(Show_Click)));
@@ -281,24 +292,24 @@ namespace PDSProject {
         /// <summary>
         /// Selezionando l'icona dell'amico, appare/scompare un canvas blu
         /// </summary>
-        private void Canvas_Visible(object sender, MouseButtonEventArgs e) {
+        //private void Canvas_Visible(object sender, MouseButtonEventArgs e) {
 
-            if (selected == false) {
-                canvasSelect.Background = new SolidColorBrush(Colors.SkyBlue);
-                SendButton.Visibility = Visibility.Visible;
-                UndoButton.Visibility = Visibility.Visible;
-                selected = true;
-                if (_referenceData.Users.Count > 0) {
-                    _referenceData.selectedHost = _referenceData.Users.First().Key;
-                }
-            } else {
-                canvasSelect.Background = new SolidColorBrush(Colors.AliceBlue);
-                SendButton.Visibility = Visibility.Hidden;
-                UndoButton.Visibility = Visibility.Hidden;
-                selected = false;
-                _referenceData.selectedHost = "";
-            }
-        }
+        //    if (selected == false) {
+        //        canvasSelect.Background = new SolidColorBrush(Colors.SkyBlue);
+        //        SendButton.Visibility = Visibility.Visible;
+        //        UndoButton.Visibility = Visibility.Visible;
+        //        selected = true;
+        //        if (_referenceData.Users.Count > 0) {
+        //            _referenceData.selectedHost = _referenceData.Users.First().Key;
+        //        }
+        //    } else {
+        //        canvasSelect.Background = new SolidColorBrush(Colors.AliceBlue);
+        //        SendButton.Visibility = Visibility.Hidden;
+        //        UndoButton.Visibility = Visibility.Hidden;
+        //        selected = false;
+        //        _referenceData.selectedHost = "";
+        //    }
+        //}
 
         /// <summary>
         /// Modifica immagine profilo
@@ -468,16 +479,16 @@ namespace PDSProject {
         /// Modifica info amico
         /// </summary>
         public void UpdateProfileHost(string ip) {
-            MainWindow.main.textNFriend.Text = _referenceData.Users[ip].Name;
-            MainWindow.main.textSFriend.Text = _referenceData.Users[ip].Status;
+            //MainWindow.main.textNFriend.Text = _referenceData.Users[ip].Name;
+            //MainWindow.main.textSFriend.Text = _referenceData.Users[ip].Status;
 
-            if (_referenceData.Users[ip].Status == "online") {
-                MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.Green);
-                friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
-            } else if (_referenceData.Users[ip].Status == "offline" || _referenceData.Users[ip].Status == "") {
-                MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.DarkRed);
-                friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
-            }
+            //if (_referenceData.Users[ip].Status == "online") {
+            //    MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.Green);
+            //    friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
+            //} else if (_referenceData.Users[ip].Status == "offline" || _referenceData.Users[ip].Status == "") {
+            //    MainWindow.main.textSFriend.Foreground = new SolidColorBrush(Colors.DarkRed);
+            //    friendStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+            //}
 
             //HostImage.Width = 50; HostImage.Height = 50;
             string filename = "";
@@ -502,17 +513,17 @@ namespace PDSProject {
             if (filename.Equals("")) return;
                 try {
                     var file = File.OpenRead(filename);
-                    ImageBrush imgBrush = new ImageBrush();
-                    imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+                    //ImageBrush imgBrush = new ImageBrush();
+                    //imgBrush.ImageSource = new BitmapImage(new Uri(filename));
 
-                    imageFriend.Fill = imgBrush;
+                    //imageFriend.Fill = imgBrush;
                     file.Close();
                 } catch (UnauthorizedAccessException e) {
                     Console.WriteLine($"File not yet reciced : {e.Message}");
                 } catch (Exception e) {
                     Console.WriteLine($"Exception : {e.Message}");
                 }
-
+                lbTodoList.Items.Refresh();
                 //HostImage.Source = new BitmapImage(new Uri(filename));
             }
         
@@ -556,7 +567,8 @@ namespace PDSProject {
                 }
             }
         }
-    }
+
+     }
 }
 
 
