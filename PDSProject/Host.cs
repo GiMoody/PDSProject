@@ -12,6 +12,31 @@ namespace PDSProject
         PUBLIC
     }
     
+    [DataContract]
+    public class Host
+    {
+        [DataMember]
+        public string Name;
+        [DataMember]
+        public string Status;
+        [DataMember]
+        public string ProfileImageHash; // Vedere se tenerlo
+        [DataMember]
+        public string ProfileImagePath;
+
+
+        /// <summary>
+        /// Controlla se due Host sono uguali o no
+        /// </summary>
+        /// <param name="obj">Oggetto di tipo Host da controllare</param>
+        /// <returns>Bool -> vero se sono uguali, falso se no</returns>
+        public override bool Equals(Object obj)
+        {
+            return (obj is Host) && (((Host)obj).Name.Equals(Name) && ((Host)obj).Status.Equals(Status) &&
+                                     ((Host)obj).ProfileImageHash.Equals(ProfileImageHash) && ((Host)obj).ProfileImagePath.Equals(ProfileImagePath));
+        }
+    }
+
     /// <summary>
     /// Serializzatore usato per identificare i vari componenti dell'oggetto JSON che descrive i profili utenti
     /// TODO: mancano tutte le informazioni di configurazione
@@ -43,30 +68,5 @@ namespace PDSProject
     //                                 ((Host)obj).ProfileImageHash.Equals(ProfileImageHash) && ((Host)obj).ProfileImagePath.Equals(ProfileImagePath));
     //    }
     //}
-
-    [DataContract]
-    public class Host
-    {
-        [DataMember]
-        public string Name;
-        [DataMember]
-        public string Status;
-        [DataMember]
-        public string ProfileImageHash; // Vedere se tenerlo
-        [DataMember]
-        public string ProfileImagePath;
-
-
-        /// <summary>
-        /// Controlla se due Host sono uguali o no
-        /// </summary>
-        /// <param name="obj">Oggetto di tipo Host da controllare</param>
-        /// <returns>Bool -> vero se sono uguali, falso se no</returns>
-        public override bool Equals(Object obj)
-        {
-            return (obj is Host) && (((Host)obj).Name.Equals(Name) && ((Host)obj).Status.Equals(Status) &&
-                                     ((Host)obj).ProfileImageHash.Equals(ProfileImageHash) && ((Host)obj).ProfileImagePath.Equals(ProfileImagePath));
-        }
-    }
 
 }

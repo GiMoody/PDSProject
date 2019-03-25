@@ -54,6 +54,14 @@ namespace PDSProject {
             InitializeComponent();
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            
+            main = this;
+            _TCPListener = new MyTCPListener();
+            _TCPSender = new MyTCPSender();
+            _UDPListener = new MyUDPListener();
+            _UDPSender = new MyUDPSender();
+
+            source = new CancellationTokenSource();
 
             // Initialize contextMenu 
             this.contextMenu = new System.Windows.Forms.ContextMenu();
@@ -72,14 +80,6 @@ namespace PDSProject {
                     this.WindowState = WindowState.Normal;
                 };
 
-            main = this;
-            _TCPListener = new MyTCPListener();
-            _TCPSender = new MyTCPSender();
-            _UDPListener = new MyUDPListener();
-            _UDPSender = new MyUDPSender();
-
-            source = new CancellationTokenSource();
-
             // Inizializzo info user
             textUserName.Text = _referenceData.LocalUser.Name;
             if (_referenceData.LocalUser.Status.Equals("Online")) {
@@ -93,12 +93,12 @@ namespace PDSProject {
             // Caricamento immagine profilo, cambio comportamento a seconda immagine di default o no
             // TODO: vedere se fare una copia o no e lasciarla interna al sistema
             string filename = _referenceData.LocalUser.ProfileImagePath;
-            if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage))
+            if (_referenceData.LocalUser.ProfileImagePath.Equals(_referenceData.defaultImage)) {
                 filename = Utility.FileNameToHost(_referenceData.defaultImage);
-            ImageBrush imgBrush = new ImageBrush();
-            imgBrush.ImageSource = new BitmapImage(new Uri(filename));
-
-            ImageProfile.Fill = imgBrush;
+            }
+               ImageBrush imgBrush = new ImageBrush();
+               imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+               ImageProfile.Fill = imgBrush;
 
             // Ogni secondo invia un pacchetto UDP per avvisare gli altri di possibili aggiornamenti sullo stato, nome o immagine
             // dell'utente corrente

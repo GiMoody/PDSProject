@@ -40,11 +40,12 @@
 
                 <!--Friends-->
                 <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Canvas.Left="24" Canvas.Top="235" Width="47"/>
+                
                 <Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="361">
                     <Ellipse x:Name="imageFriend" MouseDown="Canvas_Visible" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="78" Width="83" Canvas.Left="10" Canvas.Top="10">
-                        <Ellipse.Fill>
+                        <!--<Ellipse.Fill>
                             <ImageBrush ImageSource="C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\pikachu.png" />
-                        </Ellipse.Fill>
+                        </Ellipse.Fill>-->
                     </Ellipse>
                     <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="132" Canvas.Top="28" Width="199"/>
                     <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="106" Canvas.Top="50" Width="199"/>
