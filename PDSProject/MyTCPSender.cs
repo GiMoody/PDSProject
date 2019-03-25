@@ -264,8 +264,8 @@ namespace PDSProject
                     for (int i = 0; i <= numbPackets; i++)
                     {
                         bytes = new byte[bufferSize * 64];
-                        await file.ReadAsync(bytes, 0, bytes.Length);
-                        await stream.WriteAsync(bytes, 0, bytes.Length);
+                        file.Read(bytes, 0, bytes.Length);
+                        stream.Write(bytes, 0, bytes.Length);
                     }
                     file.Close();
                     stream.Flush();

@@ -224,6 +224,7 @@ namespace PDSProject
                     UTF8Encoding encoder = new UTF8Encoding(); // Da cambiare, mettere almeno UTF-16
                     data = encoder.GetString(bytes);
 
+                    // PER ROSSELLA: QUI SCRIVO STAI RICEVENDO FILE/COSE/BANANE!!!
                     Console.WriteLine($"Received {data}");
 
                     data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
@@ -262,7 +263,7 @@ namespace PDSProject
                         if (!isChImage) {
                             var file = File.Create(file_name);
                             bytes = new byte[bufferSize * 64];
-                            long dataReceived = dimfile;
+                            long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
                             while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
                                 if (dataReceived > 0 && dataReceived < i) //bufferSize)
                                     file.Write(bytes, 0, Convert.ToInt32(dataReceived));
