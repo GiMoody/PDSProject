@@ -57,7 +57,7 @@ namespace PDSProject {
             InitializeComponent();
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            
+
             main = this;
             _TCPListener = new MyTCPListener();
             _TCPSender = new MyTCPSender();
@@ -401,14 +401,14 @@ namespace PDSProject {
         /// </summary>
         private void ApplyButton_OnClick(object sender, RoutedEventArgs e) {
 
-            if (this.textChangeName.Text == "") {
+            if (this.textChangeName.Text == ""){
                 string messageWarning = "Inserire Username";
                 string caption_warning = "Attenzione";
                 MessageBoxImage icon_warning = MessageBoxImage.Information;
                 MessageBoxButton button_warning = MessageBoxButton.OK;
 
                 MessageBox.Show(messageWarning, caption_warning, button_warning, icon_warning);
-            } else {
+            }else{
 
                 // Configure the message box to be displayed
                 string messageBoxText = "Modifiche Applicate";

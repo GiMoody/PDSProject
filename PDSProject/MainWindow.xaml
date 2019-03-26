@@ -4,44 +4,42 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Condividi" Height="600" Width="430"
-        WindowStartupLocation="CenterOwner"
+        Title="Condividi" Height="707.6" Width="550.6"
+        Background="#BDD6E6"
         Closing="MainWindow_Closing">
-    <StackPanel Background="#BDD6E6" Margin="0,0,0,0.4">
+    <!--<StackPanel Background="#BDD6E6" Margin="0,0,0.4,-3.2" Orientation="Vertical">-->
 
-        <Grid Height="570">
+    <Grid Margin="10,10,10,10" IsSharedSizeScope="True">
 
-            <!--Main Window-->
-            <Canvas x:Name="MainCanvas" Background="AliceBlue" Margin="10,10,10,16" RenderTransformOrigin="0.516,0.543">
-
-                <!--Local User-->
-                <Ellipse x:Name="ImageProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
+        <!--Main Window-->
+        <!--Local User-->
+        <GroupBox x:Name="MainCanvas" Header="Condividi" Background="AliceBlue">
+            <Grid>
+                <Ellipse x:Name="ImageProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="138" Width="135" Margin="22,23,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <!--<Ellipse.Fill>
-                        <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
-                    </Ellipse.Fill>-->
+                   <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
+                </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Canvas.Left="193" Canvas.Top="46" Width="152"/>
-                <Image x:Name="localStatusImage" Height="16" Canvas.Left="166" Canvas.Top="46" Width="20"/>
-                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Canvas.Left="165" Canvas.Top="76" Width="100">
+                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top"/>
+                <Image x:Name="localStatusImage" Margin="172,59,0,0" HorizontalAlignment="Left" Width="22" Height="19" VerticalAlignment="Top"/>
+                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Height="26" Margin="199,86,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120">
                     <ComboBoxItem>Online</ComboBoxItem>
                     <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>
 
-
-                <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources\System\settings.png" RenderTransformOrigin="0.48,0.47" Height="34" Width="36" Canvas.Left="358" Canvas.Top="10"/>
+                <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources\System\settings.png" VerticalAlignment="Top" Height="25" Margin="0,0,0.2,0" HorizontalAlignment="Right" Width="30"/>
 
                 <!--Progress File-->
-                <TextBlock x:Name="textFile" Visibility="Hidden" TextWrapping="Wrap" Text="prova.pdf" RenderTransformOrigin="0.488,0.535" Canvas.Left="24" Canvas.Top="164"/>
-                <TextBlock x:Name="textNumberFile" Visibility="Hidden" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Canvas.Left="225" Canvas.Top="164"/>
-                <TextBlock x:Name="textTime" Visibility="Hidden" TextWrapping="Wrap" Text="05:00" RenderTransformOrigin="0.51,0.568" Canvas.Left="152" Canvas.Top="164"/>
-                <ProgressBar x:Name="progressFile" Visibility="Hidden" Height="18" Width="226" Canvas.Left="24" Canvas.Top="190"/>
-                <Button x:Name="stopButton" Visibility="Hidden" Content="X" Canvas.Left="272" Canvas.Top="190" Width="24" Height="18"/>
-
+                <TextBlock x:Name="textFile" TextWrapping="Wrap" Text="prova.pdf" RenderTransformOrigin="0.488,0.535" Margin="22,181,276.4,0" Height="29" VerticalAlignment="Top"/>
+                <TextBlock x:Name="textNumberFile" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Height="18" VerticalAlignment="Top" Margin="244,181,179.4,0"/>
+                <TextBlock x:Name="textTime" TextWrapping="Wrap" Text="05:00" RenderTransformOrigin="0.51,0.568" Height="29" VerticalAlignment="Top" Margin="319,181,88.4,0"/>
+                <ProgressBar x:Name="progressFile" Height="18" Margin="22,215,250.4,0" VerticalAlignment="Top"/>
+                <Button x:Name="stopButton" Content="X" Height="18" Margin="0,215,199.4,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="24"/>
 
                 <!--Friends-->
-                <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Canvas.Left="24" Canvas.Top="235" Width="47"/>
+                <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Margin="22,314,403.2,298.2"/>
 
-                <ListBox Name="lbTodoList" SelectionChanged="LbTodoList_OnSelectionChanged" Background="AliceBlue" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Height="153" Width="376" Canvas.Left="10" Canvas.Top="256">
+                <ListBox Name="lbTodoList" SelectionChanged="LbTodoList_OnSelectionChanged" Background="AliceBlue" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="22,337,20.2,42.2">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,2">
@@ -62,60 +60,43 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
+                <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="22,253,136.2,0" Height="48" VerticalAlignment="Top" />
 
+                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64"/>
+            </Grid>
+        </GroupBox>
 
-                <!--<Canvas x:Name="canvasSelect" Background="AliceBlue" Height="98" Canvas.Top="256" Canvas.Left="18" Width="361">
-                    <Ellipse x:Name="imageFriend" MouseDown="Canvas_Visible" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="78" Width="83" Canvas.Left="10" Canvas.Top="10">
-                        
-                        <Ellipse.Fill>
-                            <ImageBrush ImageSource="C:\Users\Rossella\GitHub_Repos\GiMoody\PDSProject\PDSProject\Resources\Host\pikachu.png" />
-                        </Ellipse.Fill>
-                
-                    </Ellipse>
-                    <TextBlock x:Name="textNFriend" Margin="0 0 0 0" TextWrapping="Wrap" RenderTransformOrigin="0.495,0.479" Height="22" Canvas.Left="132" Canvas.Top="28" Width="199"/>
-                    <TextBlock x:Name="textSFriend" TextWrapping="Wrap" RenderTransformOrigin="0.501,0.503" Height="22" Canvas.Left="106" Canvas.Top="50" Width="199"/>
-                    <Image x:Name="friendStatusImage" Height="16" Canvas.Left="112" Canvas.Top="34" Width="20"/>
-                </Canvas>-->
-                <TextBox x:Name="textInfoMessage" Height="86" Canvas.Left="46" TextWrapping="Wrap" Canvas.Top="149" Width="340" />
-
-
-                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Canvas.Left="322" Canvas.Top="512"/>
-                <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64" Canvas.Left="243" Canvas.Top="512"/>
-
-            </Canvas>
-
-
-            <!--Settings-->
-            <Canvas x:Name="SettingsCanvas" Visibility="Hidden" Background="AliceBlue" Margin="10,10,10,16" RenderTransformOrigin="0.516,0.543">
-
+        <!--Settings-->
+        <GroupBox x:Name="SettingsCanvas" Header="Impostazioni" Background="AliceBlue" Visibility="Hidden">
+            <Grid Margin="0,0,-2.4,-6.6">
                 <!--User Settings-->
-                <Ellipse x:Name="ImageSettingsProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="121" Width="116" Canvas.Left="18" Canvas.Top="18">
+                <Ellipse x:Name="ImageSettingsProfile" Stroke="White" RenderTransformOrigin="-0.038,-1.145" Height="138" Width="135" Margin="22,23,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <!--<Ellipse.Fill>
-                        <ImageBrush ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
-                    </Ellipse.Fill>-->
+                                <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
+                     </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Canvas.Left="174" Canvas.Top="50" Width="99" Height="19"/>
-                <TextBox x:Name="textChangeName" Height="26" Canvas.Left="174" TextWrapping="Wrap" Canvas.Top="74" Width="190"/>
-                <Image x:Name="editIcon" Source="Resources/System/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Canvas.Left="119" Canvas.Top="117"/>
-
+                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top"/>
+                <TextBox x:Name="textChangeName" Height="26" TextWrapping="Wrap" Width="243" Margin="199,86,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Image x:Name="editIcon" Source="Resources/System/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Margin="157,139,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
                 <!--System Settings-->
-                <CheckBox x:Name="AcceptFile" Content="Accetta tutti i file" Canvas.Left="33" Canvas.Top="194" Height="24" Width="274"/>
-                <CheckBox x:Name="ChoosePath" Checked="CheckBox_Check" Unchecked="CheckBox_Uncheck" Content="Usa percorso predefinito" Canvas.Left="33" Canvas.Top="223" Height="24" Width="274"/>
-                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Path" RenderTransformOrigin="0.458,0.489" Canvas.Left="33" Canvas.Top="262" Width="99" Height="19"/>
-                <TextBox x:Name="pathName" Height="26" Canvas.Left="33" IsReadOnly="True" Background="LightGray" TextWrapping="Wrap" Canvas.Top="286" Width="341"/>
-                <Button x:Name="folderButton" Click="FolderButton_OnClick" Visibility="Hidden" Content="Cambia" Height="22" Width="64" Canvas.Left="310" Canvas.Top="326"/>
+                <CheckBox x:Name="AcceptFile" Content="Accetta tutti i file" Height="24" Width="274" Margin="22,224,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <CheckBox x:Name="ChoosePath" Checked="CheckBox_Check" Unchecked="CheckBox_Uncheck" Content="Usa percorso predefinito" Height="24" Width="274" Margin="22,259,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Path" RenderTransformOrigin="0.458,0.489" Width="99" Height="19" Margin="22,284,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <TextBox x:Name="pathName" Height="26" IsReadOnly="True" Background="LightGray" TextWrapping="Wrap" Margin="22,308,66,0" VerticalAlignment="Top"/>
+                <Button x:Name="folderButton" Visibility="Hidden" Click="FolderButton_OnClick" Content="Cambia" Width="64" Margin="0,351,66,0" HorizontalAlignment="Right" Height="22" VerticalAlignment="Top"/>
 
 
-                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Canvas.Left="310" Canvas.Top="497"/>
-                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Canvas.Left="232" Canvas.Top="497"/>
+                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Margin="0,0,10,10" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Margin="0,0,93,10" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
 
-            </Canvas>
-
-        </Grid>
-    </StackPanel>
-
+            </Grid>
+        </GroupBox>
+    </Grid>
 </Window>
+
+
 
 <!--<Window x:Class="PDSProject.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
