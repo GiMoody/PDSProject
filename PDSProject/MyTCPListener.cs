@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,7 +9,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Threading;
+using System.Xml;
 
 namespace PDSProject
 {
@@ -261,6 +264,11 @@ namespace PDSProject
                         }
 
                         if (!isChImage) {
+                            //TIMER PER CALCOLARE TEMPO RIMANENTE ALLA FINE DEL DOWNLOAD
+                            string secondsElapsed = "";
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
+
                             var file = File.Create(file_name);
                             bytes = new byte[bufferSize * 64];
                             long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
@@ -270,8 +278,13 @@ namespace PDSProject
                                 else
                                     file.Write(bytes, 0, i);
                                 dataReceived -= i;
+                                //PROGRESS BAR (BOH) -------------------------------
+                                MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceived);
+                                MainWindow.main.textTime.Text = secondsElapsed;
                             }
 
+                            stopwatch.Stop();
+                            secondsElapsed += stopwatch.Elapsed.TotalSeconds;
                             file.Close();
                         }
                         else{
