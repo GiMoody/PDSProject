@@ -219,7 +219,7 @@ namespace PDSProject
                 foreach (string path in filenames)
                 {
                     if (_referenceData.FileToFinish[path].Equals("inprogress")) continue;
-
+                    if (Utility.PathToFileName(path).Equals(_referenceData.defaultImage)) continue;
                     Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
                     TcpClient client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
 

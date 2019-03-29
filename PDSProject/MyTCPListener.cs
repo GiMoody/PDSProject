@@ -279,12 +279,19 @@ namespace PDSProject
                                     file.Write(bytes, 0, i);
                                 dataReceived -= i;
                                 //PROGRESS BAR (BOH) -------------------------------
-                                MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceived);
-                                MainWindow.main.textTime.Text = secondsElapsed;
+                                secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
+                                string secondElapsedJet = secondsElapsed;
+                                double dataReceivedJet = dataReceived/dimfile*100;
+
+                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
+                                    MainWindow.main.textTime.Text = secondElapsedJet;
+                                }));
+                                
                             }
 
                             stopwatch.Stop();
-                            secondsElapsed += stopwatch.Elapsed.TotalSeconds;
+                            //secondsElapsed += stopwatch.Elapsed.TotalSeconds;
                             file.Close();
                         }
                         else{
