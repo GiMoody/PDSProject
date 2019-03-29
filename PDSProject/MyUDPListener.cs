@@ -177,7 +177,8 @@ namespace PDSProject
                         try {
                             File.OpenRead(Path);
                         } catch (Exception e) {
-                            continue;
+                            Path = Utility.PathHost() + "\\" + _referenceData.defaultImage;
+                            //continue;
                         }
                         received.ProfileImagePath = Path;
                         received.ip = receivedIpEndPoint.Address.ToString();
@@ -210,7 +211,9 @@ namespace PDSProject
                         try {
                             File.OpenRead(Path);
                         } catch (Exception e) {
-                            continue;
+                            Path = Utility.PathHost() + "\\" + _referenceData.defaultImage;
+
+                            //continue;
                         }
                         received.ProfileImagePath = Path;
                         received.ip = receivedIpEndPoint.Address.ToString();

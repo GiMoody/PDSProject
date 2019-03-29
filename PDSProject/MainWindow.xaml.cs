@@ -534,10 +534,10 @@ namespace PDSProject {
                     friendList.Items.Refresh();
                     foreach (var item in friendList.Items) {
                         if (lista.Contains(item)) {
-                            friendList.SelectedItem = item;
+                            friendList.SelectedItems.Add(item);
                         }
                         if(((Host)item).ip.Equals(ip))
-                            friendList.SelectedItem = item;
+                            friendList.SelectedItems.Add(item);
                         
                     }
 
