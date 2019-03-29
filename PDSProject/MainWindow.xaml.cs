@@ -68,8 +68,8 @@ namespace PDSProject {
 
             //initialize listBox
             //ObservableCollection<Host> items = new ObservableCollection<Host>();
-            //items.Add(new Host() { Name = "Giulia", Status = "online", ProfileImageHash = "", ProfileImagePath = ""});
-            //items.Add(new Host() { Name = "Rossella", Status = "offline", ProfileImageHash = "", ProfileImagePath = ""});
+            //items.Add(new Host() { Name = "Giulia", Status = "Online", ProfileImageHash = "", ProfileImagePath = ""});
+            //items.Add(new Host() { Name = "Rossella", Status = "Offline", ProfileImageHash = "", ProfileImagePath = ""});
             //items.Add(new TodoItem() { Title = "Wash the car", Completion = 0 });
 
             //friendList.ItemsSource = items;
@@ -81,10 +81,18 @@ namespace PDSProject {
             this.contextMenu.MenuItems.Add(1, new System.Windows.Forms.MenuItem("Hide", new System.EventHandler(Hide_Click)));
             this.contextMenu.MenuItems.Add(2, new System.Windows.Forms.MenuItem("Exit", new System.EventHandler(Exit_Click)));
             
+            //initialize balloon items
+            string title_ball = "PDS_Condividi";
+            //NON SO COME PASSARGLI IL FILE
+            string text_ball = _TCPListener.ServeClientA("").ToString();
+
             //Initialize icon
             ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_white.ico"));
             ni.Visible = true;
+            //attacco il context menù all'icona
             ni.ContextMenu = this.contextMenu;
+            //attacco un balloon all'icona
+            ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
             ni.Text = "PDS_Condividi";
             ni.DoubleClick +=
                 delegate (object sender, EventArgs args){

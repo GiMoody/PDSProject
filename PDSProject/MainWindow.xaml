@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Condividi" Height="710" Width="560"
+        WindowStartupLocation="CenterScreen"
+        Title="Condividi" Height="733.2" Width="560"
         Closing="MainWindow_Closing">
     <Window.Background>
         <ImageBrush ImageSource="Resources/System/sfondo.png" Stretch="UniformToFill"/>
@@ -22,9 +23,9 @@
                    <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
                 </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top"/>
+                <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top" Foreground="White" FontFamily="Lato" FontSize="16"/>
                 <Image x:Name="localStatusImage" Margin="172,59,0,0" HorizontalAlignment="Left" Width="22" Height="19" VerticalAlignment="Top"/>
-                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Height="26" Margin="199,86,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120">
+                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Height="26" Margin="199,86,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120" FontFamily="Lato" VerticalContentAlignment="Center">
                     <ComboBoxItem>Online</ComboBoxItem>
                     <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>
@@ -32,16 +33,16 @@
                 <Image x:Name="settingsIcon" MouseDown="Settings_visible" Source="Resources/System/settings.png" VerticalAlignment="Top" Height="36" Margin="0,10,9.8,0" HorizontalAlignment="Right" Width="36"/>
 
                 <!--Progress File-->
-                <TextBlock x:Name="textFile" TextWrapping="Wrap" RenderTransformOrigin="0.488,0.535" Margin="22,181,228.8,0" Height="29" VerticalAlignment="Top"/>
-                <TextBlock x:Name="textNumberFile" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Height="29" VerticalAlignment="Top" Margin="297,181,125.8,0"/>
-                <TextBlock x:Name="textTime" TextWrapping="Wrap" RenderTransformOrigin="0.51,0.568" Height="29" VerticalAlignment="Top" Margin="373,181,70.8,0"/>
+                <TextBlock x:Name="textFile" TextWrapping="Wrap" RenderTransformOrigin="0.488,0.535" Margin="22,181,228.8,0" Height="29" VerticalAlignment="Top" Foreground="White" FontFamily="Lato" FontSize="14"/>
+                <TextBlock x:Name="textNumberFile" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Height="29" Margin="297,181,125.8,0" Foreground="White" FontFamily="Lato" FontSize="14" VerticalAlignment="Top"/>
+                <TextBlock x:Name="textTime" TextWrapping="Wrap" RenderTransformOrigin="0.51,0.568" Height="29" VerticalAlignment="Top" Margin="373,181,70.8,0" Foreground="White" FontFamily="Lato" FontSize="14"/>
                 <ProgressBar x:Name="progressFile" Height="18" Margin="22,215,250.4,0" VerticalAlignment="Top"/>
-                <Button x:Name="stopButton" Content="X" Height="18" Margin="0,215,199.4,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="24"/>
+                <Button x:Name="stopButton" Content="X" Height="18" Margin="0,215,199.4,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="24" FontFamily="Lato"/>
 
                 <!--Friends-->
-                <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Margin="22,314,403.2,298.2"/>
+                <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" RenderTransformOrigin="0.479,0.472" Margin="22,314,402.8,301.4" Foreground="White" FontFamily="Lato" FontSize="16"/>
 
-                <ListBox Name="friendList" SelectionChanged="friendList_OnSelectionChanged" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="22,337,20.2,42.2" Width="470" Background="Transparent">
+                <ListBox Name="friendList" SelectionChanged="friendList_OnSelectionChanged" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="26,341,24.8,42.8" Background="Transparent">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,0">
@@ -55,16 +56,16 @@
                                         <ImageBrush ImageSource="{Binding ProfileImagePath}" />
                                     </Ellipse.Fill>
                                 </Ellipse>
-                                <TextBlock Text="{Binding Name}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" />
-                                <TextBlock Text="{Binding Status}" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                <TextBlock Text="{Binding Name}" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Foreground="White" FontFamily="Lato" FontSize="14" />
+                                <TextBlock Text="{Binding Status}" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="White" FontFamily="Lato" FontSize="14" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="22,253,24.8,0" Height="48" VerticalAlignment="Top" />
+                <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="22,253,24.8,0" Height="48" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center" />
 
-                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
                 <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64"/>
             </Grid>
         </GroupBox>
@@ -78,20 +79,20 @@
                                 <ImageBrush />/ImageSource="Resources/Host/HostProfileImage/fox.jpg" />
                      </Ellipse.Fill>-->
                 </Ellipse>
-                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top"/>
-                <TextBox x:Name="textChangeName" Height="26" TextWrapping="Wrap" Width="243" Margin="199,86,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Image x:Name="editIcon" Source="Resources/System/edit.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Margin="157,139,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Nome Profilo" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top" FontFamily="Lato" FontSize="16" Foreground="White"/>
+                <TextBox x:Name="textChangeName" Height="26" TextWrapping="Wrap" Width="243" Margin="199,86,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center"/>
+                <Image x:Name="editIcon" Source="Resources/System/edit_white.png" RenderTransformOrigin="3.019,6.691" MouseDown="Image_MouseDown" Height="22" Width="25" Margin="147,139,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
                 <!--System Settings-->
-                <CheckBox x:Name="AcceptFile" Content="Accetta tutti i file" Height="24" Width="274" Margin="22,224,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <CheckBox x:Name="ChoosePath" Checked="CheckBox_Check" Unchecked="CheckBox_Uncheck" Content="Usa percorso predefinito" Height="24" Width="274" Margin="22,259,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Path" RenderTransformOrigin="0.458,0.489" Width="99" Height="19" Margin="22,284,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <TextBox x:Name="pathName" Height="26" IsReadOnly="True" Background="LightGray" TextWrapping="Wrap" Margin="22,308,66,0" VerticalAlignment="Top"/>
-                <Button x:Name="folderButton" Visibility="Hidden" Click="FolderButton_OnClick" Content="Cambia" Width="64" Margin="0,351,66,0" HorizontalAlignment="Right" Height="22" VerticalAlignment="Top"/>
+                <CheckBox x:Name="AcceptFile" Content="Accetta tutti i file" Height="29" Width="274" Margin="22,234,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Lato" FontSize="14" Foreground="White" VerticalContentAlignment="Center"/>
+                <CheckBox x:Name="ChoosePath" Checked="CheckBox_Check" Unchecked="CheckBox_Uncheck" Content="Usa percorso predefinito" Height="28" Width="274" Margin="22,277,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Lato" FontSize="14" Foreground="White" VerticalContentAlignment="Center" UseLayoutRounding="False" Padding="4,-1,0,0"/>
+                <TextBlock FontWeight="Bold" TextWrapping="Wrap" Text="Path" RenderTransformOrigin="0.458,0.489" Width="99" Height="19" Margin="22,319,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Lato" FontSize="14" Foreground="White"/>
+                <TextBox x:Name="pathName" Height="28" IsReadOnly="True" Background="#FFB9B8B8" TextWrapping="Wrap" Margin="22,343,65.2,0" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center" FontSize="14" BorderBrush="#FF969AA6"/>
+                <Button x:Name="folderButton" Click="FolderButton_OnClick" Content="Cambia" Width="64" Margin="0,386,66.2,0" HorizontalAlignment="Right" Height="22" VerticalAlignment="Top" FontFamily="Lato"/>
 
 
-                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Margin="0,0,13.2,18" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
-                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Margin="0,0,93.2,18" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                <Button x:Name="ApplyButton" Click="ApplyButton_OnClick" Content="Applica" Height="22" Width="64" Margin="0,0,13.2,18" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
+                <Button x:Name="BackButton" Click="BackButton_OnClick" Content="Indietro" Height="22" Width="64" Margin="0,0,93.2,18" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
 
             </Grid>
         </GroupBox>
