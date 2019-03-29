@@ -143,13 +143,18 @@ namespace PDSProject
             {
                 if (_referenceData.selectedHost.Equals("")) return;
                 serverAddr = IPAddress.Parse(_referenceData.selectedHost);
+                await SendListFiles(serverAddr, filenames);
+
             }
             else
             {
-                serverAddr = IPAddress.Parse(_referenceData.Users.First().Key);//"192.168.1.69");
+                var copyDictionary = _referenceData.Users.Values.ToList();
+                foreach (Host host in copyDictionary) {
+                    serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
+                    await SendListFiles(serverAddr, filenames);
+                }
             }
             //TcpClient client = null;
-            await SendListFiles(serverAddr, filenames);
 
             /*try
             {
