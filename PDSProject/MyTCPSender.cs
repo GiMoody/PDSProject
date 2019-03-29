@@ -150,6 +150,8 @@ namespace PDSProject
             {
                 var copyDictionary = _referenceData.Users.Values.ToList();
                 foreach (Host host in copyDictionary) {
+                    if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
+                        _referenceData.FileToFinish.Add(filenames[0], "start");
                     serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
                     await SendListFiles(serverAddr, filenames);
                 }
@@ -223,7 +225,7 @@ namespace PDSProject
 
                 foreach (string path in filenames)
                 {
-                    if (_referenceData.FileToFinish[path].Equals("inprogress")) continue;
+                    if (_referenceData.FileToFinish.ContainsKey(path) && _referenceData.FileToFinish[path].Equals("inprogress")) continue;
                     if (Utility.PathToFileName(path).Equals(_referenceData.defaultImage)) continue;
                     Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
                     TcpClient client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
