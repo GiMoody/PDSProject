@@ -158,7 +158,8 @@ namespace PDSProject
                     if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
                         _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
                     serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
-                    await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(false);
+                    //await
+                    await Task.Run(async () => { await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(false); });
                 }
             }
             //TcpClient client = null;

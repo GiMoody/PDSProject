@@ -366,16 +366,16 @@ namespace PDSProject {
                             _referenceData.SaveJson();
                             _referenceData.hasChangedProfileImage = true;
                             //TODO: invio a tutti gli host in rete
-                            if (_referenceData.useTask)
-                            {
-                                _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, (key) => "start", (key,value) =>"inprogress");
-                                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }, true); // Deve essere inviato a tutti gli utenti connessi 
-                            }
-                            else
-                            {
-                                Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
-                                t.Start(new List<string>() { _referenceData.LocalUser.ProfileImagePath });
-                            }
+                            //if (_referenceData.useTask)
+                            //{
+                            //    _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, (key) => "start", (key,value) =>"inprogress");
+                            //    await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }, true); // Deve essere inviato a tutti gli utenti connessi 
+                            //}
+                            //else
+                            //{
+                            //    Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
+                            //    t.Start(new List<string>() { _referenceData.LocalUser.ProfileImagePath });
+                            //}
                         }
 
                     }
@@ -415,7 +415,7 @@ namespace PDSProject {
         /// Applicazione modifiche utente
         /// Gestione caso username vuoto
         /// </summary>
-        private void ApplyButton_OnClick(object sender, RoutedEventArgs e) {
+        private async void ApplyButton_OnClick(object sender, RoutedEventArgs e) {
 
             if (this.textChangeName.Text == ""){
                 string messageWarning = "Inserire Username";
@@ -438,6 +438,16 @@ namespace PDSProject {
 
                 _referenceData.LocalUser.Name = this.textChangeName.Text;
                 _referenceData.SaveJson();
+                if (_referenceData.useTask)
+                {
+                    _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, ( key ) => "start", ( key, value ) => "inprogress");
+                    await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }, true); // Deve essere inviato a tutti gli utenti connessi 
+                }
+                else
+                {
+                    Thread t = new Thread(new ParameterizedThreadStart(_TCPSender.Send));
+                    t.Start(new List<string>() { _referenceData.LocalUser.ProfileImagePath });
+                }
             }
 
         }
