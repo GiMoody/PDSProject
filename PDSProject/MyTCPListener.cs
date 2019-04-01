@@ -289,7 +289,7 @@ namespace PDSProject
                                     MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
                                     MainWindow.main.textTime.Text = secondElapsedJet;
                                 }));
-                                Console.WriteLine(dataReceived + "/" + dimfile);
+                                //Console.WriteLine(dataReceived + "/" + dimfile);
                             }
                             Console.WriteLine($"File Received {data}");
                             stopwatch.Stop();
