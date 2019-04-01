@@ -137,7 +137,7 @@ namespace PDSProject
             }
         }
 
-        public async Task SendA ( List<string> filenames )
+        public async Task SendA ( List<string> filenames, bool isProfile )
         {
             // TODO: da cambiare!!!
             IPAddress serverAddr;
@@ -145,7 +145,7 @@ namespace PDSProject
             {
                 if (_referenceData.selectedHost.Equals("")) return;
                 serverAddr = IPAddress.Parse(_referenceData.selectedHost);
-                await SendListFiles(serverAddr, filenames);
+                await SendListFiles(serverAddr, filenames, isProfile);
 
             }
             else
@@ -158,7 +158,7 @@ namespace PDSProject
                     if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
                         _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
                     serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
-                    await SendListFiles(serverAddr, filenames);
+                    await SendListFiles(serverAddr, filenames, isProfile);
                 }
             }
             //TcpClient client = null;
@@ -223,7 +223,7 @@ namespace PDSProject
         }
 
 
-        async Task SendListFiles( IPAddress serverAddr, List<string> filenames )
+        async Task SendListFiles( IPAddress serverAddr, List<string> filenames, bool isProfile)
         {
             try
             {
@@ -244,12 +244,14 @@ namespace PDSProject
                     string firstmsg = "";
 
                     // Da cambiare
-                    if (_referenceData.hasChangedProfileImage)
+                    /*if (_referenceData.hasChangedProfileImage)
                     {
                         firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
                         _referenceData.hasChangedProfileImage = false;
-                    }
+                    }*/
 
+                    if (isProfile) firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+                    
                     string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
                     firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
 

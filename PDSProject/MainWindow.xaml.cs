@@ -369,7 +369,7 @@ namespace PDSProject {
                             if (_referenceData.useTask)
                             {
                                 _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, (key) => "start", (key,value) =>"inprogress");
-                                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
+                                await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }, true); // Deve essere inviato a tutti gli utenti connessi 
                             }
                             else
                             {
@@ -567,7 +567,7 @@ namespace PDSProject {
             if (_referenceData.useTask)
             {
                 await Task.Run(async() => {
-                    await _TCPSender.SendA(new List<string>() {_referenceData.LocalUser.ProfileImagePath});
+                    await _TCPSender.SendA(new List<string>() {_referenceData.LocalUser.ProfileImagePath}, true);
                 }); 
             }
             else
@@ -590,7 +590,7 @@ namespace PDSProject {
                 _referenceData.PathFileToSend.Clear();
 
                 if (_referenceData.useTask) {
-                    await _TCPSender.SendA(_referenceData.FileToFinish.Keys.ToList());
+                    await _TCPSender.SendA(_referenceData.FileToFinish.Keys.ToList(), false);
                     //NOME FILE SOPRA PROGRESS BAR)
                     string file_path = _referenceData.FileToFinish.Keys.ToString();
                     string file_name = Utility.PathToFileName(file_path);
