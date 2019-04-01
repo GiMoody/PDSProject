@@ -270,6 +270,8 @@ namespace PDSProject
                             stopwatch.Start();
 
                             var file = File.Create(file_name);
+                            Console.WriteLine($"File Created on path {file_name}");
+
                             bytes = new byte[bufferSize * 64];
                             long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
                             while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
@@ -287,7 +289,7 @@ namespace PDSProject
                                     MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
                                     MainWindow.main.textTime.Text = secondElapsedJet;
                                 }));
-                                Console.WriteLine(dataReceived + "%");
+                                Console.WriteLine(dataReceived + "/" + dimfile);
                             }
                             Console.WriteLine($"File Received {data}");
                             stopwatch.Stop();
