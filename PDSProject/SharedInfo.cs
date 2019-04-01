@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -46,7 +47,7 @@ namespace PDSProject
         public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         public List<string> PathFileToSend = new List<string>();
-        public Dictionary<string, string> FileToFinish = new Dictionary<string,string>();
+        public ConcurrentDictionary<string, string> FileToFinish = new ConcurrentDictionary<string,string>();
 
         // Data structures di supporto da usare nella ricerca della sottorete in cui sono presenti degli Host
         public List<string> LocalIps = new List<string>();

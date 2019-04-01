@@ -368,7 +368,7 @@ namespace PDSProject {
                             //TODO: invio a tutti gli host in rete
                             if (_referenceData.useTask)
                             {
-                                _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
+                                _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, (key) => "start", (key,value) =>"inprogress");
                                 await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }); // Deve essere inviato a tutti gli utenti connessi 
                             }
                             else
@@ -563,7 +563,7 @@ namespace PDSProject {
         public async void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
             if(_referenceData.FileToFinish.ContainsKey(_referenceData.LocalUser.ProfileImagePath))
-                _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
+                _referenceData.FileToFinish.GetOrAdd(_referenceData.LocalUser.ProfileImagePath, "start");
             if (_referenceData.useTask)
             {
                 await Task.Run(async() => {
@@ -586,7 +586,7 @@ namespace PDSProject {
             if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHost != "") {
                 //Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
                 foreach (string path in _referenceData.PathFileToSend)
-                    _referenceData.FileToFinish.Add(path, "start");
+                    _referenceData.FileToFinish.AddOrUpdate(path, ( key ) => "start", ( key, value ) => "inprogress");
                 _referenceData.PathFileToSend.Clear();
 
                 if (_referenceData.useTask) {

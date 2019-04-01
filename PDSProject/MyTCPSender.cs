@@ -105,7 +105,9 @@ namespace PDSProject
                     file.Close();
                     stream.Close();
                     stream.Flush();
-                    _referenceData.FileToFinish.Remove(path);
+                    string removeValue = "";
+                    _referenceData.FileToFinish.TryRemove(path, out removeValue);
+                    Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
                     client.Close();
 
                 }
@@ -154,7 +156,7 @@ namespace PDSProject
                 }
                 foreach (Host host in copyDictionary) {
                     if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
-                        _referenceData.FileToFinish.Add(filenames[0], "start");
+                        _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
                     serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
                     await SendListFiles(serverAddr, filenames);
                 }
@@ -280,7 +282,10 @@ namespace PDSProject
                     file.Close();
                     stream.Flush();
                     stream.Close();
-                    _referenceData.FileToFinish.Remove(path);
+
+                    string removeValue = "";
+                    _referenceData.FileToFinish.TryRemove(path, out removeValue);
+                    Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
 
                     client.Close();
                 }

@@ -236,11 +236,11 @@ namespace PDSProject
                         await    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
                                 MainWindow.main.UpdateProfileHost(ip);
-                                if (_referenceData.Users.Count == 1 && _referenceData.isFirst)
-                                {
-                                    _referenceData.isFirst = false;
+                                //if (_referenceData.Users.Count == 1 && _referenceData.isFirst)
+                               // {
+                                    //_referenceData.isFirst = false;
                                     MainWindow.main.SendProfileImage();
-                                }
+                                //}
                         }));
                     }
                 }
