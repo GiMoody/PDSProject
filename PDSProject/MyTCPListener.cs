@@ -289,12 +289,13 @@ namespace PDSProject
                                 }));
                                 
                             }
-
+                            Console.WriteLine($"File Received {data}");
                             stopwatch.Stop();
                             //secondsElapsed += stopwatch.Elapsed.TotalSeconds;
                             file.Close();
                         }
                         else{
+                            Console.WriteLine($"File CHIMAGE already saved " + data );
                             while (stream.Read(bytes, 0, bytes.Length) != 0);
                         }
 

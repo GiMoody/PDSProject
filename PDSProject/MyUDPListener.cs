@@ -170,7 +170,7 @@ namespace PDSProject
 
                     // Se l'utente è già presente all'interno della struttura dati e ha dati diversi, aggiorno
                     if (_referenceData.Users.ContainsKey(receivedIpEndPoint.Address.ToString()))
-                    {                            
+                    {
                         //received.ProfileImagePath = Utility.PathToFileName(received.ProfileImagePath);
                         //received.ProfileImagePath = Utility.PathHost() + "\\" + Utility.PathToFileName(received.ProfileImagePath);
                         string Path = Utility.PathHost() + "\\" + Utility.PathToFileName(received.ProfileImagePath);
@@ -185,6 +185,8 @@ namespace PDSProject
 
                         if (!_referenceData.Users[receivedIpEndPoint.Address.ToString()].Equals(received))
                         {
+                            Console.WriteLine("Aggiornamento info utente " + receivedIpEndPoint.Address.ToString());
+
                             //received.ProfileImagePath = Utility.PathToFileName(received.ProfileImagePath);
                             _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
 
@@ -198,6 +200,8 @@ namespace PDSProject
                             string ip = receivedIpEndPoint.Address.ToString();
                             await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                 MainWindow.main.UpdateProfileHost(ip);
+                                //MainWindow.main.SendProfileImage();
+
                             }));
 
                         }
@@ -207,6 +211,7 @@ namespace PDSProject
                         // Se invece non esiste, viene inserito
                         //received.ProfileImagePath = Utility.PathToFileName(received.ProfileImagePath);
                         //received.ProfileImagePath = 
+                        Console.WriteLine("Connessio nuovo utente " + receivedIpEndPoint.Address.ToString());
                         string Path = Utility.PathHost() + "\\" + Utility.PathToFileName(received.ProfileImagePath);
                         try {
                             File.OpenRead(Path);
@@ -217,20 +222,25 @@ namespace PDSProject
                         }
                         received.ProfileImagePath = Path;
                         received.ip = receivedIpEndPoint.Address.ToString();
-                        _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
-                        if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash))
+
+                        lock (_referenceData.Users)
                         {
-                            //Da aggiornare immagine profilo
-                            _referenceData.Users[receivedIpEndPoint.Address.ToString()].ProfileImagePath = _referenceData.UserImageChange[received.ProfileImageHash];
+                            _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
+                            if (_referenceData.UserImageChange.ContainsKey(received.ProfileImageHash))
+                            {
+                                //Da aggiornare immagine profilo
+                                _referenceData.Users[receivedIpEndPoint.Address.ToString()].ProfileImagePath = _referenceData.UserImageChange[received.ProfileImageHash];
+                            }
                         }
                         string ip = receivedIpEndPoint.Address.ToString();
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.UpdateProfileHost(ip);
-                            if (_referenceData.Users.Count == 1 && _referenceData.isFirst)
+                        await    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                _referenceData.isFirst = false;
-                                MainWindow.main.SendProfileImage();
-                            }
+                                MainWindow.main.UpdateProfileHost(ip);
+                                if (_referenceData.Users.Count == 1 && _referenceData.isFirst)
+                                {
+                                    _referenceData.isFirst = false;
+                                    MainWindow.main.SendProfileImage();
+                                }
                         }));
                     }
                 }

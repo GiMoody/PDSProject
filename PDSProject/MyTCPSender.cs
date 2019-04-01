@@ -148,7 +148,10 @@ namespace PDSProject
             }
             else
             {
-                var copyDictionary = _referenceData.Users.Values.ToList();
+                List<Host> copyDictionary;
+                lock (_referenceData.Users) {
+                    copyDictionary = _referenceData.Users.Values.ToList();
+                }
                 foreach (Host host in copyDictionary) {
                     if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
                         _referenceData.FileToFinish.Add(filenames[0], "start");

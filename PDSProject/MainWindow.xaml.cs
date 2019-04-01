@@ -249,12 +249,19 @@ namespace PDSProject {
 
         private void dispatcherTimer_Tick(object sender, EventArgs e) {
             // Controllo se c'è stato un cambio di rete 
-            if (_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals("")) {
-                foreach (KeyValuePair<string, string> t in _referenceData.Ips) {
+            if (_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals(""))
+            {
+                foreach (KeyValuePair<string, string> t in _referenceData.Ips)
+                {
                     _UDPSender.Sender(t.Key);
                 }
-            } else
+            }
+            else
+            {
                 _UDPSender.Sender(_referenceData.BroadcastIPAddress);
+                //SendProfileImage();
+                //SendProfileImage();
+            }
         }
 
 
@@ -555,7 +562,8 @@ namespace PDSProject {
         /// </summary>
         public async void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
+            if(_referenceData.FileToFinish.ContainsKey(_referenceData.LocalUser.ProfileImagePath))
+                _referenceData.FileToFinish.Add(_referenceData.LocalUser.ProfileImagePath, "start");
             if (_referenceData.useTask)
             {
                 await Task.Run(async() => {
