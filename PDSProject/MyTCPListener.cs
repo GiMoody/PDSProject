@@ -270,9 +270,11 @@ namespace PDSProject
 
                         if (!isChImage) {
                             //TIMER PER CALCOLARE TEMPO RIMANENTE ALLA FINE DEL DOWNLOAD
-                            string secondsElapsed = "";
-                            Stopwatch stopwatch = new Stopwatch();
-                            stopwatch.Start();
+                            //string secondsElapsed = "";
+                            //Stopwatch stopwatch = new Stopwatch();
+                            //stopwatch.Start();
+
+                            DateTime started = DateTime.Now;
 
                             var file = File.Create(file_name);
                             Console.WriteLine($"File Created on path {file_name}");
@@ -285,26 +287,35 @@ namespace PDSProject
                                 if (dataReceived > 0 && dataReceived < i) { //bufferSize)
                                     file.Write(bytes, 0, Convert.ToInt32(dataReceived));
                                     dataReceivedJet = 100f;
+
                                 }
                                 else {
                                     file.Write(bytes, 0, i);
                                     dataReceivedJet = Math.Ceiling((float)(dimfile - dataReceived) / (float)dimfile * 100);
                                 }
-                                //PROGRESS BAR (BOH) -------------------------------
-                                secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
-                                string secondElapsedJet = secondsElapsed;
+                                TimeSpan elapsedTime = DateTime.Now - started;
                                 
+                                //OVERFLOW DA CONTROLLARE
+                                //TimeSpan estimatedTime = 
+                                //    TimeSpan.FromSeconds(
+                                //        (dimfile - (dimfile - dataReceived)) / 
+                                //        ((double)(dimfile - dataReceived)  / elapsedTime.TotalSeconds));
+                                
+                                //PROGRESS BAR (BOH) -------------------------------
+                                //secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
+                                //string secondElapsedJet = secondsElapsed;
+                                //string estimatedTimeJet = estimatedTime.ToString();
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                     MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
-                                    MainWindow.main.textTime.Text = secondElapsedJet;
+                                    //MainWindow.main.textTime.Text = estimatedTimeJet;
                                 }));
                                 Console.WriteLine(dataReceivedJet + "%");
 
                                 dataReceived -= i;
                             }
                             Console.WriteLine($"File Received {data}");
-                            stopwatch.Stop();
-                            //secondsElapsed += stopwatch.Elapsed.TotalSeconds;
+                            //stopwatch.Stop();
+                            ////secondsElapsed += stopwatch.Elapsed.TotalSeconds;
                             file.Close();
                         }
                         else{
