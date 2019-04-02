@@ -28,6 +28,7 @@ using Application = System.Windows.Application;
 using CheckBox = System.Windows.Controls.CheckBox;
 using MessageBox = System.Windows.MessageBox;
 using System.Threading;
+using ListBox = System.Windows.Controls.ListBox;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace PDSProject {
@@ -649,6 +650,13 @@ namespace PDSProject {
                  _referenceData.selectedHost = "";
                 Console.WriteLine("UTENTE DESELEZIONATO");
             }*/
+        }
+
+        private void FriendList_DoubleClick(object sender, MouseButtonEventArgs e) {
+            ListBox list = (ListBox)sender;
+            if (list.SelectedItems.Count == 1) {
+                friendList.SelectedIndex = -1;
+            }
         }
     }
 }
