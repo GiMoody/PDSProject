@@ -31,7 +31,7 @@ namespace PDSProject
 
             if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1)
             {
-                string path = string.Join("", e.Args);
+                string path = string.Join(" ", e.Args);
                 PipeServer(path);
                 ActivateOtherWindow();
                 //Current.Dispatcher.BeginInvoke((Action)(() => ((MainWindow)Current.MainWindow).Test(e.Args)));

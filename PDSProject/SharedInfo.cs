@@ -39,7 +39,7 @@ namespace PDSProject
         public Int32 UDPReceivedPort = 20000;
 
         //TODO: cose temporanee
-        public string selectedHost = "";
+        public List<string> selectedHosts = new List<string>();
         public bool isFirst = true;
         public bool hasChangedProfileImage = false; // Usato per inviare immagine profilo utente corrente
 
@@ -47,7 +47,7 @@ namespace PDSProject
         public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         public List<string> PathFileToSend = new List<string>();
-        public ConcurrentDictionary<string, string> FileToFinish = new ConcurrentDictionary<string,string>();
+        public ConcurrentDictionary<string, Dictionary<string,string>> FileToFinish = new ConcurrentDictionary<string, Dictionary<string,string>>();
 
         // Data structures di supporto da usare nella ricerca della sottorete in cui sono presenti degli Host
         public List<string> LocalIps = new List<string>();

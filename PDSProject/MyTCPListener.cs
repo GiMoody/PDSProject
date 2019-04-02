@@ -169,10 +169,15 @@ namespace PDSProject
                     while (!tokenListener.IsCancellationRequested)
                     {
                         Console.WriteLine("Waiting for connection...");
-                        TcpClient client = await server.AcceptTcpClientAsync().WithWaitCancellation(tokenListener);
+                        //TcpClient client = await server.AcceptTcpClientAsync().WithWaitCancellation(tokenListener);
                         //Thread t = new Thread(new ParameterizedThreadStart(ServeClientA));
                         //t.Start(client);
-                        await ServeClientA(client);
+                        //await ServeClientA(client);
+                        await server.AcceptTcpClientAsync().ContinueWith(async ( antecedent ) => {
+                            TcpClient client = antecedent.Result;
+                            await ServeClientA((TcpClient)antecedent.Result);
+                        }
+                        ).WithWaitCancellation(tokenListener);
                     }
                 }
                 catch (SocketException e)
@@ -275,21 +280,27 @@ namespace PDSProject
                             bytes = new byte[bufferSize * 64];
                             long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
                             while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
-                                if (dataReceived > 0 && dataReceived < i) //bufferSize)
+                                double dataReceivedJet = 0.0f; Math.Floor((float)(dimfile-dataReceived)/(float)dimfile*100);
+
+                                if (dataReceived > 0 && dataReceived < i) { //bufferSize)
                                     file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-                                else
+                                    dataReceivedJet = 100f;
+                                }
+                                else {
                                     file.Write(bytes, 0, i);
-                                dataReceived -= i;
+                                    dataReceivedJet = Math.Floor((float)(dimfile - dataReceived) / (float)dimfile * 100);
+                                }
                                 //PROGRESS BAR (BOH) -------------------------------
                                 secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
                                 string secondElapsedJet = secondsElapsed;
-                                double dataReceivedJet = dataReceived/dimfile*100;
-
+                                
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                     MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
                                     MainWindow.main.textTime.Text = secondElapsedJet;
                                 }));
-                                Console.WriteLine(dataReceived + "/" + dimfile);
+                                Console.WriteLine(dataReceivedJet + "%");
+
+                                dataReceived -= i;
                             }
                             Console.WriteLine($"File Received {data}");
                             stopwatch.Stop();

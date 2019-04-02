@@ -330,7 +330,7 @@ namespace PDSProject {
         /// <summary>
         /// Modifica immagine profilo
         /// </summary>
-        private async void Image_MouseDown(object sender, MouseButtonEventArgs e) {
+        private void Image_MouseDown(object sender, MouseButtonEventArgs e) {
             // Strumento base di windows per scegliere un file nel filesystem
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
@@ -440,7 +440,7 @@ namespace PDSProject {
                 _referenceData.SaveJson();
                 if (_referenceData.useTask)
                 {
-                    _referenceData.FileToFinish.AddOrUpdate(_referenceData.LocalUser.ProfileImagePath, ( key ) => "start", ( key, value ) => "inprogress");
+                    //_referenceData.FileToFinish.AddOrUpdate(_referenceData.iè, ( key ) => "start", ( key, value ) => "inprogress");
                     await _TCPSender.SendA(new List<string>() { _referenceData.LocalUser.ProfileImagePath }, true); // Deve essere inviato a tutti gli utenti connessi 
                 }
                 else
@@ -549,6 +549,7 @@ namespace PDSProject {
                         lista.Add((Host)item);
                     }
                     friendList.Items.Refresh();
+                    friendList.SelectedIndex = -1;
                     foreach (var item in friendList.Items) {
                         if (lista.Contains(item)) {
                             friendList.SelectedItems.Add(item);
@@ -572,8 +573,8 @@ namespace PDSProject {
         /// </summary>
         public async void SendProfileImage() {
             _referenceData.hasChangedProfileImage = true;
-            if(_referenceData.FileToFinish.ContainsKey(_referenceData.LocalUser.ProfileImagePath))
-                _referenceData.FileToFinish.GetOrAdd(_referenceData.LocalUser.ProfileImagePath, "start");
+            //if(_referenceData.FileToFinish.ContainsKey(_referenceData.LocalUser.ProfileImagePath))
+            //    _referenceData.FileToFinish.GetOrAdd(_referenceData.LocalUser.ProfileImagePath, "start");
             if (_referenceData.useTask)
             {
                 await Task.Run(async() => {
@@ -593,14 +594,27 @@ namespace PDSProject {
         /// </summary>
         private async void ButtonSend_Click(object sender, RoutedEventArgs e) {
 
-            if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHost != "") {
+            if (_referenceData.PathFileToSend.Count > 0 && _referenceData.selectedHosts.Count > 0) {
                 //Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
-                foreach (string path in _referenceData.PathFileToSend)
-                    _referenceData.FileToFinish.AddOrUpdate(path, ( key ) => "start", ( key, value ) => "inprogress");
+                //foreach (string path in _referenceData.PathFileToSend)
+                //_referenceData.FileToFinish.AddOrUpdate(path, ( key ) => "start", ( key, value ) => "inprogress");
+
+                List<string> selectedCurrntlyHost;
+                lock (_referenceData.selectedHosts){
+                    selectedCurrntlyHost = _referenceData.selectedHosts.ToList();
+                }
+                foreach (string ip in selectedCurrntlyHost) {
+                    Dictionary<string, string> listFile = _referenceData.PathFileToSend.ToDictionary( key => key, value => "start");
+                    _referenceData.FileToFinish.AddOrUpdate(ip, ( key ) => listFile, ( key, value ) => {
+                        var difference = listFile.Where(entry => !value.ContainsKey(entry.Key)).ToDictionary(x => x.Key, x => x.Value);
+                        return value.Concat(difference).ToDictionary(x => x.Key, x => x.Value);
+                        });
+                }
+                List<string> pathFiles = _referenceData.PathFileToSend.ToList();
                 _referenceData.PathFileToSend.Clear();
 
                 if (_referenceData.useTask) {
-                    await _TCPSender.SendA(_referenceData.FileToFinish.Keys.ToList(), false);
+                    await _TCPSender.SendA(pathFiles, false);
                     //NOME FILE SOPRA PROGRESS BAR)
                     string file_path = _referenceData.FileToFinish.Keys.ToString();
                     string file_name = Utility.PathToFileName(file_path);
@@ -614,14 +628,27 @@ namespace PDSProject {
         }
 
         private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-
-            if (_referenceData.Users.Count > 0){
-                _referenceData.selectedHost = _referenceData.Users.First().Key;
-                Console.WriteLine("UTENTE SELEZIONATO");
-            } else {
+            Console.WriteLine(e.AddedItems);
+            if (e.AddedItems.Count > 0){
+                //_referenceData.selectedHost = _referenceData.Users.First().Key;
+                foreach (Host h in e.AddedItems) {
+                    if (!_referenceData.selectedHosts.Contains(h.ip))
+                        _referenceData.selectedHosts.Add(h.ip);
+                    Console.WriteLine("UTENTE SELEZIONATO " + h.ip);
+                }
+                //Console.WriteLine("UTENTE SELEZIONATO");
+            }
+            if (e.RemovedItems.Count > 0) {
+                foreach (Host h in e.RemovedItems)
+                {
+                    _referenceData.selectedHosts.Remove(h.ip);
+                    Console.WriteLine("UTENTE DESELEZIONATO " + h.ip);
+                }
+            }
+                /*else {
                  _referenceData.selectedHost = "";
                 Console.WriteLine("UTENTE DESELEZIONATO");
-            }
+            }*/
         }
     }
 }

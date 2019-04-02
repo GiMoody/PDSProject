@@ -35,11 +35,14 @@ namespace PDSProject
         public void Send ( Object result)//List<string> filenames )
         {
             // TODO: da cambiare!!!
-            IPAddress serverAddr;
+            IPAddress serverAddr = null;
             if (!_referenceData.hasChangedProfileImage)
             {
-                if (_referenceData.selectedHost.Equals("")) return;
-                serverAddr = IPAddress.Parse(_referenceData.selectedHost);
+                if (_referenceData.selectedHosts.Count <= 0) return;
+                List<string> currentlySelectedHost = _referenceData.selectedHosts.ToList();
+                foreach (string ip in currentlySelectedHost) {
+                    serverAddr = IPAddress.Parse(ip);
+                }
             }
             else
             {
@@ -91,7 +94,16 @@ namespace PDSProject
                     }
                     NetworkStream stream = client.GetStream();
                     stream.Write(bytes, 0, bufferSize);
-                    _referenceData.FileToFinish[path] = "inprogress";
+                    Dictionary<string,string> test;
+                    //_referenceData.FileToFinish[path] = "inprogress";
+                    _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);
+                    _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "inprogress"; return oldValue; });
+
+                    /*lock (_referenceData.FileToFinish[serverAddr.ToString()])
+                    {
+                        test[path] = "inprogress";
+                        _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "inprogress"; return oldValue; });
+                    }*/
 
                     // Invio effettivo del file
                     //bytes = new byte[bufferSize * 64];
@@ -106,7 +118,14 @@ namespace PDSProject
                     stream.Close();
                     stream.Flush();
                     string removeValue = "";
-                    _referenceData.FileToFinish.TryRemove(path, out removeValue);
+                    /*Dictionary<string, string> test;
+                    _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);// TryRemove(path, out removeValue);
+                    lock (_referenceData.FileToFinish[serverAddr.ToString()]){
+                        test.Remove(path);
+                        _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => test);
+                    }*/
+                    _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue.Remove(path); return oldValue; });
+
                     Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
                     client.Close();
 
@@ -141,11 +160,25 @@ namespace PDSProject
         {
             // TODO: da cambiare!!!
             IPAddress serverAddr;
-            if (!_referenceData.hasChangedProfileImage)
+            if (!isProfile)//!_referenceData.hasChangedProfileImage)
             {
-                if (_referenceData.selectedHost.Equals("")) return;
-                serverAddr = IPAddress.Parse(_referenceData.selectedHost);
-                await SendListFiles(serverAddr, filenames, isProfile);
+                //foreach (string path in filenames) {
+                if (_referenceData.selectedHosts.Count <= 0) return;
+                List<string> currentlySelectedHost;
+                lock (_referenceData.selectedHosts) {
+                    currentlySelectedHost = _referenceData.selectedHosts.ToList();
+                }
+                List<Task> test = new List<Task>();
+
+                foreach (string ip in currentlySelectedHost) {
+                    serverAddr = IPAddress.Parse(ip);
+                    test.Add(SendListFiles(serverAddr,  filenames, isProfile));
+                }
+                await Task.WhenAll(test);
+                //if (_referenceData.selectedHost.Equals("")) return;
+                //    serverAddr = IPAddress.Parse(_referenceData.selectedHost);
+                //    await SendListFiles(serverAddr, filenames, isProfile);
+                //}
 
             }
             else
@@ -155,11 +188,11 @@ namespace PDSProject
                     copyDictionary = _referenceData.Users.Values.ToList();
                 }
                 foreach (Host host in copyDictionary) {
-                    if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
-                        _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
+                    //if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
+                    //    _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
                     serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
                     //await
-                    await Task.Run(async () => { await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(false); });
+                    await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(continueOnCapturedContext: false);
                 }
             }
             //TcpClient client = null;
@@ -231,64 +264,83 @@ namespace PDSProject
 
                 foreach (string path in filenames)
                 {
-                    if (_referenceData.FileToFinish.ContainsKey(path) && _referenceData.FileToFinish[path].Equals("inprogress")) continue;
+                    if(!isProfile)
+                        if (_referenceData.FileToFinish.ContainsKey(path) && _referenceData.FileToFinish[path].Equals("inprogress")) continue;
                     if (Utility.PathToFileName(path).Equals(_referenceData.defaultImage)) continue;
                     Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
-                    TcpClient client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-
+                    TcpClient client = new TcpClient(); //serverAddr.ToString(), _referenceData.TCPPort);
+                    await client.ConnectAsync(serverAddr.ToString(), _referenceData.TCPPort).ConfigureAwait(false);
                     UTF8Encoding encoder = new UTF8Encoding();
-                    FileStream file = File.OpenRead(path);//"Risultati.pdf");
-
-                    // Invio primo pacchetto con nome e dimensione
-                    // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-                    long dim = file.Length;
-                    string firstmsg = "";
-
-                    // Da cambiare
-                    /*if (_referenceData.hasChangedProfileImage)
+                    //FileStream file = File.OpenRead(path);//"Risultati.pdf");
+                    using (var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize*1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
                     {
-                        firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-                        _referenceData.hasChangedProfileImage = false;
-                    }*/
+                        // Invio primo pacchetto con nome e dimensione
+                        // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
+                        long dim = file.Length;
+                        string firstmsg = "";
 
-                    if (isProfile) firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-                    
-                    string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
-                    firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
+                        // Da cambiare
+                        /*if (_referenceData.hasChangedProfileImage)
+                        {
+                            firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+                            _referenceData.hasChangedProfileImage = false;
+                        }*/
 
-                    /* 
-                     * Questa roba merita purtroppo 2 parole:
-                     * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
-                     * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
-                     * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
-                     */
-                    byte[] bytes = new byte[bufferSize];
-                    encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-                    Random rand = new Random();
-                    for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
-                    {
-                        byte b = 1;
-                        bytes.Append(b);
-                    }
-                    NetworkStream stream = client.GetStream();
-                    await stream.WriteAsync(bytes, 0, bufferSize);
-                    _referenceData.FileToFinish[path] = "inprogress";
-                    // Invio effettivo del file
-                    //bytes = new byte[bufferSize * 64];
-                    long numbPackets = dim / (bufferSize*64);
-                    for (int i = 0; i <= numbPackets; i++)
-                    {
+                        if (isProfile) firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
+
+                        string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
+                        firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
+
+                        /* 
+                         * Questa roba merita purtroppo 2 parole:
+                         * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
+                         * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
+                         * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
+                         */
+                        byte[] bytes = new byte[bufferSize];
+                        encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
+                        Random rand = new Random();
+                        for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
+                        {
+                            byte b = 1;
+                            bytes.Append(b);
+                        }
+                        NetworkStream stream = client.GetStream();
+                        await stream.WriteAsync(bytes, 0, bufferSize).ConfigureAwait(false);
+                        if (!isProfile)
+                        {
+                            Dictionary<string,string> test;
+                            _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);
+                            _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "inprogress"; return oldValue; });
+                        }
+                        // Invio effettivo del file
+                        //bytes = new byte[bufferSize * 64];
+                        long numbPackets = dim / (bufferSize*64);
+
                         bytes = new byte[bufferSize * 64];
-                        file.Read(bytes, 0, bytes.Length);
-                        stream.Write(bytes, 0, bytes.Length);
+                        await file.CopyToAsync(stream, bufferSize).ConfigureAwait(false);
+                        /*for (int i = 0; i <= numbPackets; i++)
+                            {
+                                bytes = new byte[bufferSize * 64];
+                                await file.ReadAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+                                await stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+                            }*/
+                        stream.Close();
                     }
-                    file.Close();
-                    stream.Flush();
-                    stream.Close();
+                    //file.Close();
+                    //stream.Flush();
+                    //stream.Close();
 
-                    string removeValue = "";
-                    _referenceData.FileToFinish.TryRemove(path, out removeValue);
-                    Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
+                    //string removeValue = "";
+                    //_referenceData.FileToFinish.TryRemove(path, out removeValue);
+                    //_referenceData.FileToFinish[path] = "inprogress";
+                    if (!isProfile) {
+                        Dictionary<string,string> test;
+                        _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);
+                        _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue.Remove(path); return oldValue; });
+                    }
+
+                    Console.WriteLine("Fine invio file " + path);
 
                     client.Close();
                 }
