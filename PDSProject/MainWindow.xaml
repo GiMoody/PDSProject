@@ -34,8 +34,8 @@
 
                 <!--Progress File-->
                 <TextBlock x:Name="textFile" TextWrapping="Wrap" RenderTransformOrigin="0.488,0.535" Margin="22,181,228.8,0" Height="29" VerticalAlignment="Top" Foreground="White" FontFamily="Lato" FontSize="14"/>
-                <TextBlock x:Name="textNumberFile" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Height="29" Margin="297,181,125.8,0" Foreground="White" FontFamily="Lato" FontSize="14" VerticalAlignment="Top"/>
-                <TextBlock x:Name="textTime" TextWrapping="Wrap" RenderTransformOrigin="0.51,0.568" Height="29" VerticalAlignment="Top" Margin="373,181,70.8,0" Foreground="White" FontFamily="Lato" FontSize="14"/>
+                <TextBlock x:Name="textNumberFile" TextWrapping="Wrap" Text="(1/1)" RenderTransformOrigin="0.566,0.535" Height="29" Margin="0,181,161.8,0" Foreground="White" FontFamily="Lato" FontSize="14" VerticalAlignment="Top" HorizontalAlignment="Right" Width="62"/>
+                <TextBlock x:Name="textTime" TextWrapping="Wrap" RenderTransformOrigin="0.51,0.568" Height="29" VerticalAlignment="Top" Margin="0,181,50.8,0" Foreground="White" FontFamily="Lato" FontSize="14" HorizontalAlignment="Right" Width="97"/>
                 <ProgressBar x:Name="progressFile" Height="18" Margin="22,215,250.4,0" VerticalAlignment="Top"/>
                 <Button x:Name="stopButton" Content="X" Height="18" Margin="0,215,199.4,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="24" FontFamily="Lato"/>
 

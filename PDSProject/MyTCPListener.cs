@@ -280,7 +280,7 @@ namespace PDSProject
                             bytes = new byte[bufferSize * 64];
                             long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
                             while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
-                                double dataReceivedJet = 0.0f; Math.Floor((float)(dimfile-dataReceived)/(float)dimfile*100);
+                                double dataReceivedJet = 0.0f;
 
                                 if (dataReceived > 0 && dataReceived < i) { //bufferSize)
                                     file.Write(bytes, 0, Convert.ToInt32(dataReceived));
@@ -288,7 +288,7 @@ namespace PDSProject
                                 }
                                 else {
                                     file.Write(bytes, 0, i);
-                                    dataReceivedJet = Math.Floor((float)(dimfile - dataReceived) / (float)dimfile * 100);
+                                    dataReceivedJet = Math.Ceiling((float)(dimfile - dataReceived) / (float)dimfile * 100);
                                 }
                                 //PROGRESS BAR (BOH) -------------------------------
                                 secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
