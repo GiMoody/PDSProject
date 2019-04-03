@@ -29,6 +29,8 @@ using CheckBox = System.Windows.Controls.CheckBox;
 using MessageBox = System.Windows.MessageBox;
 using System.Threading;
 using ListBox = System.Windows.Controls.ListBox;
+using Menu = System.Windows.Forms.Menu;
+using MenuItem = System.Windows.Forms.MenuItem;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace PDSProject {
@@ -38,7 +40,7 @@ namespace PDSProject {
 
     public partial class MainWindow : Window {
 
-        bool selected = false;
+        //bool stat_online = false;
         private string save_path;
 
         public static MainWindow main; // Usato come riferimento da parte delle altri classi
@@ -78,9 +80,13 @@ namespace PDSProject {
            
             // Initialize contextMenu 
             this.contextMenu = new System.Windows.Forms.ContextMenu();
-            this.contextMenu.MenuItems.Add(0, new System.Windows.Forms.MenuItem("Show", new System.EventHandler(Show_Click)));
-            this.contextMenu.MenuItems.Add(1, new System.Windows.Forms.MenuItem("Hide", new System.EventHandler(Hide_Click)));
+            System.Windows.Forms.MenuItem statusItem = new System.Windows.Forms.MenuItem("Status");
+            statusItem.MenuItems.Add(0, new System.Windows.Forms.MenuItem("Online", new System.EventHandler(Status_Click)));
+            statusItem.MenuItems.Add(1, new System.Windows.Forms.MenuItem("Offline", new System.EventHandler(Status_Click)));
+            this.contextMenu.MenuItems.Add(0, statusItem);
+            this.contextMenu.MenuItems.Add(1, new System.Windows.Forms.MenuItem("Show", new System.EventHandler(Show_Click)));
             this.contextMenu.MenuItems.Add(2, new System.Windows.Forms.MenuItem("Exit", new System.EventHandler(Exit_Click)));
+           
             
             //initialize balloon items
             string title_ball = "PDS_Condividi";
@@ -151,14 +157,29 @@ namespace PDSProject {
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
         /// </summary>
-        protected void Exit_Click(Object sender, System.EventArgs e){
-            Close();
-        }
-        protected void Hide_Click(Object sender, System.EventArgs e){
-            Hide();
+        
+        protected void Status_Click(Object sender, System.EventArgs e){
+            MenuItem statItem = (MenuItem) sender;
+            if (statItem.Text == "Online"){
+                Console.WriteLine("ONLINE");
+                comboStatus.Text = "Online";
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
+               _referenceData.LocalUser.Status = "online";
+                _referenceData.SaveJson();
+            }else{
+                Console.WriteLine("OFFLINE");
+                comboStatus.Text = "Offline";
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                _referenceData.LocalUser.Status = "offline";
+                _referenceData.SaveJson();
+            }
         }
         protected void Show_Click(Object sender, System.EventArgs e) {
-            Show();
+            this.Show();
+            this.WindowState = WindowState.Normal;
+        }
+        protected void Exit_Click(Object sender, System.EventArgs e){
+            Close();
         }
         ///
         
@@ -250,15 +271,11 @@ namespace PDSProject {
 
         private void dispatcherTimer_Tick(object sender, EventArgs e) {
             // Controllo se c'è stato un cambio di rete 
-            if (_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals(""))
-            {
-                foreach (KeyValuePair<string, string> t in _referenceData.Ips)
-                {
+            if (_referenceData.LocalIPAddress.Equals("") && _referenceData.BroadcastIPAddress.Equals("")){
+                foreach (KeyValuePair<string, string> t in _referenceData.Ips){
                     _UDPSender.Sender(t.Key);
                 }
-            }
-            else
-            {
+            }else{
                 _UDPSender.Sender(_referenceData.BroadcastIPAddress);
                 //SendProfileImage();
                 //SendProfileImage();
@@ -306,9 +323,9 @@ namespace PDSProject {
 
         }
 
-        /// <summary>
-        /// Selezionando l'icona dell'amico, appare/scompare un canvas blu
-        /// </summary>
+        ///// <summary>
+        ///// Selezionando l'icona dell'amico, appare/scompare un canvas blu
+        ///// </summary>
         //private void Canvas_Visible(object sender, MouseButtonEventArgs e) {
 
         //    if (selected == false) {
@@ -358,6 +375,7 @@ namespace PDSProject {
                         imgBrush.ImageSource = new BitmapImage(new Uri(filename));
 
                         ImageProfile.Fill = imgBrush;
+                        ImageSettingsProfile.Fill = imgBrush;
 
                         string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
 
