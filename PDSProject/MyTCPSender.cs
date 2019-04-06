@@ -190,7 +190,7 @@ namespace PDSProject
                 foreach (Host host in copyDictionary) {
                     //if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
                     //    _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
-                    serverAddr = IPAddress.Parse(host.ip);//_referenceData.Users.First().Key);//"192.168.1.69");
+                    serverAddr = IPAddress.Parse(host.Ip);//_referenceData.Users.First().Key);//"192.168.1.69");
                     //await
                     await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(continueOnCapturedContext: false);
                 }
@@ -367,30 +367,30 @@ namespace PDSProject
 
 
 
-        public void SendCallback ()
-        {
-            if (_referenceData.CallBackIPAddress.Equals("")) return;
-            IPAddress serverAddr = IPAddress.Parse(_referenceData.CallBackIPAddress);
-            TcpClient client = null;
+        //public void SendCallback ()
+        //{
+        //    if (_referenceData.CallBackIPAddress.Equals("")) return;
+        //    IPAddress serverAddr = IPAddress.Parse(_referenceData.CallBackIPAddress);
+        //    TcpClient client = null;
 
-            try
-            {
-                client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-                NetworkStream stream = client.GetStream();
-                UTF8Encoding encoder = new UTF8Encoding();
-                byte[] bytes = new byte[bufferSize];
-                encoder.GetBytes("CHNETWORK ").CopyTo(bytes, 0);
-                stream.Write(bytes, 0, bufferSize);
-                stream.Close();
-            }
-            catch (SocketException e)
-            {
-                Console.WriteLine($"SocketException: {e}");
-            }
-            finally
-            {
-                client.Close();
-            }
-        }
+        //    try
+        //    {
+        //        client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
+        //        NetworkStream stream = client.GetStream();
+        //        UTF8Encoding encoder = new UTF8Encoding();
+        //        byte[] bytes = new byte[bufferSize];
+        //        encoder.GetBytes("CHNETWORK ").CopyTo(bytes, 0);
+        //        stream.Write(bytes, 0, bufferSize);
+        //        stream.Close();
+        //    }
+        //    catch (SocketException e)
+        //    {
+        //        Console.WriteLine($"SocketException: {e}");
+        //    }
+        //    finally
+        //    {
+        //        client.Close();
+        //    }
+        //}
     }
 }

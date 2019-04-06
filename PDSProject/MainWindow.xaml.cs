@@ -257,15 +257,10 @@ namespace PDSProject {
         }
 
         public void SendCallback() {
-            //_TCPSender. SendCallback();
             _TCPListener.StopServer();
         }
 
         public void Test(string e) {
-            /*test = e;
-            foreach(string s in e) {
-                textInfoMessage.Text += s;
-            }*/
             textInfoMessage.Text += e + "\n";
         }
 
@@ -277,8 +272,15 @@ namespace PDSProject {
                 }
             }else{
                 _UDPSender.Sender(_referenceData.BroadcastIPAddress);
-                //SendProfileImage();
-                //SendProfileImage();
+                long currentTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                lock (_referenceData.Users) {
+                    foreach(KeyValuePair<string,Host> u in _referenceData.Users) {
+                        if((currentTime - u.Value.LastPacketTime) > 10000 && u.Value.Status.Equals("online")){
+                            u.Value.UpdateStatus("offline");
+                            UpdateProfileHost(u.Key);
+                        }
+                    }
+                }
             }
         }
 
@@ -456,6 +458,8 @@ namespace PDSProject {
                 this.textUserName.Text = this.textChangeName.Text;
 
                 _referenceData.LocalUser.Name = this.textChangeName.Text;
+                _referenceData.LocalUser.SavePath = this.pathName.Text;
+
                 _referenceData.SaveJson();
                 if (_referenceData.useTask)
                 {
@@ -570,10 +574,10 @@ namespace PDSProject {
                     friendList.Items.Refresh();
                     friendList.SelectedIndex = -1;
                     foreach (var item in friendList.Items) {
-                        if (lista.Contains(item)) {
+                        if (lista.Contains(item) && ((Host)item).Status.Equals("online")) {
                             friendList.SelectedItems.Add(item);
                         }
-                        if(((Host)item).ip.Equals(ip))
+                        if(((Host)item).Ip.Equals(ip) && ((Host)item).Status.Equals("online"))
                             friendList.SelectedItems.Add(item);
                         
                     }
@@ -651,23 +655,25 @@ namespace PDSProject {
             if (e.AddedItems.Count > 0){
                 //_referenceData.selectedHost = _referenceData.Users.First().Key;
                 foreach (Host h in e.AddedItems) {
-                    if (!_referenceData.selectedHosts.Contains(h.ip))
-                        _referenceData.selectedHosts.Add(h.ip);
-                    Console.WriteLine("UTENTE SELEZIONATO " + h.ip);
+                    if (!_referenceData.selectedHosts.Contains(h.Ip))
+                        _referenceData.selectedHosts.Add(h.Ip);
+                    Console.WriteLine("UTENTE SELEZIONATO " + h.Ip);
+                    if (h.Status.Equals("offline"))
+                        friendList.SelectedItems.Remove(h);
                 }
                 //Console.WriteLine("UTENTE SELEZIONATO");
             }
             if (e.RemovedItems.Count > 0) {
                 foreach (Host h in e.RemovedItems)
                 {
-                    _referenceData.selectedHosts.Remove(h.ip);
-                    Console.WriteLine("UTENTE DESELEZIONATO " + h.ip);
+                    _referenceData.selectedHosts.Remove(h.Ip);
+                    Console.WriteLine("UTENTE DESELEZIONATO " + h.Ip);
                 }
             }
-                /*else {
-                 _referenceData.selectedHost = "";
-                Console.WriteLine("UTENTE DESELEZIONATO");
-            }*/
+            /*else {
+             _referenceData.selectedHost = "";
+            Console.WriteLine("UTENTE DESELEZIONATO");
+        }*/
         }
 
         private void FriendList_DoubleClick(object sender, MouseButtonEventArgs e) {

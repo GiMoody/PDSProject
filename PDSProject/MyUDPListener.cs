@@ -181,8 +181,8 @@ namespace PDSProject
                             //continue;
                         }
                         received.ProfileImagePath = Path;
-                        received.ip = receivedIpEndPoint.Address.ToString();
-
+                        received.Ip = receivedIpEndPoint.Address.ToString();
+                        received.LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         if (!_referenceData.Users[receivedIpEndPoint.Address.ToString()].Equals(received))
                         {
                             Console.WriteLine("Aggiornamento info utente " + receivedIpEndPoint.Address.ToString());
@@ -203,9 +203,10 @@ namespace PDSProject
                                 MainWindow.main.SendProfileImage();
 
                             }));
-
                         }
-                    }
+                        else
+                            _referenceData.Users[receivedIpEndPoint.Address.ToString()].LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    } 
                     else
                     {
                         // Se invece non esiste, viene inserito
@@ -221,8 +222,8 @@ namespace PDSProject
                             //continue;
                         }
                         received.ProfileImagePath = Path;
-                        received.ip = receivedIpEndPoint.Address.ToString();
-
+                        received.Ip = receivedIpEndPoint.Address.ToString();
+                        received.LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                         lock (_referenceData.Users)
                         {
                             _referenceData.Users[receivedIpEndPoint.Address.ToString()] = received;
@@ -236,11 +237,7 @@ namespace PDSProject
                         await    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
                                 MainWindow.main.UpdateProfileHost(ip);
-                                //if (_referenceData.Users.Count == 1 && _referenceData.isFirst)
-                               // {
-                                    //_referenceData.isFirst = false;
-                                    MainWindow.main.SendProfileImage();
-                                //}
+                                MainWindow.main.SendProfileImage();
                         }));
                     }
                 }

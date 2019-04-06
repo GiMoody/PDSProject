@@ -32,6 +32,7 @@ namespace PDSProject
                 return "";
         }
 
+
         public static string FileNameToSystem(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -45,6 +46,14 @@ namespace PDSProject
             else
                 return "";
         }
+
+        public static string PathResources () {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            return archiveFolder.ToString();
+        }
+
         public static string PathSystem() {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             

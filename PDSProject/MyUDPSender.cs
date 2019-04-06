@@ -30,7 +30,7 @@ namespace PDSProject
             try
             {
                 MemoryStream ms = new MemoryStream();
-                ser.WriteObject(ms, _referenceData.LocalUser);
+                ser.WriteObject(ms, _referenceData.LocalUser.ConvertToHost());
                 ms.Position = 0;
                 byte[] buffer = ms.ToArray();
                 sender.Send(buffer, buffer.Length, multicastAddr, _referenceData.UDPReceivedPort);

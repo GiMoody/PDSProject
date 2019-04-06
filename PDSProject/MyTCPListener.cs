@@ -252,7 +252,7 @@ namespace PDSProject
                         else
                         {
                             dimfile = Convert.ToInt64(info[1]);
-                            file_name = info[0];
+                            file_name = _referenceData.LocalUser.SavePath + "\\" + info[0];
                         }
 
                         // Crea il file e lo riempie
@@ -263,7 +263,8 @@ namespace PDSProject
                                 isChImage = true;
                             } else {
                                 string[] splits = file_name.Split('.');
-                                splits[splits.Length - 2] += "_Copia";
+                                string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, file_name);
+                                splits[splits.Length - 2] += files.Count() > 0 ? ("_"+files.Count()) : "" ;
                                 file_name = string.Join(".", splits);
                             }
                         }
