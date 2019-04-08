@@ -94,7 +94,12 @@ namespace PDSProject {
             string text_ball = _TCPListener.ServeClientA("").ToString();
 
             //Initialize icon
-            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_white.ico"));
+            if (_referenceData.LocalUser.Status.Equals("Online")){
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            } else {
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
+            }
+            
             ni.Visible = true;
             //attacco il context menù all'icona
             ni.ContextMenu = this.contextMenu;
@@ -156,20 +161,21 @@ namespace PDSProject {
         
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
-        /// </summary>
-        
+        /// </summary>        
         protected void Status_Click(Object sender, System.EventArgs e){
             MenuItem statItem = (MenuItem) sender;
             if (statItem.Text == "Online"){
                 Console.WriteLine("ONLINE");
                 comboStatus.Text = "Online";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
-               _referenceData.LocalUser.Status = "online";
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+                _referenceData.LocalUser.Status = "online";
                 _referenceData.SaveJson();
             }else{
                 Console.WriteLine("OFFLINE");
                 comboStatus.Text = "Offline";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
                 _referenceData.LocalUser.Status = "offline";
                 _referenceData.SaveJson();
             }
@@ -515,10 +521,12 @@ namespace PDSProject {
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (comboStatus.Text == "Online") {
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
                 _referenceData.LocalUser.Status = "offline";
                 _referenceData.SaveJson();
             } else if (comboStatus.Text == "Offline") {
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
                 _referenceData.LocalUser.Status = "online";
                 _referenceData.SaveJson();
             }
