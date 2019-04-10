@@ -263,7 +263,7 @@ namespace PDSProject
                                 isChImage = true;
                             } else {
                                 string[] splits = file_name.Split('.');
-                                string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, file_name);
+                                string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, Utility.PathToFileName(splits[splits.Length - 2]) +"*" + splits[splits.Length - 1]);
                                 splits[splits.Length - 2] += files.Count() > 0 ? ("_"+files.Count()) : "" ;
                                 file_name = string.Join(".", splits);
                             }

@@ -21,6 +21,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO.Compression;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -68,6 +69,7 @@ namespace PDSProject {
             _UDPSender = new MyUDPSender();
 
             source = new CancellationTokenSource();
+
 
             //initialize listBox
             //ObservableCollection<Host> items = new ObservableCollection<Host>();
@@ -629,11 +631,21 @@ namespace PDSProject {
                 //Task.Run(() => { _TCPSender.Send(_referenceData.PathFileToSend); });
                 //foreach (string path in _referenceData.PathFileToSend)
                 //_referenceData.FileToFinish.AddOrUpdate(path, ( key ) => "start", ( key, value ) => "inprogress");
-
+                
+                
                 List<string> selectedCurrntlyHost;
                 lock (_referenceData.selectedHosts){
                     selectedCurrntlyHost = _referenceData.selectedHosts.ToList();
                 }
+
+                // Test zip Da vedere meglio
+                /*string zipPath = @Utility.PathTmp() + "\\" + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() + ".zip";
+                using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
+                    foreach (string path in  _referenceData.PathFileToSend)
+                        archive.CreateEntryFromFile(path, Utility.PathToFileName(path));
+                }*/
+
+
                 foreach (string ip in selectedCurrntlyHost) {
                     Dictionary<string, string> listFile = _referenceData.PathFileToSend.ToDictionary( key => key, value => "start");
                     _referenceData.FileToFinish.AddOrUpdate(ip, ( key ) => listFile, ( key, value ) => {

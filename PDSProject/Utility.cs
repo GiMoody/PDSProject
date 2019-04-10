@@ -62,6 +62,14 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        public static string PathTmp () {
+            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+            string archiveFolder = Path.Combine(currentDirectory, "Resources");
+            archiveFolder = Path.Combine(archiveFolder, "Tmp");
+            return archiveFolder.ToString();
+        }
+
         public static string PathHost() {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
