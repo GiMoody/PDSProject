@@ -1,5 +1,11 @@
 # PDSProject
 Cose da fare:
+### "Protocollo" di comunicazione:
+
+Il "protocollo" è composto da un header composto da:
+* 5 bytes di identificazione del tipo di pacchetto. Questo può essere: FSEND(invio file), CIMAGE(invio immagine profilo), RFILE(richiesta file), YFILE(accettazione file) e NFILE(annullamento file).
+* Nel caso di un pacchetto di tipo FSEND o CIMAGE, l'header è seguito dal nome del file di dimensione massima di 256 bytes e dalla dimensione del file di dimensione di 15 bytes (per sicurezza) di tipo unsigned long
+
 ### Host: 
 * Aggiungere informazioni di configurazione per l'utente locale.
 ### MyTCPListener:
