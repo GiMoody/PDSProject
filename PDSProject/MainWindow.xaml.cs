@@ -113,7 +113,7 @@ namespace PDSProject {
             string text_ball = _TCPListener.ServeClientA("").ToString();
 
             //Initialize icon
-            if (_referenceData.LocalUser.Status.Equals("Online")){
+            if (_referenceData.LocalUser.Status.Equals("online")){
                 ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
             } else {
                 ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
