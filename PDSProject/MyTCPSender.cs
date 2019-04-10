@@ -337,7 +337,7 @@ namespace PDSProject
                     if (!isProfile) {
                         Dictionary<string,string> test;
                         _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);
-                        _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue.Remove(path); return oldValue; });
+                        _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "end"; return oldValue; });
                     }
 
                     Console.WriteLine("Fine invio file " + path);

@@ -90,7 +90,7 @@ namespace PDSProject
             else {
                 // Nel caso non sia presente un file JSON (prima accensione) ne genera uno di default.
                 LocalUser.Name = "Username";
-                LocalUser.Status = "online";
+                LocalUser.Status = "offline";
                 LocalUser.AcceptAllFile = false;
                 LocalUser.SavePath = defaultPath;
 

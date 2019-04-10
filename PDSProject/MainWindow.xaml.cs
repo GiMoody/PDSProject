@@ -69,7 +69,17 @@ namespace PDSProject {
             _UDPSender = new MyUDPSender();
 
             source = new CancellationTokenSource();
-
+            /*
+            string zipPath = @Utility.PathTmp() + "\\" + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() + ".zip";
+            using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                List<string> files = new List<string>();
+                files.Add(@"C:\Users\chaks\Pictures\Saved Pictures\0IfKD81.png");
+                files.Add(@"C:\Users\chaks\Pictures\Saved Pictures\1ee3d158c4913c5f4d7e505f3e436f89.jpg");
+                foreach (string path in files)
+                    archive.CreateEntryFromFile(path, Utility.PathToFileName(path));
+            }
+            */
 
             //initialize listBox
             //ObservableCollection<Host> items = new ObservableCollection<Host>();
@@ -286,6 +296,17 @@ namespace PDSProject {
                         if((currentTime - u.Value.LastPacketTime) > 10000 && u.Value.Status.Equals("online")){
                             u.Value.UpdateStatus("offline");
                             UpdateProfileHost(u.Key);
+                        }
+                    }
+                }
+                if (Directory.GetFiles(Utility.PathTmp()).Count() > 1) {
+                    foreach (string file in Directory.GetFiles(Utility.PathTmp())) {
+                        if (!file.Contains("README")) {
+                            int users = _referenceData.FileToFinish.Where(c => c.Value.ContainsKey(file)).Count();
+                            if (_referenceData.FileToFinish.Where(c => c.Value.ContainsKey(file) && (c.Value)[file].Equals("end")).Count() >= users){
+                                Console.WriteLine("Cancellazione file..." + file);
+                                File.Delete(file);
+                            }
                         }
                     }
                 }
@@ -644,8 +665,31 @@ namespace PDSProject {
                     foreach (string path in  _referenceData.PathFileToSend)
                         archive.CreateEntryFromFile(path, Utility.PathToFileName(path));
                 }*/
+                List<string> pathFiles;
+                lock (_referenceData.PathFileToSend)
+                {
+                    string zipPath = @Utility.PathTmp() + "\\" + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() + ".zip";
+                    using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+                    {
+                        
+                        foreach (string path in _referenceData.PathFileToSend)
+                            archive.CreateEntryFromFile(path, Utility.PathToFileName(path));
+                    }
 
+                    foreach (string ip in selectedCurrntlyHost)
+                    {
+                        Dictionary<string, string> listFile = new Dictionary<string, string>();
+                        listFile.Add(zipPath, "start");
+                        _referenceData.FileToFinish.AddOrUpdate(ip, (key) => listFile, (key, value) => {
+                            return value.Concat(listFile).ToDictionary(x => x.Key, x => x.Value);
+                        });
+                    }
+                    pathFiles = new List<string>();// _referenceData.PathFileToSend.ToList();
+                    pathFiles.Add(zipPath);
+                    _referenceData.PathFileToSend.Clear();
 
+                }
+                /*
                 foreach (string ip in selectedCurrntlyHost) {
                     Dictionary<string, string> listFile = _referenceData.PathFileToSend.ToDictionary( key => key, value => "start");
                     _referenceData.FileToFinish.AddOrUpdate(ip, ( key ) => listFile, ( key, value ) => {
@@ -655,7 +699,7 @@ namespace PDSProject {
                 }
                 List<string> pathFiles = _referenceData.PathFileToSend.ToList();
                 _referenceData.PathFileToSend.Clear();
-
+                */
                 if (_referenceData.useTask) {
                     await _TCPSender.SendA(pathFiles, false);
                     //NOME FILE SOPRA PROGRESS BAR)
