@@ -61,7 +61,14 @@ namespace PDSProject {
             InitializeComponent();
             ChoosePath.IsChecked = true;
             pathName.Text = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-
+            if (_referenceData.LocalUser.Status.ToString() == "online")
+            {
+                comboStatus.SelectedIndex = 0;
+            }
+            else
+            {
+                comboStatus.SelectedIndex = 1;
+            }
             main = this;
             _TCPListener = new MyTCPListener();
             _TCPSender = new MyTCPSender();
@@ -126,7 +133,7 @@ namespace PDSProject {
 
             // Inizializzo info user
             textUserName.Text = _referenceData.LocalUser.Name;
-            if (_referenceData.LocalUser.Status.Equals("Online")) {
+            if (_referenceData.LocalUser.Status.Equals("online")) {
                 comboStatus.Text = "Online";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
             } else {
@@ -305,7 +312,13 @@ namespace PDSProject {
                             int users = _referenceData.FileToFinish.Where(c => c.Value.ContainsKey(file)).Count();
                             if (_referenceData.FileToFinish.Where(c => c.Value.ContainsKey(file) && (c.Value)[file].Equals("end")).Count() >= users){
                                 Console.WriteLine("Cancellazione file..." + file);
-                                File.Delete(file);
+                                try
+                                {
+                                    File.Delete(file);
+                                } catch(IOException exp)
+                                {
+                                    Console.WriteLine($"Exception : {exp.Message}");
+                                }
                             }
                         }
                     }

@@ -25,7 +25,7 @@
                 </Ellipse>
                 <TextBlock x:Name="textUserName" FontWeight="Bold" TextWrapping="Wrap" Text="Rossella" RenderTransformOrigin="0.458,0.489" Margin="199,59,0.4,0" Height="22" VerticalAlignment="Top" Foreground="White" FontFamily="Lato" FontSize="16"/>
                 <Image x:Name="localStatusImage" Margin="172,59,0,0" HorizontalAlignment="Left" Width="22" Height="19" VerticalAlignment="Top"/>
-                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" SelectedIndex="1" RenderTransformOrigin="-0.357,-5.009" Height="26" Margin="199,86,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120" FontFamily="Lato" VerticalContentAlignment="Center">
+                <ComboBox x:Name="comboStatus" SelectionChanged="ComboStatus_OnSelectionChanged" RenderTransformOrigin="-0.357,-5.009" Height="26" Margin="199,86,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120" FontFamily="Lato" VerticalContentAlignment="Center">
                     <ComboBoxItem>Online</ComboBoxItem>
                     <ComboBoxItem>Offline</ComboBoxItem>
                 </ComboBox>

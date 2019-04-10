@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -252,7 +253,8 @@ namespace PDSProject
                         else
                         {
                             dimfile = Convert.ToInt64(info[1]);
-                            file_name = _referenceData.LocalUser.SavePath + "\\" + info[0];
+                            //file_name = _referenceData.LocalUser.SavePath + "\\" + info[0];
+                            file_name = Utility.PathTmp() + "\\" + info[0];
                         }
 
                         // Crea il file e lo riempie
@@ -262,8 +264,10 @@ namespace PDSProject
                             if (info[0].Equals("CHIMAGE")) {
                                 isChImage = true;
                             } else {
+                                // TODO: cambiare nome file zip per evitare conflitti multiutente
                                 string[] splits = file_name.Split('.');
-                                string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, Utility.PathToFileName(splits[splits.Length - 2]) +"*" + splits[splits.Length - 1]);
+                                //string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, Utility.PathToFileName(splits[splits.Length - 2]) +"*" + splits[splits.Length - 1]);
+                                string[] files = Directory.GetFiles(Utility.PathTmp(), Utility.PathToFileName(splits[splits.Length - 2]) + "*" + splits[splits.Length - 1]);
                                 splits[splits.Length - 2] += files.Count() > 0 ? ("_"+files.Count()) : "" ;
                                 file_name = string.Join(".", splits);
                             }
@@ -318,11 +322,18 @@ namespace PDSProject
                             //stopwatch.Stop();
                             ////secondsElapsed += stopwatch.Elapsed.TotalSeconds;
                             file.Close();
+
+                            if(!isChImage)
+                            ZipFile.ExtractToDirectory(file_name, _referenceData.LocalUser.SavePath);
+
                         }
-                        else{
+                        else
+                        {
                             Console.WriteLine($"File CHIMAGE already saved " + data );
                             while (stream.Read(bytes, 0, bytes.Length) != 0);
                         }
+
+
 
                         // Avvisa che un'immagine è stata cambiata
                         if (info[0].Equals("CHIMAGE"))
