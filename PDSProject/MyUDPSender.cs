@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PDSProject
 {
@@ -30,7 +26,7 @@ namespace PDSProject
             try
             {
                 MemoryStream ms = new MemoryStream();
-                ser.WriteObject(ms, _referenceData.LocalUser.ConvertToHost());
+                ser.WriteObject(ms, _referenceData.GetInfoLocalUser().ConvertToHost());
                 ms.Position = 0;
                 byte[] buffer = ms.ToArray();
                 sender.Send(buffer, buffer.Length, multicastAddr, _referenceData.UDPReceivedPort);

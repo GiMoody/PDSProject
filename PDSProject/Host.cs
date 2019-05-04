@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using System.Runtime.Serialization;
 
 namespace PDSProject
@@ -11,7 +8,15 @@ namespace PDSProject
         PRIVATE,
         PUBLIC
     }
-    
+
+    public enum PacketType {
+        FSEND,
+        CIMAGE,
+        RFILE,
+        YFILE,
+        NFILE
+    }
+
     [DataContract]
     public class Host
     {
@@ -25,13 +30,14 @@ namespace PDSProject
         public string ProfileImagePath { get; set; }
 
         public string Ip { get; set; }
-
+        
         /// LastPacketTime is expressend in milliseconds
         public long LastPacketTime { get; set; }
 
         public void UpdateStatus(string status ) {
             Status = status;
         }
+        
 
         /// <summary>
         /// Controlla se due Host sono uguali o no

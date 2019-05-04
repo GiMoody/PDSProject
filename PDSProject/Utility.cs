@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PDSProject
 {
     class Utility
     {
         /// <summary>
-        /// Dal nome del file ottiene il path assoluto del file, questo viene usato per ora solo nel caso dell'immagine di profilo di default
+        /// Dal nome del file ottiene il path assoluto dell' immagine di profilo di default
         /// ma sarà usata poi per ogni immagine di profilo degli altri hosts salvata all'interno di una specifica cartella
         /// </summary>
         /// <param name="directory">Directory in cui si trova il file a partire dalla working directory</param>
@@ -33,6 +30,11 @@ namespace PDSProject
         }
 
 
+        /// <summary>
+        /// Dal nome del file ottiene il path assoluto del file contenuto nlla cartella System di Resources
+        /// </summary>
+        /// <param name="filename">Nome del file</param>
+        /// <returns>Path assoluto del file</returns>
         public static string FileNameToSystem(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -47,6 +49,10 @@ namespace PDSProject
                 return "";
         }
 
+        /// <summary>
+        /// Ritorna la stringa del path della cartella Resources
+        /// </summary>
+        /// <returns>Path assoluto della directory Resources</returns>
         public static string PathResources () {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
@@ -54,6 +60,10 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        /// <summary>
+        /// Ritorna la stringa del path della cartella System in Resources
+        /// </summary>
+        /// <returns>Path assoluto della directory System in Resources</returns>
         public static string PathSystem() {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -62,6 +72,10 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        /// <summary>
+        /// Ritorna la stringa del path della cartella Tmp in Resources
+        /// </summary>
+        /// <returns>Path assoluto della directory Tmp in Resources</returns>
         public static string PathTmp () {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
@@ -70,6 +84,10 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        /// <summary>
+        /// Ritorna la stringa del path della cartella Host in Resources
+        /// </summary>
+        /// <returns>Path assoluto della directory Host in Resources</returns>
         public static string PathHost() {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -78,6 +96,11 @@ namespace PDSProject
             return archiveFolder.ToString();
         }
 
+        /// <summary>
+        /// Ritorna il path dell'immagine di profilo contenuta nella cartella Host in Resources
+        /// </summary>
+        /// <param name="filename">Nome del file</param>
+        /// <returns>Path assoluto del file se esiste</returns>
         public static string FileNameToHost(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             

@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Runtime.InteropServices;
+
 using System.IO.Pipes;
 using System.IO;
+
+using System.Diagnostics;
+using System.Windows;
+using System.Runtime.InteropServices;
+using System.Threading;
+
 
 namespace PDSProject
 {
@@ -26,11 +25,13 @@ namespace PDSProject
         [DllImport("user32")]
         private static extern bool OpenIcon(IntPtr hWnd);
 
-        protected override void OnStartup(StartupEventArgs e)
-        {
+        static bool isMutexCreated = false;
+        static Mutex mut = new Mutex(true, Process.GetCurrentProcess().ProcessName, out isMutexCreated);
 
-            if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1)
-            {
+
+        protected override void OnStartup(StartupEventArgs e) {
+            
+            if (!isMutexCreated){//Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1){
                 string path = string.Join(" ", e.Args);
                 PipeServer(path);
                 ActivateOtherWindow();
@@ -38,19 +39,16 @@ namespace PDSProject
             }
         }
 
-        private static void ActivateOtherWindow()
-        {
+        private static void ActivateOtherWindow() {
             var other = FindWindow(null, "Condividi");
-            if (other != IntPtr.Zero)
-            {
+            if (other != IntPtr.Zero) {
                 SetForegroundWindow(other);
                 if (IsIconic(other))
                     OpenIcon(other);
             }
         }
 
-        private void PipeServer(string path)
-        {
+        private void PipeServer(string path) {
             using (NamedPipeServerStream pipeServer =
                 new NamedPipeServerStream("PSDPipe", PipeDirection.Out))
             {
@@ -61,20 +59,20 @@ namespace PDSProject
                 pipeServer.WaitForConnection();
 
                 Console.WriteLine("Client connected.");
-                try
-                {
+                try {
                     // Read user input and send that to the client process.
-                    using (StreamWriter sw = new StreamWriter(pipeServer))
-                    {
+                    using (StreamWriter sw = new StreamWriter(pipeServer)) {
                         sw.AutoFlush = true;
                         sw.WriteLine(path);
                     }
                 }
                 // Catch the IOException that is raised if the pipe is broken
                 // or disconnected.
-                catch (IOException e)
-                {
-                    Console.WriteLine("ERROR: {0}", e.Message);
+                catch (IOException e) {
+                    Console.WriteLine($"IOException: {e}");
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"ERROR: {e}");
                 }
             }
         }
