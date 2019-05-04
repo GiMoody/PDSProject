@@ -176,8 +176,32 @@ namespace PDSProject {
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
+            ni.BalloonTipClicked += new EventHandler(notifyIcon_BalloonTipClicked);
         }
 
+        //DA GESTIRE-------------------------------------------------------------------------------------------
+        void notifyIcon_BalloonTipClicked(object sender, EventArgs e) {
+            string messageBoxText = "File:\n"+ ((Dictionary<string, FileRecvStatus>)SharedInfo.Instance.FileToRecive.Values).Keys.ToString();
+            string caption = "Attenzione";
+            MessageBoxButton button = MessageBoxButton.YesNo;
+            MessageBoxImage icon = MessageBoxImage.Question;
+
+            // Display message box
+            MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
+
+            //switch(result) {
+            //    case MessageBoxResult.Yes:
+            //    e.Cancel = false;
+            //    source.Cancel();
+            //    _TCPListener.StopServer();
+            //    break;
+            //    case MessageBoxResult.No:
+            //    this.WindowState = WindowState.Minimized;
+            //    e.Cancel = true;
+            //    break;
+            //}
+        }
+        //------------------------------------------------------------------------------------------------------
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
         /// </summary>        
@@ -641,16 +665,18 @@ namespace PDSProject {
         /// Combobox Status changed (non sicura funzionamento)
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (comboStatus.Text == "Online") {
-                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
-                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
-                _referenceData.UpdateStatusLocalUser("offline");
-            }
-            else if (comboStatus.Text == "Offline") {
+            Console.WriteLine("COMBO_STATUS: " + e.AddedItems[0]);
+            if (((ComboBoxItem)e.AddedItems[0]).Content.ToString().Equals("Online")) {
+                _referenceData.UpdateStatusLocalUser("online");
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
                 ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
-                _referenceData.UpdateStatusLocalUser("online");
+                
             }
+            else if (((ComboBoxItem)e.AddedItems[0]).Content.ToString().Equals("Offline")) {
+                _referenceData.UpdateStatusLocalUser("offline");
+                localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
+                ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
+                            }
         }
 
         /// <summary>
