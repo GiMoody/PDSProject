@@ -407,6 +407,7 @@ namespace PDSProject
                 }
                 // Caso Host mom ancora presente
                 else {
+                    host.ProfileImageHash = "";
                     Console.WriteLine("Connesso nuovo utente " + ip);
                     Users[ip] = host;
                     IsUserUpdate = true;
