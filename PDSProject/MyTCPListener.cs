@@ -455,7 +455,7 @@ namespace PDSProject
                 parts = parts.Take(parts.Count() - 1).ToArray();
                 string name = String.Join(".", parts);
                 int numb = Directory.GetFiles(Utility.PathHost(), name + "*" + extension).Length;
-                filename = Utility.PathHost() + name + "_(" + numb + ")." + extension;
+                filename = Utility.PathHost() + "\\" + name + "_(" + numb + ")." + extension;
             }
             FileStream fileImage = null;
             try {
