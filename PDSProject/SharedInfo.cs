@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-
+using System.Collections.ObjectModel;
 
 namespace PDSProject
 {
@@ -88,7 +88,7 @@ namespace PDSProject
         // File to recive information
         //---------------------------------------------
         public ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>> FileToRecive = new ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>>();
-        
+        public ObservableCollection<FileRecive> fileReciveList = new ObservableCollection<FileRecive>();
         
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
@@ -576,14 +576,25 @@ namespace PDSProject
             return null;
         }
 
-        /// <summary>
-        /// Aggiorna status di un file di cui è stata annunciata la ricezione
-        /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file da ricevere</param>
-        /// <param name="status">Status da aggiornare</param>
-        /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
-        public bool UpdateStatusRecvFileForUser ( string ipUser, string pathFile, FileRecvStatus status ) {
+        public List<String> GetRecvFileIP(string ipUser) {
+            lock(FileToRecive) {
+                Dictionary<string, FileRecvStatus> currentDictionary;
+                FileToRecive.TryGetValue(ipUser, out currentDictionary);
+                List<String> listFile = currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).ToDictionary(v => v.Key, v => v.Value).Keys.ToList();
+                return listFile;
+            }
+            
+        }
+
+
+            /// <summary>
+            /// Aggiorna status di un file di cui è stata annunciata la ricezione
+            /// </summary>
+            /// <param name="ipUser">Ip host mittente</param>
+            /// <param name="pathFile">Path del file da ricevere</param>
+            /// <param name="status">Status da aggiornare</param>
+            /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
+            public bool UpdateStatusRecvFileForUser ( string ipUser, string pathFile, FileRecvStatus status ) {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
                 FileToRecive.TryGetValue(ipUser, out currentDictionary);

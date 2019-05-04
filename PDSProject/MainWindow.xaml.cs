@@ -83,6 +83,7 @@ namespace PDSProject {
             ni.Visible = true;
             ni.ContextMenu = this.contextMenu;
             ni.Text = "PDS_Condividi";
+            ni.BalloonTipClicked += new EventHandler(notifyIcon_BalloonTipClicked);
             ni.DoubleClick +=
                 delegate ( object sender, EventArgs args ) {
                     this.Show();
@@ -176,12 +177,15 @@ namespace PDSProject {
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.BalloonTipClicked += new EventHandler(notifyIcon_BalloonTipClicked);
+            ni.Tag = userSenderIp;
         }
 
         //DA GESTIRE-------------------------------------------------------------------------------------------
         void notifyIcon_BalloonTipClicked(object sender, EventArgs e) {
-            string messageBoxText = "File:\n"+ ((Dictionary<string, FileRecvStatus>)SharedInfo.Instance.FileToRecive.Values).Keys.ToString();
+            string IpTAG = ((NotifyIcon)sender).Tag.ToString();
+            List<string> ListFile = _referenceData.GetRecvFileIP(IpTAG);
+            var listPulita = String.Join("\n", ListFile.ToArray());
+            string messageBoxText = "File:\n"+ listPulita;
             string caption = "Attenzione";
             MessageBoxButton button = MessageBoxButton.YesNo;
             MessageBoxImage icon = MessageBoxImage.Question;
@@ -189,17 +193,20 @@ namespace PDSProject {
             // Display message box
             MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
 
-            //switch(result) {
-            //    case MessageBoxResult.Yes:
-            //    e.Cancel = false;
-            //    source.Cancel();
-            //    _TCPListener.StopServer();
-            //    break;
-            //    case MessageBoxResult.No:
-            //    this.WindowState = WindowState.Minimized;
-            //    e.Cancel = true;
-            //    break;
-            //}
+            switch(result) {
+                case MessageBoxResult.Yes:
+                    foreach(String fileName in ListFile) {
+                        SendResponse(fileName, IpTAG, PacketType.YFILE);
+                    }
+                    
+                break;
+                case MessageBoxResult.No:
+                    foreach(String fileName in ListFile) {
+                        SendResponse(fileName, IpTAG, PacketType.NFILE);
+                    }
+
+                break;
+            }
         }
         //------------------------------------------------------------------------------------------------------
         /// <summary>

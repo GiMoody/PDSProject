@@ -180,7 +180,7 @@ namespace PDSProject
                                 string hostName = _referenceData.Users[ipClient].Name;
 
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.PopUpFile(filename, hostName, "");
+                                    MainWindow.main.PopUpFile(filename, hostName, ipClient);
                                     MainWindow.main.SendResponse(filename, ipClient, PacketType.YFILE);
                                 }));
                             }
@@ -193,8 +193,8 @@ namespace PDSProject
                                     string hostName = _referenceData.Users[ipClient].Name;
 
                                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                        MainWindow.main.PopUpFile(filename, hostName, "");
-                                        MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
+                                        MainWindow.main.PopUpFile(filename, hostName, ipTEST);
+                                        //MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
                                     }));
                                 }
                             }
