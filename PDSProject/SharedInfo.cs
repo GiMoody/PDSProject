@@ -837,6 +837,12 @@ namespace PDSProject
             }
         }
 
+        public void ClearPathFileToSend() {
+            lock(PathFileToSend) {
+                PathFileToSend.Clear();
+            }
+        }
+
 
 
 

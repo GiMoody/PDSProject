@@ -329,6 +329,9 @@ namespace PDSProject {
         /// <param name="e"></param>
         public void Test(string e) {
             textInfoMessage.Text += e + "\n";
+            if(_referenceData.GetPathFileToSend().Count > 0) {
+                UndoButton.Visibility = Visibility.Visible;
+            }
         }
 
         /// <summary>
@@ -806,12 +809,22 @@ namespace PDSProject {
             }
         }
 
-        /// <summary>
-        /// Metodo chiamato in caso di cambio selezione della lista amici
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+        private async void ButtonUndo_Click(object sender, RoutedEventArgs e) {
+            _referenceData.ClearPathFileToSend();
+            textInfoMessage.Text = "";
+            UndoButton.Visibility = Visibility.Hidden;
+        }
+
+
+
+
+            /// <summary>
+            /// Metodo chiamato in caso di cambio selezione della lista amici
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+            private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (e.AddedItems.Count > 0) {
                 foreach (Host h in e.AddedItems) {
                     _referenceData.AddSelectedHost(h.Ip);
@@ -826,6 +839,10 @@ namespace PDSProject {
                     Console.WriteLine("UTENTE DESELEZIONATO " + h.Ip);
                 }
             }
+            if(_referenceData.GetCurrentSelectedHost().Count > 0) {
+                SendButton.Visibility = Visibility.Visible;
+            } else
+                SendButton.Visibility = Visibility.Hidden;
         }
 
         /// <summary>
@@ -837,6 +854,7 @@ namespace PDSProject {
             ListBox list = (ListBox)sender;
             if (list.SelectedItems.Count == 1) {
                 friendList.SelectedIndex = -1;
+                SendButton.Visibility = Visibility.Hidden;
             }
         }
     }

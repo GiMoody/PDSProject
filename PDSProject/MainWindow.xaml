@@ -65,8 +65,8 @@
 
                 <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="22,253,24.8,0" Height="48" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center" />
 
-                <Button x:Name="SendButton" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
-                <Button x:Name="UndoButton" Visibility="Hidden" Content="Annulla" Height="22" Width="64"/>
+                <Button x:Name="SendButton" Visibility ="Hidden" Click="ButtonSend_Click" Content="Invia" Height="22" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
+                <Button x:Name="UndoButton" Visibility ="Hidden"  Click="ButtonUndo_Click" Content="Annulla" Height="22" Width="64"  Margin="0,0,91.8,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
             </Grid>
         </GroupBox>
 
