@@ -30,6 +30,7 @@ using MessageBox = System.Windows.MessageBox;
 using ListBox = System.Windows.Controls.ListBox;
 using MenuItem = System.Windows.Forms.MenuItem;
 using Path = System.IO.Path;
+using System.Collections.ObjectModel;
 
 namespace PDSProject {
     /// <summary>
@@ -164,6 +165,13 @@ namespace PDSProject {
             ImageBrush imgBrush = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
             ImageProfile.Fill = imgBrush;
+
+            //Inizializzo FILE LIST (SOLO PER TESTING)
+            ObservableCollection<FileRecive> items = new ObservableCollection<FileRecive>();
+            items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
+            items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
+
+            fileList.ItemsSource = items;
         }
 
         /// <summary>
@@ -481,28 +489,6 @@ namespace PDSProject {
             }
         }
 
-        ///// <summary>
-        ///// Selezionando l'icona dell'amico, appare/scompare un canvas blu
-        ///// </summary>
-        //private void Canvas_Visible(object sender, MouseButtonEventArgs e) {
-
-        //    if (selected == false) {
-        //        canvasSelect.Background = new SolidColorBrush(Colors.SkyBlue);
-        //        SendButton.Visibility = Visibility.Visible;
-        //        UndoButton.Visibility = Visibility.Visible;
-        //        selected = true;
-        //        if (_referenceData.Users.Count > 0) {
-        //            _referenceData.selectedHost = _referenceData.Users.First().Key;
-        //        }
-        //    } else {
-        //        canvasSelect.Background = new SolidColorBrush(Colors.AliceBlue);
-        //        SendButton.Visibility = Visibility.Hidden;
-        //        UndoButton.Visibility = Visibility.Hidden;
-        //        selected = false;
-        //        _referenceData.selectedHost = "";
-        //    }
-        //}
-
         /// <summary>
         /// Modifica immagine profilo
         /// </summary>
@@ -672,7 +658,7 @@ namespace PDSProject {
         }
 
         /// <summary>
-        /// Combobox Status changed (non sicura funzionamento)
+        /// Combobox Status changed
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             Console.WriteLine("COMBO_STATUS: " + e.AddedItems[0]);
@@ -703,17 +689,15 @@ namespace PDSProject {
                 var file = File.OpenRead(filename);
                     
                 file.Close();
-                List<Host> lista = new List<Host>();
-                foreach (var item in friendList.SelectedItems)
-                    lista.Add((Host)item);
+                List<string> lista = new List<string>();
+                foreach(var item in friendList.SelectedItems)
+                    lista.Add(((Host)item).Ip);
 
                 friendList.Items.Refresh();
                 friendList.SelectedIndex = -1;
 
-                foreach (var item in friendList.Items) {
-                    if (lista.Contains(item) && ((Host)item).Status.Equals("online"))
-                        friendList.SelectedItems.Add(item);
-                    if(((Host)item).Ip.Equals(ip) && ((Host)item).Status.Equals("online"))
+                foreach(var item in friendList.Items) {
+                    if(lista.Contains(((Host)item).Ip) && ((Host)item).Status.Equals("online"))
                         friendList.SelectedItems.Add(item);
                 }
             } catch (UnauthorizedAccessException e) {
@@ -801,30 +785,29 @@ namespace PDSProject {
                 catch (Exception ex) {
                     Console.WriteLine($"Exception on ButtonSend_Click - {ex}");
                 }
-                    //NOME FILE SOPRA PROGRESS BAR)
+                    //NOME FILE SOPRA PROGRESS BAR
                     //string file_path = _referenceData.FileToSend.Keys.ToString();
                     //string file_name = Utility.PathToFileName(file_path);
                     //textFile.Text = file_name;
-                    textFile.Text = pathFiles[0];
+                    //textFile.Text = pathFiles[0];
             }
         }
 
-
-        private async void ButtonUndo_Click(object sender, RoutedEventArgs e) {
+        /// <summary>
+        /// Annullamento selezione file da inviare
+        /// </summary>
+        private void ButtonUndo_Click(object sender, RoutedEventArgs e) {
             _referenceData.ClearPathFileToSend();
             textInfoMessage.Text = "";
             UndoButton.Visibility = Visibility.Hidden;
         }
 
-
-
-
-            /// <summary>
-            /// Metodo chiamato in caso di cambio selezione della lista amici
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
-            private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
+        /// <summary>
+        /// Metodo chiamato in caso di cambio selezione della lista amici
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (e.AddedItems.Count > 0) {
                 foreach (Host h in e.AddedItems) {
                     _referenceData.AddSelectedHost(h.Ip);
@@ -856,6 +839,10 @@ namespace PDSProject {
                 friendList.SelectedIndex = -1;
                 SendButton.Visibility = Visibility.Hidden;
             }
+        }
+
+        private void FileList_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+
         }
     }
 }

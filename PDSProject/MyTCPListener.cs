@@ -330,8 +330,8 @@ namespace PDSProject
                                               String.Format("{0:0}", estimatedTime.TotalSeconds) + ":" +
                                               String.Format("{0:0}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                        MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
-                        MainWindow.main.textTime.Text = estimatedTimeJet;
+                        //MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
+                        //MainWindow.main.textTime.Text = estimatedTimeJet;
                     }));
                     Console.WriteLine(dataReceivedJet + "%");
 
