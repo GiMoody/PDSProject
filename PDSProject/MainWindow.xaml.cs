@@ -66,6 +66,7 @@ namespace PDSProject {
 
             source = new CancellationTokenSource();
             
+            //Initialize friendList data
             friendList.ItemsSource = _referenceData.Users.Values;
            
             // Initialize contextMenu 
@@ -97,8 +98,7 @@ namespace PDSProject {
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
-
-            
+                        
             Task.Run(async () => {
                 try {
                     await _UDPListener.Listener(source.Token);
@@ -107,6 +107,7 @@ namespace PDSProject {
                 }
             });
             Task.Run(() => { PipeClient(); });
+            
             // Setta bool per avvisare che è il primo avvio del listener
             _referenceData.isFirst = true;
             StartTCPListener();
@@ -193,7 +194,7 @@ namespace PDSProject {
             string IpTAG = ((NotifyIcon)sender).Tag.ToString();
             List<string> ListFile = _referenceData.GetRecvFileIP(IpTAG);
             var listPulita = String.Join("\n", ListFile.ToArray());
-            string messageBoxText = "File:\n"+ listPulita;
+            string messageBoxText = "Vuoi ricevere il file?\n"+ listPulita;
             string caption = "Attenzione";
             MessageBoxButton button = MessageBoxButton.YesNo;
             MessageBoxImage icon = MessageBoxImage.Question;
@@ -217,6 +218,7 @@ namespace PDSProject {
             }
         }
         //------------------------------------------------------------------------------------------------------
+        
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
         /// </summary>        
@@ -236,16 +238,48 @@ namespace PDSProject {
                 _referenceData.UpdateStatusLocalUser("offline");
             }
         }
-
         protected void Show_Click(Object sender, System.EventArgs e) {
             this.Show();
             this.WindowState = WindowState.Normal;
         }
-
         protected void Exit_Click(Object sender, System.EventArgs e){
             Close();
         }
-        
+
+        /// <summary>
+        /// Gestione stato Minimize (icona nella tray)
+        /// </summary>
+        protected override void OnStateChanged(EventArgs e) {
+            if(WindowState == System.Windows.WindowState.Minimized)
+                this.Hide();
+            base.OnStateChanged(e);
+        }
+       
+        /// <summary>
+        /// Gestione evento OnClosing (messageBox)
+        /// </summary>
+        private void MainWindow_Closing(object sender, CancelEventArgs e) {
+            // Configure the message box to be displayed
+            string messageBoxText = "Vuoi chiudere l'applicazione?\n(Cliccando ''NO'' rimarrà attiva in basso)";
+            string caption = "Attenzione";
+            MessageBoxButton button = MessageBoxButton.YesNo;
+            MessageBoxImage icon = MessageBoxImage.Question;
+
+            // Display message box
+            MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
+
+            switch(result) {
+                case MessageBoxResult.Yes:
+                e.Cancel = false;
+                source.Cancel();
+                _TCPListener.StopServer();
+                break;
+                case MessageBoxResult.No:
+                this.WindowState = WindowState.Minimized;
+                e.Cancel = true;
+                break;
+            }
+        }
 
         /// <summary>
         /// Test inserimento opzione menù contestuale (tasto destro), funziona per ora ma non fa nulla
@@ -381,6 +415,7 @@ namespace PDSProject {
                 Console.WriteLine($"Exception on TestResponse Task - {e}");
             }
         }        
+       
         /// <summary>
         /// Metodo chiamato in caso di conferma di ricezione di un file
         /// </summary>
@@ -450,42 +485,6 @@ namespace PDSProject {
                         }
                     }
                 }
-            }
-        }
-
-
-        /// <summary>
-        /// Gestione stato Minimize (icona nella tray)
-        /// </summary>
-        protected override void OnStateChanged(EventArgs e) {
-            if (WindowState == System.Windows.WindowState.Minimized)
-                this.Hide();
-            base.OnStateChanged(e);
-        }
-
-        /// <summary>
-        /// Gestione evento OnClosing (messageBox)
-        /// </summary>
-        private void MainWindow_Closing(object sender, CancelEventArgs e) {
-            // Configure the message box to be displayed
-            string messageBoxText = "Vuoi chiudere l'applicazione?\n(Cliccando ''NO'' rimarrà attiva in basso)";
-            string caption = "Attenzione";
-            MessageBoxButton button = MessageBoxButton.YesNo;
-            MessageBoxImage icon = MessageBoxImage.Question;
-
-            // Display message box
-            MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
-
-            switch (result) {
-                case MessageBoxResult.Yes:
-                    e.Cancel = false;
-                    source.Cancel();
-                    _TCPListener.StopServer();
-                    break;
-                case MessageBoxResult.No:
-                    this.WindowState = WindowState.Minimized;
-                    e.Cancel = true;
-                    break;
             }
         }
 
