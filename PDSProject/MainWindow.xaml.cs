@@ -186,36 +186,48 @@ namespace PDSProject {
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.Tag = userSenderIp;
+            ni.Tag = nameFile;
         }
 
         //DA GESTIRE-------------------------------------------------------------------------------------------
         void notifyIcon_BalloonTipClicked(object sender, EventArgs e) {
-            string IpTAG = ((NotifyIcon)sender).Tag.ToString();
-            List<string> ListFile = _referenceData.GetRecvFileIP(IpTAG);
-            var listPulita = String.Join("\n", ListFile.ToArray());
-            string messageBoxText = "Vuoi ricevere il file?\n"+ listPulita;
-            string caption = "Attenzione";
-            MessageBoxButton button = MessageBoxButton.YesNo;
-            MessageBoxImage icon = MessageBoxImage.Question;
+            //Porto in primo piano l'applicazione
+            this.Show();
+            this.WindowState = WindowState.Normal;
 
-            // Display message box
-            MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
+            //Evidenzio nella lista il file di cui voglio la conferma
+            string fileTAG = ((NotifyIcon)sender).Tag.ToString();
+            fileList.SelectedIndex = (int)fileList.TryFindResource(fileTAG);
 
-            switch(result) {
-                case MessageBoxResult.Yes:
-                    foreach(String fileName in ListFile) {
-                        SendResponse(fileName, IpTAG, PacketType.YFILE);
-                    }
-                    
-                break;
-                case MessageBoxResult.No:
-                    foreach(String fileName in ListFile) {
-                        SendResponse(fileName, IpTAG, PacketType.NFILE);
-                    }
+            //Rendo visibili i bottoni si/no di quell'elemento
+            
+            
 
-                break;
-            }
+            //string IpTAG = ((NotifyIcon)sender).Tag.ToString();
+            //List<string> ListFile = _referenceData.GetRecvFileIP(IpTAG);
+            //var listPulita = String.Join("\n", ListFile.ToArray());
+            //string messageBoxText = "Vuoi ricevere il file?\n"+ listPulita;
+            //string caption = "Attenzione";
+            //MessageBoxButton button = MessageBoxButton.YesNo;
+            //MessageBoxImage icon = MessageBoxImage.Question;
+
+            //// Display message box
+            //MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
+
+            //switch(result) {
+            //    case MessageBoxResult.Yes:
+            //        foreach(String fileName in ListFile) {
+            //            SendResponse(fileName, IpTAG, PacketType.YFILE);
+            //        }
+
+            //    break;
+            //    case MessageBoxResult.No:
+            //        foreach(String fileName in ListFile) {
+            //            SendResponse(fileName, IpTAG, PacketType.NFILE);
+            //        }
+
+            //    break;
+            //}
         }
         //------------------------------------------------------------------------------------------------------
         
