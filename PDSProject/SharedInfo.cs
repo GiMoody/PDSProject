@@ -137,7 +137,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Proprietà che ritorna una copia del rifierimento all'istanza
+        /// Proprietà che ritorna una copia del riferimento all'istanza
         /// </summary>
         public static SharedInfo Instance {
             get {
@@ -341,7 +341,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna lo satus dell'utente corrente
+        /// Aggiorna lo status dell'utente corrente
         /// </summary>
         /// <param name="status">Nuovo status (online/offline)</param>
         public void UpdateStatusLocalUser ( string status ) {
@@ -373,7 +373,7 @@ namespace PDSProject
         ///-----------------------------------///
 
         /// <summary>
-        /// Aggirona od inserisce informazioni di un'utente remoto
+        /// Aggiorna o inserisce informazioni di un utente remoto
         /// </summary>
         /// <param name="host">Istanza Host</param>
         /// <param name="ip">Ip Host remoto</param>
@@ -423,7 +423,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggirona info immagine di profilo utente. In caso non siano state ricevute ancora informazioni utente
+        /// Aggiorna info immagine di profilo utente. In caso non siano state ricevute ancora informazioni utente
         /// questo viene salvato su una struttura dati apposita
         /// </summary>
         /// <param name="newHash">Valore hash dell'immagine di profilo</param>
