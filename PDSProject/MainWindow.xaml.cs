@@ -171,11 +171,11 @@ namespace PDSProject {
             ImageProfile.Fill = imgBrush;
 
             //Inizializzo FILE LIST (SOLO PER TESTING)
-            ObservableCollection<FileRecive> items = new ObservableCollection<FileRecive>();
-            items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
-            items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
+            //ObservableCollection<FileRecive> items = new ObservableCollection<FileRecive>();
+            //items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
+            //items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
 
-            fileList.ItemsSource = items;
+            fileList.ItemsSource = _referenceData.fileReciveList;
         }
 
         /// <summary>
@@ -914,12 +914,20 @@ namespace PDSProject {
 
             TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
             string fileName = textFile.ToString();
-            string IpTAG = _referenceData.GetRecvFileIP(fileName);
+            string[] packetPart = fileName.Split('_');
+            string IpTAG = packetPart[packetPart.Length-5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 
             SendResponse(fileName, IpTAG, PacketType.YFILE);
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(fileList.SelectedIndex) as ListBoxItem;
+
+            TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
+            string fileName = textFile.ToString();
+            string[] packetPart = fileName.Split('_');
+            string IpTAG = packetPart[packetPart.Length - 5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
+
             SendResponse(fileName, IpTAG, PacketType.NFILE);
         }
     }
