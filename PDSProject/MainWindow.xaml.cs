@@ -912,16 +912,29 @@ namespace PDSProject {
         private void YesButton_Click(object sender, RoutedEventArgs e) {
             var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(fileList.SelectedIndex) as ListBoxItem;
 
+            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
+            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
+            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+           
             TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
             string fileName = textFile.ToString();
             string[] packetPart = fileName.Split('_');
             string IpTAG = packetPart[packetPart.Length-5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 
             SendResponse(fileName, IpTAG, PacketType.YFILE);
+
+            yesButton.Visibility = Visibility.Hidden;
+            noButton.Visibility = Visibility.Hidden;
+            stopButton.Visibility = Visibility.Visible;
+
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
             var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(fileList.SelectedIndex) as ListBoxItem;
+
+            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
+            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
+            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
 
             TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
             string fileName = textFile.ToString();
@@ -929,6 +942,10 @@ namespace PDSProject {
             string IpTAG = packetPart[packetPart.Length - 5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 
             SendResponse(fileName, IpTAG, PacketType.NFILE);
+
+            yesButton.Visibility = Visibility.Hidden;
+            noButton.Visibility = Visibility.Hidden;
+            stopButton.Visibility = Visibility.Visible;
         }
     }
 
