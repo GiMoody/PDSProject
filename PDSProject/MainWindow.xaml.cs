@@ -184,12 +184,50 @@ namespace PDSProject {
         /// <param name="nameFile">Nome del file</param>
         /// <param name="userSenderName">Nome dell'utente mittente</param>
         /// <param name="userSenderIp">Ip dell'utente mittente</param>
-        public void PopUpFile(string nameFile, string userSenderName, string userSenderIp) {
+        public void PopUpFile(string nameFile, string userSenderName) {
             // Initialize balloon items
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
+
+            fileList.SelectedItems.Add(_referenceData.GetFileReciveByFileName(nameFile));
+            int index = (int)fileList.Items.IndexOf(_referenceData.GetFileReciveByFileName(nameFile));
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+
+            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
+            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
+            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+
+            if(_referenceData.GetInfoLocalUser().AcceptAllFile) {
+                yesButton.Visibility = Visibility.Hidden;
+                noButton.Visibility = Visibility.Hidden;
+                stopButton.Visibility = Visibility.Visible;
+            } else {
+                yesButton.Visibility = Visibility.Visible;
+                noButton.Visibility = Visibility.Visible;
+                stopButton.Visibility = Visibility.Hidden;
+            }
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.Tag = nameFile;
+            ni.Tag = _referenceData.GetFileReciveByFileName(nameFile);
+        }
+
+        public void AddOrUpdateListFile(string ipUser, string pathFile, FileRecvStatus? status, string estimatedTime, double? byteReceived){
+            if(_referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
+                FileRecive files = _referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
+                if(status != null)
+                    files.statusFile = status.ToString();
+                if(estimatedTime != null)
+                    files.estimatedTime = estimatedTime;
+                if(byteReceived != null)
+                    files.dataRecived = byteReceived.Value;
+                
+            } else {
+                string currentUsername = _referenceData.GetRemoteUserName(ipUser);
+                FileRecive files = new FileRecive(currentUsername, pathFile, status.ToString(), "0", 0);
+                _referenceData.fileReciveList.Add(files);              
+            }
+
+            fileList.Items.Refresh();
+
         }
 
         //DA GESTIRE-------------------------------------------------------------------------------------------
@@ -199,11 +237,11 @@ namespace PDSProject {
             this.WindowState = WindowState.Normal;
 
             //Evidenzio nella lista il file di cui voglio la conferma
-            string fileTAG = ((NotifyIcon)sender).Tag.ToString();
-            fileList.SelectedIndex = (int)fileList.TryFindResource(fileTAG);
+            FileRecive fileTAG = (FileRecive)((NotifyIcon)sender).Tag;
+            fileList.SelectedItems.Add(fileTAG);
 
             //Rendo visibili i bottoni si/no di quell'elemento
-            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex((int)fileList.TryFindResource(fileTAG)) as ListBoxItem;
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex((int)fileList.Items.IndexOf(fileTAG)) as ListBoxItem;
 
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
@@ -213,31 +251,6 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Visible;
             stopButton.Visibility = Visibility.Hidden;
 
-            //string IpTAG = ((NotifyIcon)sender).Tag.ToString();
-            //List<string> ListFile = _referenceData.GetRecvFileIP(IpTAG);
-            //var listPulita = String.Join("\n", ListFile.ToArray());
-            //string messageBoxText = "Vuoi ricevere il file?\n"+ listPulita;
-            //string caption = "Attenzione";
-            //MessageBoxButton button = MessageBoxButton.YesNo;
-            //MessageBoxImage icon = MessageBoxImage.Question;
-
-            //// Display message box
-            //MessageBoxResult result = MessageBox.Show(messageBoxText, caption, button, icon);
-
-            //switch(result) {
-            //    case MessageBoxResult.Yes:
-            //        foreach(String fileName in ListFile) {
-            //            SendResponse(fileName, IpTAG, PacketType.YFILE);
-            //        }
-
-            //    break;
-            //    case MessageBoxResult.No:
-            //        foreach(String fileName in ListFile) {
-            //            SendResponse(fileName, IpTAG, PacketType.NFILE);
-            //        }
-
-            //    break;
-            //}
         }
         //------------------------------------------------------------------------------------------------------
         
@@ -915,9 +928,9 @@ namespace PDSProject {
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
             Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
-           
-            TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
-            string fileName = textFile.ToString();
+
+            TextBlock textFile = MainWindow.FindChild<TextBlock>(currentSelectedListBoxItem, "textFile");
+            string fileName = textFile.Text;
             string[] packetPart = fileName.Split('_');
             string IpTAG = packetPart[packetPart.Length-5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 
@@ -936,8 +949,8 @@ namespace PDSProject {
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
             Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
 
-            TextBox textFile = MainWindow.FindChild<TextBox>(currentSelectedListBoxItem, "textFile");
-            string fileName = textFile.ToString();
+            TextBlock textFile = MainWindow.FindChild<TextBlock>(currentSelectedListBoxItem, "textFile");
+            string fileName = textFile.Text;
             string[] packetPart = fileName.Split('_');
             string IpTAG = packetPart[packetPart.Length - 5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 

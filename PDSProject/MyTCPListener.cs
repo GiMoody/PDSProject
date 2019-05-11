@@ -180,7 +180,11 @@ namespace PDSProject
                                 string hostName = _referenceData.Users[ipClient].Name;
 
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.PopUpFile(filename, hostName, ipClient);
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.YSEND, "-", 0.0f);
+                                }));
+                            await Task.Delay(10);
+                            await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.PopUpFile(filename, hostName);
                                     MainWindow.main.SendResponse(filename, ipClient, PacketType.YFILE);
                                 }));
                             }
@@ -193,10 +197,15 @@ namespace PDSProject
                                     string hostName = _referenceData.Users[ipClient].Name;
 
                                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                        MainWindow.main.PopUpFile(filename, hostName, ipTEST);
+                                        MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.TOCONF, "-", 0.0f);
                                         //MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
                                     }));
-                                }
+                                await Task.Delay(10);
+                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.PopUpFile(filename, hostName);
+                                    //MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
+                                }));
+                            }
                             }
                             break;
                         case PacketType.YFILE:
@@ -205,6 +214,7 @@ namespace PDSProject
                                 string filenameTEST = filename;
                                 string ipTEST = ipClient;
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.YSEND, "-", 0.0f);
                                     MainWindow.main.SendFile(filenameTEST, ipTEST);
                                 }));
                             }
@@ -214,6 +224,11 @@ namespace PDSProject
                         case PacketType.NFILE:
                             if(!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED))
                                 throw new Exception("No file with name " + filename + " was announced from this client");
+                            else {
+                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.NSEND, "-", 0.0f);
+                                }));
+                            }
                             break;
                         case PacketType.FSEND:
                             {
@@ -304,6 +319,10 @@ namespace PDSProject
 
                     if (first) {
                         noFlag = _referenceData.CheckAndUpdateRecvFileStatus(ip, fileOriginal);
+                        if(!noFlag)
+                            await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.INPROGRESS,null, null);
+                            }));
                         first  = false;
                     }
                     else
@@ -330,6 +349,7 @@ namespace PDSProject
                                               String.Format("{0:0}", estimatedTime.TotalSeconds) + ":" +
                                               String.Format("{0:0}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, null, estimatedTimeJet, dataReceivedJet);
                         //MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
                         //MainWindow.main.textTime.Text = estimatedTimeJet;
                     }));
@@ -412,6 +432,9 @@ namespace PDSProject
                                         entry.ExtractToFile(Path.Combine(savePathLocalUser, nameFileToExtract));
                                     }
                                     _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), FileRecvStatus.RECIVED);
+                                    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                        MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.RECIVED, "-", 100);
+                                    }));
                                     semaphoreForFile.Release();
                                 }
                             }

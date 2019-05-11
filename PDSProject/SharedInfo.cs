@@ -373,6 +373,17 @@ namespace PDSProject
         ///-----------------------------------///
 
         /// <summary>
+        /// Ritorna il nickname dell'utente remote dato il suo ip
+        /// </summary>
+        public string GetRemoteUserName(string ip) {
+            lock(Users) {
+                if(Users.ContainsKey(ip))
+                    return Users[ip].Name;
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Aggiorna o inserisce informazioni di un utente remoto
         /// </summary>
         /// <param name="host">Istanza Host</param>
@@ -679,6 +690,35 @@ namespace PDSProject
                     else
                         return oldValue.Concat(currentDictionary).ToDictionary(x => x.Key, x => x.Value);
                 });
+            }
+            
+            //lock(fileReciveList) { 
+            //    if(fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
+            //        FileRecive files = fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
+            //        files.statusFile = status.ToString();
+            //        MainWindow.main.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => {
+            //            MainWindow.main.UpdateListFile();
+            //        }));
+            //    } else {
+            //        string currentUsername = "";
+            //        lock(Users) {
+            //            currentUsername = Users[ipUser].Name;
+            //        }
+            //        FileRecive files = new FileRecive(currentUsername, pathFile, status.ToString(), "0", 0);
+            //        MainWindow.main.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => {
+            //            MainWindow.main.AddListFile(files);
+            //        }));
+            //    }
+
+            //}
+        }
+
+        public FileRecive GetFileReciveByFileName (string fileName) {
+            lock(fileReciveList) {
+                if(fileReciveList.Where(e => e.fileName.Equals(fileName)).Count() > 0) {
+                    return fileReciveList.Where(e => e.fileName.Equals(fileName)).ToList()[0];
+                } else
+                    return null;
             }
         }
 
