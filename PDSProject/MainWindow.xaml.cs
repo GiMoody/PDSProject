@@ -34,6 +34,8 @@ using System.Collections.ObjectModel;
 using Button = System.Windows.Controls.Button;
 using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
+using System.Windows.Media.Animation;
+using System.Drawing;
 
 namespace PDSProject {
     /// <summary>
@@ -54,9 +56,12 @@ namespace PDSProject {
 
         SemaphoreSlim obj = new SemaphoreSlim(0);
 
-
         System.Windows.Forms.ContextMenu contextMenu;
-        System.Windows.Forms.NotifyIcon ni = new System.Windows.Forms.NotifyIcon();
+        NotifyIcon ni = new NotifyIcon();
+
+        DispatcherTimer flashTimer = new DispatcherTimer();
+        private Icon[] icons;
+        private int currentIcon;
 
         public MainWindow() {
             InitializeComponent();
@@ -68,7 +73,8 @@ namespace PDSProject {
             _UDPSender = new MyUDPSender();
 
             source = new CancellationTokenSource();
-            
+
+                       
             //Initialize friendList data
             friendList.ItemsSource = _referenceData.Users.Values;
            
@@ -114,14 +120,32 @@ namespace PDSProject {
             // Setta bool per avvisare che è il primo avvio del listener
             _referenceData.isFirst = true;
             StartTCPListener();
-            
+
+            //initialize timer for flashing icon           
+            icons = new Icon[2];
+            icons[0] = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            icons[1] = new System.Drawing.Icon(Utility.FileNameToSystem("share_black.ico"));
+
             // Aggiunge registri per menù contestuale
             /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
              * configurazioni una sola volta in modalità Admin. Per adesso il codice si limita a controllare se l'esecuzione è in
              * modalità admin o no ed esegue il metodo di conseguenza */
             AddOptionContextMenu();
+
         }
-        
+
+        /// <summary>
+        /// Gestisce il blink dell'icona nel caso di ricezione file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void IconBlinking(object sender, EventArgs e) {
+            ni.Icon = icons[currentIcon];
+            if(currentIcon++ == 1) {
+                currentIcon = 0;
+            }
+        }
+
         /// <summary>
         /// Metodo chiamato in fase di inizializzazione per inserire in grafica i dati dell'utente locale
         /// </summary>
@@ -189,6 +213,11 @@ namespace PDSProject {
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
 
+            ////initialize timer for flashing icon
+            flashTimer.Tick += new EventHandler(IconBlinking);
+            flashTimer.Interval = new TimeSpan(0, 0, 1);
+            flashTimer.Start();
+
             fileList.SelectedItems.Add(_referenceData.GetFileReciveByFileName(nameFile));
             int index = (int)fileList.Items.IndexOf(_referenceData.GetFileReciveByFileName(nameFile));
             var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
@@ -206,10 +235,19 @@ namespace PDSProject {
                 noButton.Visibility = Visibility.Visible;
                 stopButton.Visibility = Visibility.Hidden;
             }
+            
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
             ni.Tag = _referenceData.GetFileReciveByFileName(nameFile);
         }
 
+        /// <summary>
+        /// Aggiornamento oggetto fileReciveList per lista file in ricezione
+        /// </summary>
+        /// <param name="ipUser"></param>
+        /// <param name="pathFile"></param>
+        /// <param name="status"></param>
+        /// <param name="estimatedTime"></param>
+        /// <param name="byteReceived"></param>
         public void AddOrUpdateListFile(string ipUser, string pathFile, FileRecvStatus? status, string estimatedTime, double? byteReceived){
             if(_referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
                 FileRecive files = _referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
@@ -230,7 +268,11 @@ namespace PDSProject {
 
         }
 
-        //DA GESTIRE-------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Gestione Click Ballon di notifica ricezione file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void notifyIcon_BalloonTipClicked(object sender, EventArgs e) {
             //Porto in primo piano l'applicazione
             this.Show();
@@ -252,7 +294,6 @@ namespace PDSProject {
             stopButton.Visibility = Visibility.Hidden;
 
         }
-        //------------------------------------------------------------------------------------------------------
         
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
@@ -940,6 +981,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Visible;
 
+            flashTimer.Stop();
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
@@ -959,6 +1001,8 @@ namespace PDSProject {
             yesButton.Visibility = Visibility.Hidden;
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Visible;
+
+            flashTimer.Stop();
         }
     }
 
