@@ -723,6 +723,7 @@ namespace PDSProject {
                         }
                     }
                     _referenceData.UpdateInfoLocalUser(textChangeName.Text, pathProfileImage, pathName.Text, ChoosePath.IsChecked, AcceptFile.IsChecked);
+                    textUserName.Text = textChangeName.Text;
 
                     if (_referenceData.GetOnlineUsers().Count > 0)
                         await _TCPSender.SendProfilePicture();
