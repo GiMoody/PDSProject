@@ -46,6 +46,7 @@ namespace PDSProject {
 
         private string save_path;
         public static MainWindow main; // Usato come riferimento da parte delle altri classi
+        public ObservableCollection<FileRecive> fileReciveList = new ObservableCollection<FileRecive>();
 
         SharedInfo _referenceData = SharedInfo.Instance;
         MyTCPListener _TCPListener;
@@ -59,7 +60,7 @@ namespace PDSProject {
         System.Windows.Forms.ContextMenu contextMenu;
         NotifyIcon ni = new NotifyIcon();
 
-        DispatcherTimer flashTimer = new DispatcherTimer();
+        //DispatcherTimer flashTimer = new DispatcherTimer();
         private Icon[] icons;
         private int currentIcon;
 
@@ -89,6 +90,7 @@ namespace PDSProject {
 
             // Inizializzo i dati dell'utente locale
             InitLocalUserData();
+            DataContext = fileReciveList;
 
             // Attacco il context menù all'icona
             ni.Visible = true;
@@ -139,12 +141,12 @@ namespace PDSProject {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void IconBlinking(object sender, EventArgs e) {
-            ni.Icon = icons[currentIcon];
-            if(currentIcon++ == 1) {
-                currentIcon = 0;
-            }
-        }
+        //private void IconBlinking(object sender, EventArgs e) {
+        //    ni.Icon = icons[currentIcon];
+        //    if(currentIcon++ == 1) {
+        //        currentIcon = 0;
+        //    }
+        //}
 
         /// <summary>
         /// Metodo chiamato in fase di inizializzazione per inserire in grafica i dati dell'utente locale
@@ -199,7 +201,7 @@ namespace PDSProject {
             //items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
             //items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
 
-            fileList.ItemsSource = _referenceData.fileReciveList;
+            //fileList.ItemsSource = fileReciveList;
         }
 
         /// <summary>
@@ -214,12 +216,13 @@ namespace PDSProject {
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
 
             ////initialize timer for flashing icon
-            flashTimer.Tick += new EventHandler(IconBlinking);
-            flashTimer.Interval = new TimeSpan(0, 0, 1);
-            flashTimer.Start();
-
-            fileList.SelectedItems.Add(_referenceData.GetFileReciveByFileName(nameFile));
-            int index = (int)fileList.Items.IndexOf(_referenceData.GetFileReciveByFileName(nameFile));
+            //flashTimer.Tick += new EventHandler(IconBlinking);
+            //flashTimer.Interval = new TimeSpan(0, 0, 1);
+            //flashTimer.Start();
+            fileList.SelectedItems.Clear();
+            fileList.SelectedIndex = -1;
+            fileList.SelectedItems.Add(GetFileReciveByFileName(nameFile));
+            int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(nameFile));
             var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
 
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
@@ -231,13 +234,14 @@ namespace PDSProject {
                 noButton.Visibility = Visibility.Hidden;
                 stopButton.Visibility = Visibility.Visible;
             } else {
+
                 yesButton.Visibility = Visibility.Visible;
                 noButton.Visibility = Visibility.Visible;
                 stopButton.Visibility = Visibility.Hidden;
             }
             
             ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.Tag = _referenceData.GetFileReciveByFileName(nameFile);
+            ni.Tag = GetFileReciveByFileName(nameFile);
         }
 
         /// <summary>
@@ -249,22 +253,27 @@ namespace PDSProject {
         /// <param name="estimatedTime"></param>
         /// <param name="byteReceived"></param>
         public void AddOrUpdateListFile(string ipUser, string pathFile, FileRecvStatus? status, string estimatedTime, double? byteReceived){
-            if(_referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
-                FileRecive files = _referenceData.fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
-                if(status != null)
-                    files.statusFile = status.ToString();
-                if(estimatedTime != null)
-                    files.estimatedTime = estimatedTime;
-                if(byteReceived != null)
-                    files.dataRecived = byteReceived.Value;
-                
+            if(fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
+                //FileRecive files = fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
+                for (int i = 0; i < fileReciveList.Count; i++){
+                    if (fileReciveList[i].fileName.Equals(pathFile)) {
+                        if (status != null)
+                            fileReciveList[i].statusFile = status.ToString();
+                        if (estimatedTime != null)
+                            fileReciveList[i].estimatedTime = estimatedTime;
+                        if (byteReceived != null)
+                            fileReciveList[i].dataRecived = byteReceived.Value;
+                        break;
+                    }
+
+                }
             } else {
                 string currentUsername = _referenceData.GetRemoteUserName(ipUser);
                 FileRecive files = new FileRecive(currentUsername, pathFile, status.ToString(), "0", 0);
-                _referenceData.fileReciveList.Add(files);              
+                fileReciveList.Add(files);              
             }
 
-            fileList.Items.Refresh();
+            //fileList.Items.Refresh();
 
         }
 
@@ -485,6 +494,8 @@ namespace PDSProject {
         /// <param name="e"></param>
         public async void SendResponse (string filename, string ip, PacketType type ) {
             try {
+                FileRecvStatus status = type == PacketType.YFILE ? FileRecvStatus.YSEND : FileRecvStatus.NSEND;
+                AddOrUpdateListFile(ip, filename, status, "-", 0.0f);
                 await _TCPSender.SendResponse(ip, filename, type);
             }
             catch (Exception e) {
@@ -504,6 +515,14 @@ namespace PDSProject {
             catch(Exception e) {
                 Console.WriteLine($"Exception on SendFile Task -{e}");
             }
+        }
+
+        public FileRecive GetFileReciveByFileName (string fileName) {
+            if (fileReciveList.Where(e => e.fileName.Equals(fileName)).Count() > 0) {
+                return fileReciveList.Where(e => e.fileName.Equals(fileName)).ToList()[0];
+            }
+            else
+                return null;
         }
 
         /// <summary>
@@ -981,7 +1000,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Visible;
 
-            flashTimer.Stop();
+            //flashTimer.Stop();
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
@@ -1000,9 +1019,9 @@ namespace PDSProject {
 
             yesButton.Visibility = Visibility.Hidden;
             noButton.Visibility = Visibility.Hidden;
-            stopButton.Visibility = Visibility.Visible;
+            stopButton.Visibility = Visibility.Hidden;
 
-            flashTimer.Stop();
+            //flashTimer.Stop();
         }
     }
 

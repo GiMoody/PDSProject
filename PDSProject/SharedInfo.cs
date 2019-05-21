@@ -88,7 +88,6 @@ namespace PDSProject
         // File to recive information
         //---------------------------------------------
         public ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>> FileToRecive = new ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>>();
-        public ObservableCollection<FileRecive> fileReciveList = new ObservableCollection<FileRecive>();
         
         /// <summary>
         /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
@@ -713,14 +712,14 @@ namespace PDSProject
             //}
         }
 
-        public FileRecive GetFileReciveByFileName (string fileName) {
-            lock(fileReciveList) {
-                if(fileReciveList.Where(e => e.fileName.Equals(fileName)).Count() > 0) {
-                    return fileReciveList.Where(e => e.fileName.Equals(fileName)).ToList()[0];
-                } else
-                    return null;
-            }
-        }
+        //public FileRecive GetFileReciveByFileName (string fileName) {
+        //    lock(fileReciveList) {
+        //        if(fileReciveList.Where(e => e.fileName.Equals(fileName)).Count() > 0) {
+        //            return fileReciveList.Where(e => e.fileName.Equals(fileName)).ToList()[0];
+        //        } else
+        //            return null;
+        //    }
+        //}
 
         /// <summary>
         /// Controlla se un file è stato ricevuto o no
