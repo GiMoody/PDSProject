@@ -35,7 +35,7 @@
                 <!--Progress File-->
                 <TextBlock x:Name="textListFile" FontWeight="Bold" TextWrapping="Wrap" Text="File" RenderTransformOrigin="0.479,0.472" Margin="26,253,398.8,0" Foreground="White" FontFamily="Lato" FontSize="16" Height="41" VerticalAlignment="Top"/>
 
-                <ListBox Name="fileList" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="26,279,24.8,0" Background="Transparent" Height="153" VerticalAlignment="Top">
+                <ListBox Name="fileList" ItemsSource="{Binding}" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="26,279,24.8,0" Background="Transparent" Height="153" VerticalAlignment="Top">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,0">
