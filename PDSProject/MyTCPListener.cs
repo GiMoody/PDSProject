@@ -184,7 +184,8 @@ namespace PDSProject
                                 }));
                             await Task.Delay(10);
                             await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.PopUpFile(filename, hostName);
+                                //MainWindow.main.FlashingWindowIcon();
+                                MainWindow.main.PopUpFile(filename, hostName);
                                     MainWindow.main.SendResponse(filename, ipClient, PacketType.YFILE);
                                 }));
                             }

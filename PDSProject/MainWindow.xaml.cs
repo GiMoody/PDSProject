@@ -64,6 +64,7 @@ namespace PDSProject {
         private Icon[] icons;
         private int currentIcon;
 
+        
         public MainWindow() {
             InitializeComponent();
             
@@ -127,6 +128,8 @@ namespace PDSProject {
             icons = new Icon[2];
             icons[0] = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
             icons[1] = new System.Drawing.Icon(Utility.FileNameToSystem("share_black.ico"));
+            flashTimer.Tick += new EventHandler(IconBlinking);
+            flashTimer.Interval = new TimeSpan(0, 0, 1);
 
             // Aggiunge registri per menù contestuale
             /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
@@ -141,13 +144,15 @@ namespace PDSProject {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void IconBlinking (object sender, EventArgs e)
-        {
+        private void IconBlinking (object sender, EventArgs e){
             ni.Icon = icons[currentIcon];
-            if (currentIcon++ == 1)
-            {
+            if (currentIcon++ == 1){
                 currentIcon = 0;
             }
+        }
+
+        public void FlashingWindowIcon() {
+            main.FlashWindow();
         }
 
         /// <summary>
@@ -214,13 +219,17 @@ namespace PDSProject {
         /// <param name="userSenderIp">Ip dell'utente mittente</param>
         public void PopUpFile(string nameFile, string userSenderName) {
             // Initialize balloon items
+            
+            main.FlashWindow();
+
             string title_ball = "PDS_Condividi";
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
 
             ////initialize timer for flashing icon
-            flashTimer.Tick += new EventHandler(IconBlinking);
-            flashTimer.Interval = new TimeSpan(0, 0, 1);
+            
             flashTimer.Start();
+
+           
             fileList.SelectedItems.Clear();
             fileList.SelectedIndex = -1;
             fileList.SelectedItems.Add(GetFileReciveByFileName(nameFile));
@@ -275,7 +284,7 @@ namespace PDSProject {
                 fileReciveList.Add(files);              
             }
 
-            fileList.Items.Refresh();
+            //fileList.Items.Refresh();
 
         }
 
@@ -288,6 +297,8 @@ namespace PDSProject {
             //Porto in primo piano l'applicazione
             this.Show();
             this.WindowState = WindowState.Normal;
+
+            main.StopFlashingWindow();
 
             //Evidenzio nella lista il file di cui voglio la conferma
             FileRecive fileTAG = (FileRecive)((NotifyIcon)sender).Tag;
@@ -582,6 +593,10 @@ namespace PDSProject {
                         }
                     }
                 }
+            }
+
+            if(this.IsActive == true) {
+                main.StopFlashingWindow();
             }
         }
 
@@ -985,12 +1000,16 @@ namespace PDSProject {
         }
 
         private void YesButton_Click(object sender, RoutedEventArgs e) {
-            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(fileList.SelectedIndex) as ListBoxItem;
+            
+            Button button = sender as Button;
+            var index = fileList.Items.IndexOf(button.Tag);
+
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
 
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
             Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
-
+            
             TextBlock textFile = MainWindow.FindChild<TextBlock>(currentSelectedListBoxItem, "textFile");
             string fileName = textFile.Text;
             string[] packetPart = fileName.Split('_');
@@ -1003,10 +1022,16 @@ namespace PDSProject {
             stopButton.Visibility = Visibility.Visible;
 
             flashTimer.Stop();
+            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            //main.StopFlashingWindow();
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
-            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(fileList.SelectedIndex) as ListBoxItem;
+
+            Button button = sender as Button;
+            var index = fileList.Items.IndexOf(button.Tag);
+
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
 
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
@@ -1024,6 +1049,8 @@ namespace PDSProject {
             stopButton.Visibility = Visibility.Hidden;
 
             flashTimer.Stop();
+            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            //main.StopFlashingWindow();
         }
     }
 

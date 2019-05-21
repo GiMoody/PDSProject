@@ -110,6 +110,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FlashWindowHelper.cs" />
     <Compile Include="FileRecive.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="MyTCPSender.cs" />
