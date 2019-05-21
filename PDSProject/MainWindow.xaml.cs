@@ -60,7 +60,7 @@ namespace PDSProject {
         System.Windows.Forms.ContextMenu contextMenu;
         NotifyIcon ni = new NotifyIcon();
 
-        //DispatcherTimer flashTimer = new DispatcherTimer();
+        DispatcherTimer flashTimer = new DispatcherTimer();
         private Icon[] icons;
         private int currentIcon;
 
@@ -141,12 +141,14 @@ namespace PDSProject {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        //private void IconBlinking(object sender, EventArgs e) {
-        //    ni.Icon = icons[currentIcon];
-        //    if(currentIcon++ == 1) {
-        //        currentIcon = 0;
-        //    }
-        //}
+        private void IconBlinking (object sender, EventArgs e)
+        {
+            ni.Icon = icons[currentIcon];
+            if (currentIcon++ == 1)
+            {
+                currentIcon = 0;
+            }
+        }
 
         /// <summary>
         /// Metodo chiamato in fase di inizializzazione per inserire in grafica i dati dell'utente locale
@@ -201,7 +203,7 @@ namespace PDSProject {
             //items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
             //items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
 
-            //fileList.ItemsSource = fileReciveList;
+            fileList.ItemsSource = fileReciveList;
         }
 
         /// <summary>
@@ -216,9 +218,9 @@ namespace PDSProject {
             string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
 
             ////initialize timer for flashing icon
-            //flashTimer.Tick += new EventHandler(IconBlinking);
-            //flashTimer.Interval = new TimeSpan(0, 0, 1);
-            //flashTimer.Start();
+            flashTimer.Tick += new EventHandler(IconBlinking);
+            flashTimer.Interval = new TimeSpan(0, 0, 1);
+            flashTimer.Start();
             fileList.SelectedItems.Clear();
             fileList.SelectedIndex = -1;
             fileList.SelectedItems.Add(GetFileReciveByFileName(nameFile));
@@ -273,7 +275,7 @@ namespace PDSProject {
                 fileReciveList.Add(files);              
             }
 
-            //fileList.Items.Refresh();
+            fileList.Items.Refresh();
 
         }
 
@@ -1000,7 +1002,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Visible;
 
-            //flashTimer.Stop();
+            flashTimer.Stop();
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e) {
@@ -1021,7 +1023,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Hidden;
 
-            //flashTimer.Stop();
+            flashTimer.Stop();
         }
     }
 
