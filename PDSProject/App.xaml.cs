@@ -28,7 +28,6 @@ namespace PDSProject
         static bool isMutexCreated = false;
         static Mutex mut = new Mutex(true, Process.GetCurrentProcess().ProcessName, out isMutexCreated);
 
-
         protected override void OnStartup(StartupEventArgs e) {
             
             if (!isMutexCreated){//Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1){
