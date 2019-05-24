@@ -36,6 +36,7 @@ using Application = System.Windows.Application;
 using TextBox = System.Windows.Controls.TextBox;
 using System.Windows.Media.Animation;
 using System.Drawing;
+using System.Windows.Controls.Primitives;
 
 namespace PDSProject {
     /// <summary>
@@ -75,8 +76,7 @@ namespace PDSProject {
             _UDPSender = new MyUDPSender();
 
             source = new CancellationTokenSource();
-
-                       
+      
             //Initialize friendList data
             friendList.ItemsSource = _referenceData.Users.Values;
            
@@ -92,6 +92,7 @@ namespace PDSProject {
             // Inizializzo i dati dell'utente locale
             InitLocalUserData();
             DataContext = fileReciveList;
+            fileList.ItemContainerGenerator.StatusChanged += ItemContainerGeneratorStatusChanged;
 
             // Attacco il context menù all'icona
             ni.Visible = true;
@@ -155,6 +156,60 @@ namespace PDSProject {
             main.FlashWindow();
         }
 
+        private void ItemContainerGeneratorStatusChanged(object sender, EventArgs e) {
+            if(fileList.ItemContainerGenerator.Status
+                == GeneratorStatus.ContainersGenerated) {
+                var containers = fileList.Items.Cast<object>().Select(
+                    item => (FrameworkElement)fileList
+                        .ItemContainerGenerator.ContainerFromItem(item));
+
+                foreach(var container in containers) {
+                    if(container != null) {
+                        container.Loaded += ItemContainerLoaded;
+                    }
+
+                }
+            }
+        }
+
+        private void ItemContainerLoaded(object sender, RoutedEventArgs e) {
+            var element = (FrameworkElement)sender;
+            element.Loaded -= ItemContainerLoaded;
+            
+            ListBoxItem fr = sender as ListBoxItem;
+            FileRecive fr_listbox = fr.DataContext as FileRecive;
+
+            string title_ball = "PDS_Condividi";
+            string text_ball = "Utente " + fr_listbox.hostName + " ti vuole inviare un file!";
+            int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(fr_listbox.fileName));
+            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+
+            if(currentSelectedListBoxItem == null) {
+                fileList.UpdateLayout();
+                fileList.ScrollIntoView(fileList.Items[index]);
+                currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+            }
+           
+
+            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
+            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
+            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+
+            if(_referenceData.GetInfoLocalUser().AcceptAllFile) {
+                yesButton.Visibility = Visibility.Hidden;
+                noButton.Visibility = Visibility.Hidden;
+                stopButton.Visibility = Visibility.Visible;
+            } else {
+
+                yesButton.Visibility = Visibility.Visible;
+                noButton.Visibility = Visibility.Visible;
+                stopButton.Visibility = Visibility.Hidden;
+            }
+
+            ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
+            ni.Tag = GetFileReciveByFileName(fr_listbox.fileName);
+        }
+
         /// <summary>
         /// Metodo chiamato in fase di inizializzazione per inserire in grafica i dati dell'utente locale
         /// </summary>
@@ -208,51 +263,17 @@ namespace PDSProject {
             //items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
             //items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
 
-            fileList.ItemsSource = fileReciveList;
+            //fileList.ItemsSource = items;
         }
 
         /// <summary>
-        /// Metodo che crea un pop-up quando viene inviata una richiesta di ricezione file da un host remoto
+        /// Metodo che permette il flash delle icone all'avvio del popup
         /// </summary>
-        /// <param name="nameFile">Nome del file</param>
-        /// <param name="userSenderName">Nome dell'utente mittente</param>
-        /// <param name="userSenderIp">Ip dell'utente mittente</param>
-        public void PopUpFile(string nameFile, string userSenderName) {
-            // Initialize balloon items
-            
+        public void NotifySistem() {
+            //Make icon taskbar flash
             main.FlashWindow();
-
-            string title_ball = "PDS_Condividi";
-            string text_ball =  "Utente " + userSenderName + " ti vuole inviare un file!";
-
-            ////initialize timer for flashing icon
-            
+            //Start timer for icon flashing in tray           
             flashTimer.Start();
-
-           
-            fileList.SelectedItems.Clear();
-            fileList.SelectedIndex = -1;
-            fileList.SelectedItems.Add(GetFileReciveByFileName(nameFile));
-            int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(nameFile));
-            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
-
-            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
-            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
-            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
-
-            if(_referenceData.GetInfoLocalUser().AcceptAllFile) {
-                yesButton.Visibility = Visibility.Hidden;
-                noButton.Visibility = Visibility.Hidden;
-                stopButton.Visibility = Visibility.Visible;
-            } else {
-
-                yesButton.Visibility = Visibility.Visible;
-                noButton.Visibility = Visibility.Visible;
-                stopButton.Visibility = Visibility.Hidden;
-            }
-            
-            ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.Tag = GetFileReciveByFileName(nameFile);
         }
 
         /// <summary>
@@ -268,8 +289,25 @@ namespace PDSProject {
                 //FileRecive files = fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
                 for (int i = 0; i < fileReciveList.Count; i++){
                     if (fileReciveList[i].fileName.Equals(pathFile)) {
-                        if (status != null)
+                        if (status != null) {
                             fileReciveList[i].statusFile = status.ToString();
+                            if((status.Value == FileRecvStatus.NSEND) || (status.Value == FileRecvStatus.RECIVED)) {
+                                
+                                int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(pathFile));
+                                var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+
+                                if(currentSelectedListBoxItem == null) {
+                                    fileList.UpdateLayout();
+                                    fileList.ScrollIntoView(fileList.Items[index]);
+                                    currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+                                }
+
+                                Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+                                stopButton.Visibility = Visibility.Hidden;
+                                
+                            }
+                        }
+                            
                         if (estimatedTime != null)
                             fileReciveList[i].estimatedTime = estimatedTime;
                         if (byteReceived != null)
@@ -306,6 +344,7 @@ namespace PDSProject {
 
             //Rendo visibili i bottoni si/no di quell'elemento
             var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex((int)fileList.Items.IndexOf(fileTAG)) as ListBoxItem;
+            
 
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
@@ -316,7 +355,7 @@ namespace PDSProject {
             stopButton.Visibility = Visibility.Hidden;
 
         }
-        
+              
         /// <summary>
         /// Gestione eventi del context menù (icona in basso)
         /// </summary>        
@@ -343,7 +382,7 @@ namespace PDSProject {
         protected void Exit_Click(Object sender, System.EventArgs e){
             Close();
         }
-
+        
         /// <summary>
         /// Gestione stato Minimize (icona nella tray)
         /// </summary>

@@ -177,59 +177,29 @@ namespace PDSProject
                             if (_referenceData.GetInfoLocalUser().AcceptAllFile) {
                                 _referenceData.AddOrUpdateRecvStatus(ipClient, filename, FileRecvStatus.YSEND);
 
-                                string hostName = _referenceData.Users[ipClient].Name;
-
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                     MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.YSEND, "-", 0.0f);
-                                }));
-                            await Task.Delay(10);
-                            await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                //MainWindow.main.FlashingWindowIcon();
-                                MainWindow.main.PopUpFile(filename, hostName);
+                                    MainWindow.main.NotifySistem();
                                     MainWindow.main.SendResponse(filename, ipClient, PacketType.YFILE);
                                 }));
-                            }
-                            else {
+                         
+                            } else {
                                 _referenceData.AddOrUpdateRecvStatus(ipClient, filename, FileRecvStatus.TOCONF);
 
-                                { // TODO: da cambiare!!!
-                                    string filenameTEST = filename;
-                                    string ipTEST = ipClient;
-                                    string hostName = _referenceData.Users[ipClient].Name;
-
-                                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                        MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.TOCONF, "-", 0.0f);
-                                        //MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
-                                    }));
-                                await Task.Delay(10);
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.PopUpFile(filename, hostName);
-                                    //MainWindow.main.TestResponse(new List<string> { filenameTEST }, ipTEST);
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.TOCONF, "-", 0.0f);
+                                    MainWindow.main.NotifySistem();
                                 }));
-                            }
+                                
                             }
                             break;
                         case PacketType.YFILE:
-                            if(_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.CONFERMED)) {
-                                // TODO: da cambiare!!!
-                                string filenameTEST = filename;
-                                string ipTEST = ipClient;
-                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.YSEND, "-", 0.0f);
-                                    MainWindow.main.SendFile(filenameTEST, ipTEST);
-                                }));
-                            }
-                            else
+                            if(!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.CONFERMED))
                                 throw new Exception("No file with name " + filename + " was announced from this client");
                             break;
                         case PacketType.NFILE:
                             if(!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED))
                                 throw new Exception("No file with name " + filename + " was announced from this client");
-                            else {
-                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.NSEND, "-", 0.0f);
-                                }));
-                            }
                             break;
                         case PacketType.FSEND:
                             {
@@ -346,13 +316,11 @@ namespace PDSProject
                     double estimateTime = numerator / denominator;
                     TimeSpan estimatedTime = TimeSpan.FromSeconds(estimateTime);
 
-                    string estimatedTimeJet = String.Format("{0:0}", estimatedTime.TotalMinutes) + ":" +
-                                              String.Format("{0:0}", estimatedTime.TotalSeconds) + ":" +
-                                              String.Format("{0:0}", estimatedTime.Milliseconds);
+                    string estimatedTimeJet = String.Format("{00:00}", estimatedTime.TotalMinutes) + ":" +
+                                              String.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
+                                              String.Format("{00:00}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                         MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, null, estimatedTimeJet, dataReceivedJet);
-                        //MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
-                        //MainWindow.main.textTime.Text = estimatedTimeJet;
                     }));
                     Console.WriteLine(dataReceivedJet + "%");
 
