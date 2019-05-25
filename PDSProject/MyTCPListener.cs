@@ -194,11 +194,16 @@ namespace PDSProject
                             }
                             break;
                         case PacketType.YFILE:
-                            if(!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.CONFERMED))
+                            if (_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.CONFERMED)) {
+                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.SendFile(filename, ipClient);
+                                }));
+                            }
+                            else
                                 throw new Exception("No file with name " + filename + " was announced from this client");
                             break;
                         case PacketType.NFILE:
-                            if(!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED))
+                            if (!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED)) 
                                 throw new Exception("No file with name " + filename + " was announced from this client");
                             break;
                         case PacketType.FSEND:

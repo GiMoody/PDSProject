@@ -190,8 +190,6 @@ namespace PDSProject {
             //ObservableCollection<FileRecive> items = new ObservableCollection<FileRecive>();
             //items.Add(new FileRecive() { hostName = "Giulia", fileName = "Prova.zip", statusFile = "Ricezione", estimatedTime = "00:02", dataRecived = 50 });
             //items.Add(new FileRecive() { hostName = "Rossella", fileName = "Prova_2.zip", statusFile = "Attesa Conferma", estimatedTime = "00:15", dataRecived = 30 });
-
-            //fileList.ItemsSource = items;
         }
 
         #region --------------- NotifyIcon Settings ---------------
@@ -549,6 +547,17 @@ namespace PDSProject {
                 pathName.Text = save_path;
             }
         }
+
+        /// <summary>
+        /// Update GUI that show the files/directory that the local user wants to send
+        /// </summary>
+        /// <param name="path">Path of the file/directory</param>
+        public void ShowCurrentListSendFile ( string path ) {
+            textInfoMessage.Text += path + "\n";
+            if (_referenceData.GetPathFileToSend().Count > 0) {
+                UndoButton.Visibility = Visibility.Visible;
+            }
+        }
         #endregion
 
         #region --------------- Window Events ---------------------
@@ -786,6 +795,23 @@ namespace PDSProject {
             } else
                 return null;
         }
+
+        /// <summary>
+        /// Send response to remote host to receive a file/directory previousply announced
+        /// </summary>
+        /// <param name="filename">Name of the file</param>
+        /// <param name="ip">Remote host's ip</param>
+        /// <param name="type">Type of response (yes/no)</param>
+        public async void SendResponse ( string filename, string ip, PacketType type ) {
+            try {
+                FileRecvStatus status = type == PacketType.YFILE ? FileRecvStatus.YSEND : FileRecvStatus.NSEND;
+                AddOrUpdateListFile(ip, filename, status, "-", 0.0f);
+                await _TCPSender.SendResponse(ip, filename, type);
+            }
+            catch (Exception e) {
+                Console.WriteLine($"Exception on TestResponse Task - {e}");
+            }
+        }
         #endregion
 
         #region --------------- Friends ListBox -------------------
@@ -852,8 +878,8 @@ namespace PDSProject {
                             _referenceData.AddPathToSend(path);
                             string copia = path;
 
-                            // Todo: da eliminare
-                            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { Test(copia); }));
+                            // Update Gui with path of the files/directory to be sended
+                            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { ShowCurrentListSendFile(copia); }));
                         }
                     }
                 }
@@ -998,62 +1024,7 @@ namespace PDSProject {
         }
 
         #endregion
-
-
-  
-        /// <summary>
-        /// TODO: Da eliminare prima o poi
-        /// </summary>
-        /// <param name="e"></param>
-        public void Test(string e) {
-            textInfoMessage.Text += e + "\n";
-            if(_referenceData.GetPathFileToSend().Count > 0) {
-                UndoButton.Visibility = Visibility.Visible;
-            }
-        }
-
-        /// <summary>
-        /// TODO: Da eliminare prima o poi
-        /// </summary>
-        /// <param name="e"></param>
-        public async void TestResponse(List<string> filenames, string ip) {
-            Random rand = new Random();
-            foreach (string file in filenames) {
-                try
-                {
-                    if (true)//rand.Next() % 2 == 0)
-                    {
-                        // Si
-                        Console.WriteLine("Confermo file " + file + " dall'utente " + ip);
-                        await _TCPSender.SendResponse(ip, file, PacketType.YFILE);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Rifiuto file " + file + " dall'utente " + ip);
-                        await _TCPSender.SendResponse(ip, file, PacketType.NFILE);
-                    }
-                }catch(Exception e)
-                {
-                    Console.WriteLine($"Exception on TestResponse Task - {e}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// TODO: Da eliminare prima o poi
-        /// </summary>
-        /// <param name="e"></param>
-        public async void SendResponse (string filename, string ip, PacketType type ) {
-            try {
-                FileRecvStatus status = type == PacketType.YFILE ? FileRecvStatus.YSEND : FileRecvStatus.NSEND;
-                AddOrUpdateListFile(ip, filename, status, "-", 0.0f);
-                await _TCPSender.SendResponse(ip, filename, type);
-            }
-            catch (Exception e) {
-                Console.WriteLine($"Exception on TestResponse Task - {e}");
-            }
-        }        
-
+        
         /// <summary>
         /// Finds a Child of a given item in the visual tree. 
         /// </summary>

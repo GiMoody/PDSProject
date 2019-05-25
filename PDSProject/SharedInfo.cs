@@ -38,6 +38,7 @@ namespace PDSProject
         NSEND,
         RECIVED,
         INPROGRESS,
+        UNZIP,
         RESENT
     }
 
