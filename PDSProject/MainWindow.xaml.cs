@@ -2,8 +2,11 @@
 
 using System.Diagnostics;
 using System.Linq;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using System.IO;
 using System.IO.Pipes;
@@ -19,6 +22,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
+
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,23 +31,19 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
-using MessageBox = System.Windows.MessageBox;
-using ListBox = System.Windows.Controls.ListBox;
-using MenuItem = System.Windows.Forms.MenuItem;
-using Path = System.IO.Path;
+using MessageBox  = System.Windows.MessageBox;
+using ListBox     = System.Windows.Controls.ListBox;
+using MenuItem    = System.Windows.Forms.MenuItem;
+using Path        = System.IO.Path;
 using ContextMenu = System.Windows.Forms.ContextMenu;
-using Button = System.Windows.Controls.Button;
-using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Windows.Controls.Primitives;
+using Button      = System.Windows.Controls.Button;
+using ProgressBar = System.Windows.Controls.ProgressBar;
 
 namespace PDSProject {
     /// <summary>
     /// Logica di interazione per MainWindow.xaml
     /// </summary>
-
     public partial class MainWindow : Window {
-
         // Usato come riferimento da parte delle altri classi
         public static MainWindow main;
         private string save_path;
@@ -59,7 +60,9 @@ namespace PDSProject {
         
         //Initialization Timer for TrayIcon blink
         DispatcherTimer flashTimer = new DispatcherTimer();
-        
+        DispatcherTimer dispatcherTimer_CleanUp = new DispatcherTimer();
+        DispatcherTimer dispatcherTimer_FileCleanUp = new DispatcherTimer();
+
         //Initialization contextMenù
         ContextMenu contextMenu;
 
@@ -108,11 +111,19 @@ namespace PDSProject {
                 };
 
             //Every second, a UDP packet is sent to notify other users of update of status, name or profile image
-            DispatcherTimer dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
-            dispatcherTimer.Start();
-                        
+            dispatcherTimer_CleanUp = new DispatcherTimer();
+            dispatcherTimer_CleanUp.Tick += new EventHandler(DispatcherTimer_Tick);
+            dispatcherTimer_CleanUp.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer_CleanUp.Start();
+            
+            dispatcherTimer_FileCleanUp = new DispatcherTimer();
+            dispatcherTimer_FileCleanUp.Tick += new EventHandler(DispatcherTimer_ClearFileList);
+            dispatcherTimer_FileCleanUp.Interval = new TimeSpan(0, 0, 20);
+            dispatcherTimer_FileCleanUp.Start();
+
+            flashTimer.Tick += new EventHandler(IconBlinking);
+            flashTimer.Interval = new TimeSpan(0, 0, 1);
+            
             Task.Run(async () => {
                 try {
                     await _UDPListener.Listener(source.Token);
@@ -130,9 +141,7 @@ namespace PDSProject {
             icons = new Icon[2];
             icons[0] = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
             icons[1] = new System.Drawing.Icon(Utility.FileNameToSystem("share_black.ico"));
-            flashTimer.Tick += new EventHandler(IconBlinking);
-            flashTimer.Interval = new TimeSpan(0, 0, 1);
-
+            
             //Adding registers for contextMenu
             /** TODO: AddOptionContextMenu dovrà essere spostato per essere eseguito solo dallo Wizard o durante le operazioni di 
              * configurazioni una sola volta in modalità Admin. Per adesso il codice si limita a controllare se l'esecuzione è in
@@ -164,7 +173,7 @@ namespace PDSProject {
                 comboStatus.Text        = "Offline";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
             }
-            comboStatus.SelectedIndex = currentLocalUser.Status.ToString() == "online" ? 0 : 1;
+                comboStatus.SelectedIndex = currentLocalUser.Status.ToString() == "online" ? 0 : 1;
 
             // Update SavePath & AcceptFileConfiguration
             if (currentLocalUser.SavePath.Equals(_referenceData.defaultPath)) {
@@ -174,7 +183,7 @@ namespace PDSProject {
                 ChoosePath.IsChecked = false;
                 pathName.Text = currentLocalUser.SavePath;
             }
-            AcceptFile.IsChecked = currentLocalUser.AcceptAllFile == true ? true : false;
+                AcceptFile.IsChecked = currentLocalUser.AcceptAllFile == true ? true : false;
 
             //Loading Profile Image, distinguishes defualt or not
             string filename = currentLocalUser.ProfileImagePath;
@@ -360,13 +369,29 @@ namespace PDSProject {
                                 string zipPathDir = @Utility.PathTmp() + "\\" + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() + "Dir_" + Path.GetFileName(path) + "_" + _referenceData.GetLocalIPAddress().Replace(".", "_") + "_.zip";
 
                                 listFile.Add(Utility.PathToFileName(zipPathDir), FileSendStatus.PREPARED);
+                                foreach (string ip in currentSelectedHost) {
+                                    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(zipPathDir), FileSendStatus.PREPARED, "", 0.0f);
+                                    }));
+                                }
+
                                 ZipFile.CreateFromDirectory(path, zipPathDir);
                                 listFile[Utility.PathToFileName(zipPathDir)] = FileSendStatus.READY;
+                                foreach (string ip in currentSelectedHost) {
+                                    MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(zipPathDir), FileSendStatus.READY, "", 0.0f);
+                                    })); 
+                                }
                             } else {
                                 if(!File.Exists(zipPath)) {
                                     listFile.Add(Utility.PathToFileName(zipPath), FileSendStatus.PREPARED);
+                                    foreach (string ip in currentSelectedHost) {
+                                        MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(zipPath), FileSendStatus.PREPARED, "", 0.0f);
+                                        }));
+                                    }
 
-                                    using(ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
+                                    using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
                                         archive.CreateEntryFromFile(path, Utility.PathToFileName(path));
                                         isFile = true;
                                     }
@@ -378,22 +403,41 @@ namespace PDSProject {
                             }
 
                         }
-                        if(isFile)
+                        if (isFile) {
                             listFile[Utility.PathToFileName(zipPath)] = FileSendStatus.READY;
-
-                        foreach(string ip in currentSelectedHost)
+                            foreach (string ip in currentSelectedHost) {
+                                MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    AddOrUpdateListFile(ip, Utility.PathToFileName(zipPath), FileSendStatus.READY, "", 0.0f);
+                                }));                                
+                            }
+                        }
+                        foreach (string ip in currentSelectedHost) {
                             _referenceData.AddOrUpdateSendFile(ip, listFile);
+                            foreach (string file in listFile.Keys) {
+                                MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    AddOrUpdateListFile(ip, Utility.PathToFileName(file), FileSendStatus.READY, "", 0.0f);
+                                }));
+                            }
+                        }
 
                         pathFiles = listFile.Keys.ToList();
                         _referenceData.ClearPathToSend(currentPathToSend);
                         obj.Release();
                     } catch(Exception ex) {
                         Console.WriteLine($"Exception on creation zip {ex}");
+
+                        foreach(string file in listFile.Keys) {
+                            string fullPath = Utility.PathTmp() + "\\" + file;
+                            if (File.Exists(fullPath)) {
+                                File.Delete(fullPath);
+                            }
+                        }
+                        obj.Release();
                     }
                 });
                 _referenceData.RemoveSelectedHosts(currentSelectedHost);
+                textInfoMessage.Text = "";
                 await obj.WaitAsync();
-
                 try {
                     await _TCPSender.SendRequest(pathFiles);
                 } catch(Exception ex) {
@@ -632,7 +676,7 @@ namespace PDSProject {
                 for (int i = 0; i < fileReciveList.Count; i++){
                     if (fileReciveList[i].fileName.Equals(pathFile)) {
                         if (status != null) {
-                            fileReciveList[i].statusFile = status.ToString();
+                            fileReciveList[i].UpdateStatusString(status.Value);
                             if((status.Value == FileRecvStatus.NSEND) || (status.Value == FileRecvStatus.RECIVED)) {
                                 
                                 int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(pathFile));
@@ -647,6 +691,7 @@ namespace PDSProject {
                                 Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
                                 stopButton.Visibility = Visibility.Hidden;  
                             }
+
                         }
                             
                         if (estimatedTime != null)
@@ -659,8 +704,66 @@ namespace PDSProject {
                 }
             } else {
                 string currentUsername = _referenceData.GetRemoteUserName(ipUser);
-                FileRecive files = new FileRecive(currentUsername, pathFile, status.ToString(), "0", 0);
+                FileRecive files = new FileRecive(currentUsername, pathFile, status.Value, "0", 0);
+                files.ip = ipUser;
                 fileReciveList.Add(files);              
+            }
+        }
+
+        /// <summary>
+        /// Update fileReciveList obj for file list recived
+        /// </summary>
+        /// <param name="ipUser"></param>
+        /// <param name="pathFile"></param>
+        /// <param name="status"></param>
+        /// <param name="estimatedTime"></param>
+        /// <param name="byteReceived"></param>
+        public void AddOrUpdateListFile ( string ipUser, string pathFile, FileSendStatus? status, string estimatedTime, double? byteReceived ) {
+            if (fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
+                for (int i = 0; i < fileReciveList.Count; i++) {
+                    if (fileReciveList[i].fileName.Equals(pathFile)) {
+                        if (status != null) {
+                            fileReciveList[i].UpdateStatusString(status.Value);
+                            if ((status.Value == FileSendStatus.REJECTED) || (status.Value == FileSendStatus.END)) {
+
+                                int index = (int)fileList.Items.IndexOf(GetFileReciveByFileName(pathFile));
+                                var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+
+                                if (currentSelectedListBoxItem == null) {
+                                    fileList.UpdateLayout();
+                                    fileList.ScrollIntoView(fileList.Items[index]);
+                                    currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+                                }
+
+                                Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+                                stopButton.Visibility = Visibility.Hidden;
+                            }
+                            if(status.Value == FileSendStatus.RESENT) {
+                                fileReciveList[i].TimestampResend = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                            }
+                        }
+
+                        if (estimatedTime != null)
+                            fileReciveList[i].estimatedTime = estimatedTime;
+                        if (byteReceived != null)
+                            fileReciveList[i].dataRecived = byteReceived.Value;
+                        break;
+                    }
+
+                }
+            }
+            else {
+                string currentUsername = _referenceData.GetRemoteUserName(ipUser);
+                FileRecive files = new FileRecive(currentUsername, pathFile, status.Value, "0", 0);
+                fileReciveList.Add(files);
+            }
+        }
+
+        public void UpdateHostName(string ipUser, string newName ) {
+            foreach(FileRecive fr in fileReciveList) {
+                if (fr.ip.Equals(ipUser)) {
+                    fr.hostName = newName;
+                }
             }
         }
 
@@ -707,19 +810,32 @@ namespace PDSProject {
             Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
             Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
             Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+            if (fr_listbox.isRecived) {
+                if (_referenceData.GetInfoLocalUser().AcceptAllFile) {
+                    yesButton.Visibility = Visibility.Hidden;
+                    noButton.Visibility = Visibility.Hidden;
+                    stopButton.Visibility = Visibility.Visible;
+                }
+                else {
+                    yesButton.Visibility = Visibility.Visible;
+                    noButton.Visibility = Visibility.Visible;
+                    stopButton.Visibility = Visibility.Hidden;
+                }
 
-            if(_referenceData.GetInfoLocalUser().AcceptAllFile) {
+                ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
+                ni.Tag = GetFileReciveByFileName(fr_listbox.fileName);
+            }
+            else {
+                TextBlock textTime = MainWindow.FindChild<TextBlock>(currentSelectedListBoxItem, "textTime");
+                ProgressBar progressFile = MainWindow.FindChild<ProgressBar>(currentSelectedListBoxItem, "progressFile");
+
                 yesButton.Visibility = Visibility.Hidden;
                 noButton.Visibility = Visibility.Hidden;
-                stopButton.Visibility = Visibility.Visible;
-            } else {
-                yesButton.Visibility = Visibility.Visible;
-                noButton.Visibility = Visibility.Visible;
                 stopButton.Visibility = Visibility.Hidden;
-            }
+                textTime.Visibility = Visibility.Hidden;
+                progressFile.Visibility = Visibility.Hidden;
 
-            ni.ShowBalloonTip(5, title_ball, text_ball, ToolTipIcon.Info);
-            ni.Tag = GetFileReciveByFileName(fr_listbox.fileName);
+            }
         }
 
         /// <summary>
@@ -820,13 +936,15 @@ namespace PDSProject {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void friendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void FriendList_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if(e.AddedItems.Count > 0) {
                 foreach(Host h in e.AddedItems) {
                     _referenceData.AddSelectedHost(h.Ip);
                     Console.WriteLine("UTENTE SELEZIONATO " + h.Ip);
-                    if(h.Status.Equals("offline"))
+                    if (h.Status.Equals("offline")) {
                         friendList.SelectedItems.Remove(h);
+                        _referenceData.RemoveSelectedHost(h.Ip);
+                    }
                 }
             }
             if(e.RemovedItems.Count > 0) {
@@ -925,7 +1043,7 @@ namespace PDSProject {
         /// dell'host corrente agli altri utenti della rete.
         /// In più esegue alcune operazioni di pulizia come file temporanei e controllo degli utenti disconnessi
         /// </summary>
-        private void dispatcherTimer_Tick(object sender, EventArgs e) {
+        private void DispatcherTimer_Tick(object sender, EventArgs e) {
             if(!_referenceData.CheckIfConfigurationIsSet()) {
                 // In caso di rete non configurata invio pacchetti UDP ad ogni sottorete associata alle 
                 // interfaccie di rete del sistema
@@ -974,8 +1092,31 @@ namespace PDSProject {
                 }
             }
 
+            List<FileRecive> listResent;
+            if((listResent = fileReciveList.Where(f => f.statusFile.Equals("Da rinviare")).ToList()).Count > 0) {
+                FileRecive fr = listResent.OrderByDescending(f => f.TimestampResend).First();
+
+                _referenceData.UpdateSendStatusFileForUser(fr.ip, fr.fileName, FileSendStatus.READY);
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                    AddOrUpdateListFile(fr.ip, fr.fileName, FileSendStatus.READY, "", 0.0f);
+                    SendFile(fr.fileName, fr.ip);
+                }));
+
+            }
+              
+
             if(this.IsActive == true) {
                 main.StopFlashingWindow();
+            }
+        }
+
+        private void DispatcherTimer_ClearFileList ( object sender, EventArgs e ) {
+            for (int i=0; i<fileReciveList.Count; i++) {
+                if(fileReciveList[i].statusFile.Equals("Annullato") ||
+                   fileReciveList[i].statusFile.Equals("Ricevuto")  ||
+                   fileReciveList[i].statusFile.Equals("Fine invio")  ) {
+                    fileReciveList.RemoveAt(i);
+                }
             }
         }
 

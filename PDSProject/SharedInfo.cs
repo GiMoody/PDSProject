@@ -383,6 +383,29 @@ namespace PDSProject
             }
         }
 
+
+        /// <summary>
+        /// Ritorna l'hash dell'immagine di profilo dell'utente remote dato il suo ip
+        /// </summary>
+        public string GetRemoteUserHashImage ( string ip ) {
+            lock (Users) {
+                if (Users.ContainsKey(ip))
+                    return Users[ip].ProfileImageHash;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Ritorna il path dell'immagine di profilo dell'utente remote dato il suo ip
+        /// </summary>
+        public string GetRemoteUserProfileImage ( string ip ) {
+            lock (Users) {
+                if (Users.ContainsKey(ip))
+                    return Users[ip].ProfileImagePath;
+                return null;
+            }
+        }
+
         /// <summary>
         /// Aggiorna o inserisce informazioni di un utente remoto
         /// </summary>
@@ -519,6 +542,11 @@ namespace PDSProject
                     else {
                         filename = Users[ip].ProfileImagePath;
                     }
+                    if (checkUserImageChange) {
+                        lock (UserImageChange) {
+                            UserImageChange.Remove(Users[ip].ProfileImageHash);
+                        }
+                    }
                 }
                 return filename;
             }
@@ -550,7 +578,7 @@ namespace PDSProject
         /// <param name="ip">Ip host da eliminare</param>
         public void RemoveSelectedHost ( string ip ) {
             lock (selectedHosts) {
-                if (!selectedHosts.Contains(ip))
+                if (selectedHosts.Contains(ip))
                     selectedHosts.Remove(ip);
             }
         }

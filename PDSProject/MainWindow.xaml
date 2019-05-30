@@ -64,7 +64,7 @@
                 <!--Friends-->
                 <TextBlock x:Name="textFriend" FontWeight="Bold" TextWrapping="Wrap" Text="Amici" Margin="26,454,398.8,0" Foreground="White" FontFamily="Lato" FontSize="16" Height="30" VerticalAlignment="Top"/>
 
-                <ListBox Name="friendList" SelectionChanged="friendList_OnSelectionChanged" MouseDoubleClick="FriendList_DoubleClick" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="26,484,24.8,42.8" Background="Transparent">
+                <ListBox Name="friendList" SelectionChanged="FriendList_OnSelectionChanged" MouseDoubleClick="FriendList_DoubleClick" HorizontalContentAlignment="Stretch" SelectionMode="Extended" Margin="26,484,24.8,42.8" Background="Transparent">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid>

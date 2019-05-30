@@ -134,6 +134,7 @@ namespace PDSProject
                     string ip = receivedIpEndPoint.Address.ToString();
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                         MainWindow.main.UpdateProfileHost(ip);
+                        MainWindow.main.UpdateHostName(ip, received.Name);
                         MainWindow.main.SendProfileImage();
                     }));
                 }

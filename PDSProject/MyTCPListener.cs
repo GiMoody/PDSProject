@@ -196,6 +196,7 @@ namespace PDSProject
                         case PacketType.YFILE:
                             if (_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.CONFERMED)) {
                                 await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileSendStatus.CONFERMED, "-", 0);
                                     MainWindow.main.SendFile(filename, ipClient);
                                 }));
                             }
@@ -203,12 +204,18 @@ namespace PDSProject
                                 throw new Exception("No file with name " + filename + " was announced from this client");
                             break;
                         case PacketType.NFILE:
-                            if (!_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED)) 
+                            if (_referenceData.UpdateSendStatusFileForUser(ipClient, filename, FileSendStatus.REJECTED)) {
+                                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileSendStatus.REJECTED, "-", 0);
+                                    MainWindow.main.SendFile(filename, ipClient);
+                                }));
+                            }
+                            else
                                 throw new Exception("No file with name " + filename + " was announced from this client");
                             break;
                         case PacketType.FSEND:
                             {
-                                filename = filename.Substring(0, filename.Length - 1);
+                                //filename = filename.Substring(0, filename.Length - 1);
                                 if(_referenceData.CheckPacketRecvFileStatus(ipClient, filename))
                                     throw new Exception("File with name " + filename + " never confirmed or need to be resend to the user");
                                 string fileNameOriginal = filename;
@@ -233,7 +240,7 @@ namespace PDSProject
                             catch (Exception e) {
                                 throw new Exception($"Packet not valid - Reason {e.Message}");
                             }
-                            filename = filename.Substring(0, filename.Length - 1);
+                            //filename = filename.Substring(0, filename.Length - 1);
                             await ServeReceiveProfileImage(client, stream, ipClient, filename, dimFile);
                             break;
                     }   
@@ -325,7 +332,7 @@ namespace PDSProject
                                               String.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
                                               String.Format("{00:00}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                        MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, null, estimatedTimeJet, dataReceivedJet);
+                        MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.INPROGRESS, estimatedTimeJet, dataReceivedJet);
                     }));
                     Console.WriteLine(dataReceivedJet + "%");
 
@@ -442,10 +449,31 @@ namespace PDSProject
         /// <param name="dim">Dimesione del file</param>
         async Task ServeReceiveProfileImage ( TcpClient client, NetworkStream stream, string ip, string fileOriginal, long dim ) {
             string filename = Utility.PathHost() + "\\" + fileOriginal;
-            byte[] bytes = new byte[bufferSize * 64];
+            int i = 0;
+            string hash_s = "";
+            byte[] bytes = new byte[32];
+
+            if ((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) {
+                try {
+                    hash_s = BitConverter.ToString(bytes).Replace("-", string.Empty);
+                }
+                catch (Exception) {
+                    throw new Exception("Pacchetto inviato non corretto");
+                }
+            }
+            else throw new Exception("Pacchetto inviato non corretto"); ;
 
             // Aspetto operazione sincrona per controllare se esiste un file con lo stesso nome
             await semaphoreProfileImage.WaitAsync();
+
+            if (_referenceData.GetRemoteUserHashImage(ip).Equals(hash_s)) {
+                semaphoreProfileImage.Release();
+                return;
+            }
+            bytes = new byte[bufferSize * 64];
+
+            // Aspetto operazione sincrona per controllare se esiste un file con lo stesso nome
+            //wait semaphoreProfileImage.WaitAsync();
             if (File.Exists(filename)) {
                 string[] parts = fileOriginal.Split('.');
                 string extension = parts[parts.Length - 1];
@@ -460,7 +488,7 @@ namespace PDSProject
                 Console.WriteLine($"File Created on path {filename}");
 
                 long dataReceived = dim;
-                int i = 0;
+                //int i = 0;
                 while (((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
                     if (dataReceived > 0 && dataReceived < i)
                         await fileImage.WriteAsync(bytes, 0, Convert.ToInt32(dataReceived));

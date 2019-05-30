@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 using System.Net;
 using System.Net.Sockets;
-
+using System.Windows.Threading;
+using System.Security.Cryptography;
 
 namespace PDSProject
 {
@@ -206,26 +207,34 @@ namespace PDSProject
                             await client.ConnectAsync(serverAddr.ToString(), _referenceData.TCPPort).ConfigureAwait(false);
 
                             // La dimensione massima del nome del file è di 256 bytes, mentre la dimensione del file è di 8 bytes
-                            byte[] bytes = new byte[1 + 256 + 8];
+                            byte[] bytes = new byte[1 + 256 + 8 + 32];
 
                             // Primo byte: tipo pacchetto
                             bytes[0] = (byte)PacketType.CIMAGE;
-
+                            
                             // Successivi 256 bytes : nome file
                             UTF8Encoding encorder = new UTF8Encoding();
                             encorder.GetBytes(Utility.PathToFileName(currentImagePath)).CopyTo(bytes, 1);
 
-                            // Apertura file immagine
-                            using (var file = new FileStream(currentImagePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
-                            {
-                                // Successivi 8 bytes : dimensione file
-                                BitConverter.GetBytes(file.Length).CopyTo(bytes, 256);
+                            byte[] hash;
+                            using (SHA256 sha = SHA256.Create()) {
+                                FileStream file = File.OpenRead(currentImagePath);
+                                hash = sha.ComputeHash(file);
+                                Console.WriteLine(BitConverter.ToString(hash));
+                                file.Close();
+                            }
 
-                                // Accesso network stream del client...
+                            // Apertura file immagine
+                            using (var file = new FileStream(currentImagePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan)) {
+                                // Successivi 8 bytes : dimensione file
+                                BitConverter.GetBytes(file.Length).CopyTo(bytes, 257);
+                                hash.CopyTo(bytes, 265);
+
+                                //Accesso network stream del client...
                                 stream = client.GetStream();
 
                                 // Primi 265 byte di header
-                                await stream.WriteAsync(bytes, 0, 265).ConfigureAwait(false);
+                                await stream.WriteAsync(bytes, 0, 297).ConfigureAwait(false);
 
                                 // Successivi 64K di payload (immagine di profilo)
                                 bytes = new byte[bufferSize * 64];
@@ -300,7 +309,7 @@ namespace PDSProject
                     using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
                     {
                         // Successivi 8 bytes : dimensione file
-                        BitConverter.GetBytes(file.Length).CopyTo(bytes, 256);
+                        BitConverter.GetBytes(file.Length).CopyTo(bytes, 257);
 
                         // Accesso network stream del client...
                         stream = client.GetStream();
@@ -309,12 +318,19 @@ namespace PDSProject
                         await stream.WriteAsync(bytes, 0, 265).ConfigureAwait(false);
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.INPROGRESS);
 
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.INPROGRESS, "-", 0);
+                        }));
+
                         // Successivi 64K di payload (immagine di profilo)
                         bytes = new byte[bufferSize * 64];
                         await file.CopyToAsync(stream, bufferSize).ConfigureAwait(false);
                     }
                     _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.END);
-                    
+
+                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.END, "-", 0);
+                    }));
                     break;
                 }
                 catch (SocketException e)
@@ -327,11 +343,19 @@ namespace PDSProject
                     if (!CurrentUserStatus.Equals("") && CurrentUserStatus.Equals("offline")) {
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
 
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
+                        }));
+
                         File.Delete(filename);
                         break;
                     }
                     else if (attempts == 3) {
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
+
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
+                        }));
 
                         File.Delete(filename);
                         break;
@@ -343,7 +367,9 @@ namespace PDSProject
                     Console.WriteLine($"SocketException on SendFile - {e}");
                     if (attempts == 3) {
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
-
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
+                        }));
                         File.Delete(filename);
                         break;
                     }
