@@ -221,19 +221,20 @@ namespace PDSProject
                                 string fileNameOriginal = filename;
 
                                 readPacket = new byte[8];
-                                Array.Copy(bytes, 256, readPacket, 0, 8);
+                                Array.Copy(bytes, 257, readPacket, 0, 8);
                                 try {
                                     dimFile = BitConverter.ToInt64(readPacket, 0);
                                 }
                                 catch (Exception e) {
                                     throw new Exception($"Packet not valid - Reason {e.Message}");
                                 }
-                                await ServeReceiveFile(client, stream, ipClient, filename, dimFile);
+                                
+                            await ServeReceiveFile(client, stream, ipClient, filename, dimFile);
                             }
                             break;
                         case PacketType.CIMAGE:
                             readPacket = new byte[8];
-                            Array.Copy(bytes, 256, readPacket, 0, 8);
+                            Array.Copy(bytes, 257, readPacket, 0, 8);
                             try {
                                 dimFile = BitConverter.ToInt64(readPacket, 0);
                             }
@@ -320,8 +321,14 @@ namespace PDSProject
                     }
                     else {
                         file.Write(bytes, 0, i);
-                        dataReceivedJet = Math.Ceiling((float)(dim - dataReceived) / (float)dim * 100);
+                        dataReceivedJet = Math.Ceiling((double)(dim - dataReceived) / ((double)dim)*100);
+                        Console.WriteLine("dim: "+ dim);
+                        Console.WriteLine("dim - detaRecived: " + (double)(dim - dataReceived));
+                        Console.WriteLine("divisione: "+((double)(dim - dataReceived) / ((double)dim))*100);
+                        Console.WriteLine("math.ceiling: "+ Math.Ceiling((double)(dim - dataReceived) / ((double)dim)));
                     }
+                    dataReceived -= i;
+
                     TimeSpan elapsedTime = DateTime.Now - started;
                     double numerator = ((double)dim - (double)(dim - dataReceived));
                     double denominator = dim/ elapsedTime.TotalSeconds;
@@ -336,7 +343,6 @@ namespace PDSProject
                     }));
                     Console.WriteLine(dataReceivedJet + "%");
 
-                    dataReceived -= i;
                 }
                 file.Close();
                 
@@ -415,6 +421,7 @@ namespace PDSProject
                                     _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), FileRecvStatus.RECIVED);
                                     MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                         MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.RECIVED, "-", 100);
+                                        MainWindow.main.StopNotify();
                                     }));
                                     semaphoreForFile.Release();
                                 }

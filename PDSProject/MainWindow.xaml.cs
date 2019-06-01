@@ -231,6 +231,11 @@ namespace PDSProject {
             flashTimer.Start();
         }
 
+        public void StopNotify() {
+            flashTimer.Stop();
+            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+        }
+
         /// <summary>
         /// Manage MinimizeState (icon in tray)
         /// </summary>
@@ -872,8 +877,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Visible;
 
-            flashTimer.Stop();
-            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            StopNotify();
         }
         
         /// <summary>
@@ -903,8 +907,7 @@ namespace PDSProject {
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Hidden;
 
-            flashTimer.Stop();
-            ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
+            StopNotify();
         }
 
         /// <summary>
