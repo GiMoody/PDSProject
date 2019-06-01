@@ -288,7 +288,7 @@ namespace PDSProject
 
             // Inizio ricezione file
             // ---------------------------------------------------------------
-            DateTime started = DateTime.Now;
+           
             byte[] bytes = new byte[bufferSize * 64];
             bool first = true;
             bool noFlag = false;
@@ -297,6 +297,12 @@ namespace PDSProject
             // dataReceived = totale dei byte che deve ancora ricevere
             long dataReceived = dim; 
             int i = 0;
+            uint estimatedTimePacketCount = 0;
+            double numerator = 0.0;
+            double estimateTime = 0.0;
+            DateTime started = DateTime.Now;
+            TimeSpan estimatedTime = TimeSpan.FromSeconds(0);
+
             try {
                 while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
                     double dataReceivedJet = 0.0f;
@@ -322,19 +328,23 @@ namespace PDSProject
                     else {
                         file.Write(bytes, 0, i);
                         dataReceivedJet = Math.Ceiling((double)(dim - dataReceived) / ((double)dim)*100);
-                        Console.WriteLine("dim: "+ dim);
-                        Console.WriteLine("dim - detaRecived: " + (double)(dim - dataReceived));
-                        Console.WriteLine("divisione: "+((double)(dim - dataReceived) / ((double)dim))*100);
-                        Console.WriteLine("math.ceiling: "+ Math.Ceiling((double)(dim - dataReceived) / ((double)dim)));
                     }
                     dataReceived -= i;
 
-                    TimeSpan elapsedTime = DateTime.Now - started;
-                    double numerator = ((double)dim - (double)(dim - dataReceived));
-                    double denominator = dim/ elapsedTime.TotalSeconds;
-                    double estimateTime = numerator / denominator;
-                    TimeSpan estimatedTime = TimeSpan.FromSeconds(estimateTime);
+                    
+                    if(estimatedTimePacketCount < 5) { 
+                        numerator += (double)(dim - dataReceived);
+                        estimatedTimePacketCount++;
+                    }
+                    else {
+                        TimeSpan elapsedTime = DateTime.Now - started;
 
+                        estimateTime = elapsedTime.TotalSeconds * dataReceived / numerator;
+                        estimatedTime= TimeSpan.FromSeconds(estimateTime);
+
+                        numerator = 0.0;
+                        estimatedTimePacketCount = 0;
+                    }
                     string estimatedTimeJet = String.Format("{00:00}", estimatedTime.TotalMinutes) + ":" +
                                               String.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
                                               String.Format("{00:00}", estimatedTime.Milliseconds);

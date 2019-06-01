@@ -769,12 +769,11 @@ namespace PDSProject {
             foreach(FileRecive fr in fileReciveList) {
                 if (fr.ip.Equals(ipUser)) {
                     if(fr.isRecived) {
-                        newName = "Da: " + newName;
+                        fr.hostName = "Da: " + newName;
                     } else {
-                        newName = "A: " + newName;
+                        fr.hostName = "A: " + newName;
                     }
                    
-                   fr.hostName = newName;
                 }
             }
         }
