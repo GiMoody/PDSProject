@@ -703,7 +703,7 @@ namespace PDSProject {
 
                 }
             } else {
-                string currentUsername = _referenceData.GetRemoteUserName(ipUser);
+                string currentUsername = "Da: " + _referenceData.GetRemoteUserName(ipUser);
                 FileRecive files = new FileRecive(currentUsername, pathFile, status.Value, "0", 0);
                 files.ip = ipUser;
                 fileReciveList.Add(files);              
@@ -753,8 +753,9 @@ namespace PDSProject {
                 }
             }
             else {
-                string currentUsername = _referenceData.GetRemoteUserName(ipUser);
+                string currentUsername = "A: " + _referenceData.GetRemoteUserName(ipUser);
                 FileRecive files = new FileRecive(currentUsername, pathFile, status.Value, "0", 0);
+                files.ip = ipUser;
                 fileReciveList.Add(files);
             }
         }
@@ -762,7 +763,13 @@ namespace PDSProject {
         public void UpdateHostName(string ipUser, string newName ) {
             foreach(FileRecive fr in fileReciveList) {
                 if (fr.ip.Equals(ipUser)) {
-                    fr.hostName = newName;
+                    if(fr.isRecived) {
+                        newName = "Da: " + newName;
+                    } else {
+                        newName = "A: " + newName;
+                    }
+                   
+                   fr.hostName = newName;
                 }
             }
         }
