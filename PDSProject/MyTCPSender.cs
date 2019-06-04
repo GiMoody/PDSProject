@@ -64,7 +64,7 @@ namespace PDSProject
                     break;
                 }
                 catch (SocketException e) {
-                    Console.WriteLine($"SocketException on SendResponse - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendResponse - {e.Message}");
 
                     // In caso l'host si sia disconnesso mentre si inviava la richiesta si passa al successivo, appena ritornerà
                     // attivo si invierà la richiesta di invio di nuovo
@@ -76,7 +76,7 @@ namespace PDSProject
                         await Task.Delay(10).ConfigureAwait(false);
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"Exception on SendResponse - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendResponse - {e.Message}");
                     if (attempts == 3)
                         break;
                     else
@@ -114,7 +114,7 @@ namespace PDSProject
                 await Task.WhenAll(listTask);
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception on SendRequest - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendRequest - {e.Message}");
             }
         }
 
@@ -152,7 +152,7 @@ namespace PDSProject
                         break;
                     }
                     catch (SocketException e) {
-                        Console.WriteLine($"SocketException on SendSetFiles - {e}");
+                        Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendSetFiles - {e.Message}");
 
                         // In caso l'host si sia disconnesso mentre si inviava la richiesta si passa al successivo, appena ritornerà
                         // attivo si invierà la richiesta di invio di nuovo
@@ -165,7 +165,7 @@ namespace PDSProject
                             await Task.Delay(10).ConfigureAwait(false);
                     }
                     catch (Exception e) {
-                        Console.WriteLine($"Exception on SendSetFiles - {e}");
+                        Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendSetFiles - {e.Message}");
                         if (attempts == 3)
                             break;
                         else
@@ -220,7 +220,6 @@ namespace PDSProject
                             using (SHA256 sha = SHA256.Create()) {
                                 FileStream file = File.OpenRead(currentImagePath);
                                 hash = sha.ComputeHash(file);
-                                Console.WriteLine(BitConverter.ToString(hash));
                                 file.Close();
                             }
 
@@ -243,7 +242,7 @@ namespace PDSProject
                             break;
                         }
                         catch (SocketException e) {
-                            Console.WriteLine($"SocketException on SendProfilePicture - {e}");
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendProfilePicture - {e.Message}");
 
                             // In caso l'host si sia disconnesso mentre si inviava la richiesta si passa al successivo, appena ritornerà
                             // attivo si invierà la richiesta di invio di nuovo
@@ -256,7 +255,7 @@ namespace PDSProject
                                 await Task.Delay(10).ConfigureAwait(false);
                         }
                         catch (Exception e) {
-                            Console.WriteLine($"Exception on SendProfilePicture - {e}");
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendProfilePicture - {e.Message}");
                             if (attempts == 3)
                                 break;
                             else
@@ -280,7 +279,14 @@ namespace PDSProject
         public async Task SendFile (string filename, string ip) {
             // Il file verrà inviato solo se esiste all'interno della struttura dati FileToFinish e se è stato confermato o se è da rinviare
             if (!_referenceData.CheckPacketSendFileStatus(ip, filename)) return;
+            if (_referenceData.GetUserStatus(ip).Equals("offline")) {
+                _referenceData.UpdateSendStatusFileForUser(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT);
 
+                await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                    MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
+                }));
+                return;
+            }
             IPAddress serverAddr = IPAddress.Parse(ip);
             int attempts = 0;
 
@@ -288,6 +294,8 @@ namespace PDSProject
             do {
                 TcpClient client = null;
                 NetworkStream stream = null;
+
+                if (!_referenceData.CheckPacketSendFileStatus(ip, filename)) return;
 
                 try {
                     attempts++;
@@ -333,9 +341,8 @@ namespace PDSProject
                     }));
                     break;
                 }
-                catch (SocketException e)
-                {
-                    Console.WriteLine($"SocketException on SendFile - {e}");
+                catch (SocketException e) {
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendFile - {e.Message}");
 
                     // In caso l'host si sia disconnesso mentre si inviava la richiesta si passa al successivo, appena ritornerà
                     // attivo si invierà la richiesta di invio di nuovo
@@ -364,7 +371,7 @@ namespace PDSProject
                         await Task.Delay(10).ConfigureAwait(false);
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"SocketException on SendFile - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendFile - {e.Message}");
                     if (attempts == 3) {
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
                         await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
@@ -383,506 +390,6 @@ namespace PDSProject
             } while (true);
 
         }
-
-        //public async Task SendA (List<string> filenames, bool isProfile)
-        //{
-        //    // TODO: da cambiare!!!
-        //    IPAddress serverAddr;
-        //    if (!isProfile)//!_referenceData.hasChangedProfileImage)
-        //    {
-        //        //foreach (string path in filenames) {
-        //        if (_referenceData.selectedHosts.Count <= 0) return;
-        //        List<string> currentlySelectedHost;
-        //        lock (_referenceData.selectedHosts) {
-        //            currentlySelectedHost = _referenceData.selectedHosts.ToList();
-        //        }
-        //        List<Task> test = new List<Task>();
-
-        //        foreach (string ip in currentlySelectedHost) {
-        //            serverAddr = IPAddress.Parse(ip);
-        //            test.Add(SendListFiles(serverAddr, filenames, isProfile));
-
-        //        }
-        //        await Task.WhenAll(test);
-        //        //if (_referenceData.selectedHost.Equals("")) return;
-        //        //    serverAddr = IPAddress.Parse(_referenceData.selectedHost);
-        //        //    await SendListFiles(serverAddr, filenames, isProfile);
-        //        //}
-
-        //    }
-        //    else
-        //    {
-        //        List<Host> copyDictionary;
-        //        lock (_referenceData.Users) {
-        //            copyDictionary = _referenceData.Users.Values.ToList();
-        //        }
-        //        foreach (Host host in copyDictionary) {
-        //            //if (!_referenceData.FileToFinish.ContainsKey(filenames[0]))
-        //            //    _referenceData.FileToFinish.GetOrAdd(filenames[0], "start");
-        //            serverAddr = IPAddress.Parse(host.Ip);//_referenceData.Users.First().Key);//"192.168.1.69");
-        //            //await
-        //            await SendListFiles(serverAddr, filenames, isProfile).ConfigureAwait(continueOnCapturedContext: false);
-        //        }
-        //    }
-        //    //TcpClient client = null;
-
-        //    /*try
-        //    {
-        //        foreach (string path in filenames)
-        //        {
-        //            Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
-        //            client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-        //            UTF8Encoding encoder = new UTF8Encoding();
-        //            FileStream file = File.OpenRead(@path);//"Risultati.pdf");
-        //            // Invio primo pacchetto con nome e dimensione
-        //            // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-        //            long dim = file.Length;
-        //            string firstmsg = "";
-        //            // Da cambiare
-        //            if (_referenceData.hasChangedProfileImage)
-        //            {
-        //                firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-        //                _referenceData.hasChangedProfileImage = false;
-        //            }
-        //            string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
-        //            firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
-                    
-        //            byte[] bytes = new byte[bufferSize];
-        //            encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-        //            Random rand = new Random();
-        //            for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
-        //            {
-        //                byte b = 1;
-        //                bytes.Append(b);
-        //            }
-        //            NetworkStream stream = client.GetStream();
-        //            await stream.WriteAsync(bytes, 0, bufferSize);
-        //            // Invio effettivo del file
-        //            //bytes = new byte[bufferSize * 64];
-        //            long numbPackets = dim / (bufferSize*64);
-        //            for (int i = 0; i <= numbPackets; i++)
-        //            {
-        //                bytes = new byte[bufferSize * 64];
-        //                file.Read(bytes, 0, bytes.Length);
-        //                await stream.WriteAsync(bytes, 0, bytes.Length);
-        //            }
-        //            file.Close();
-        //            stream.Close();
-        //            _referenceData.FileToFinish.Remove(path);
-        //        }
-        //    }
-        //    catch (SocketException e)
-        //    {
-        //        Console.WriteLine($"SocketException: {e}");
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Console.WriteLine($"Exception: {e}");
-        //    }
-        //    finally
-        //    {
-        //        client.Close();
-        //    }*/
-        //}
-
-
-        //async Task SendListFiles (IPAddress serverAddr, List<string> filenames, bool isProfile)
-        //{
-        //    try
-        //    {
-
-        //        foreach (string path in filenames)
-        //        {
-        //            if (!isProfile)
-        //                if (_referenceData.FileToSend.ContainsKey(path) && _referenceData.FileToSend[path].Equals("inprogress")) continue;
-        //            if (Utility.PathToFileName(path).Equals(_referenceData.defaultImage)) continue;
-        //            Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
-        //            TcpClient client = new TcpClient(); //serverAddr.ToString(), _referenceData.TCPPort);
-        //            await client.ConnectAsync(serverAddr.ToString(), _referenceData.TCPPort).ConfigureAwait(false);
-        //            UTF8Encoding encoder = new UTF8Encoding();
-        //            //FileStream file = File.OpenRead(path);//"Risultati.pdf");
-        //            using (var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
-        //            {
-        //                // Invio primo pacchetto con nome e dimensione
-        //                // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-        //                long dim = file.Length;
-        //                string firstmsg = "";
-
-        //                // Da cambiare
-        //                /*if (_referenceData.hasChangedProfileImage)
-        //                {
-        //                    firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-        //                    _referenceData.hasChangedProfileImage = false;
-        //                }*/
-
-        //                if (isProfile) firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-
-        //                string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
-        //                firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
-
-        //                /* 
-        //                 * Questa roba merita purtroppo 2 parole:
-        //                 * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
-        //                 * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
-        //                 * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
-        //                 */
-        //                byte[] bytes = new byte[bufferSize];
-        //                encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-        //                Random rand = new Random();
-        //                for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
-        //                {
-        //                    byte b = 1;
-        //                    bytes.Append(b);
-        //                }
-        //                NetworkStream stream = client.GetStream();
-        //                await stream.WriteAsync(bytes, 0, bufferSize).ConfigureAwait(false);
-        //                if (!isProfile)
-        //                {
-        //                    Dictionary<string, FileSendStatus> test;
-        //                    _referenceData.FileToSend.TryGetValue(serverAddr.ToString(), out test);
-        //                    _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), (key) => test, (key, oldValue) => { oldValue[path] = FileSendStatus.INPROGRESS; return oldValue; });
-        //                }
-        //                // Invio effettivo del file
-        //                //bytes = new byte[bufferSize * 64];
-        //                long numbPackets = dim / (bufferSize * 64);
-
-        //                bytes = new byte[bufferSize * 64];
-        //                await file.CopyToAsync(stream, bufferSize).ConfigureAwait(false);
-        //                /*for (int i = 0; i <= numbPackets; i++)
-        //                    {
-        //                        bytes = new byte[bufferSize * 64];
-        //                        await file.ReadAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-        //                        await stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-        //                    }*/
-        //                stream.Close();
-        //            }
-        //            //file.Close();
-        //            //stream.Flush();
-        //            //stream.Close();
-
-        //            //string removeValue = "";
-        //            //_referenceData.FileToFinish.TryRemove(path, out removeValue);
-        //            //_referenceData.FileToFinish[path] = "inprogress";
-        //            if (!isProfile) {
-        //                Dictionary<string, FileSendStatus> test;
-        //                _referenceData.FileToSend.TryGetValue(serverAddr.ToString(), out test);
-        //                _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), (key) => test, (key, oldValue) => { oldValue[path] = FileSendStatus.END; return oldValue; });
-        //            }
-
-        //            Console.WriteLine("Fine invio file " + path);
-
-        //            client.Close();
-        //        }
-        //        // OLD CODE
-        //        /*Byte[] bytes = encoder.GetBytes(message);
-        //        NetworkStream stream = client.GetStream();
-        //        stream.Write(bytes, 0, bytes.Length);
-        //        Console.WriteLine($"Send {message} to 192.168.1.69");
-        //        stream.Close();
-        //        client.Close();
-        //        */
-
-        //    }
-        //    catch (SocketException e)
-        //    {
-        //        Console.WriteLine($"SocketException: {e}");
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Console.WriteLine($"Exception: {e}");
-
-        //    }
-        //}
-
-    /// <summary>
-    /// Invia file ad uno o più host.
-    /// Per ora invia un singolo file ad un singolo host.
-    /// TODO: da fare gestiore di più file e verso più host
-    /// </summary>
-    /// <param name="message">Nome del file (path assoluto)</param>
-    /// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
-    //public void Send (Object result)//List<string> filenames )
-    //{
-    //    // TODO: da cambiare!!!
-    //    IPAddress serverAddr = null;
-    //    if (!_referenceData.hasChangedProfileImage)
-    //    {
-    //        if (_referenceData.selectedHosts.Count <= 0) return;
-    //        List<string> currentlySelectedHost = _referenceData.selectedHosts.ToList();
-    //        foreach (string ip in currentlySelectedHost)
-    //        {
-    //            serverAddr = IPAddress.Parse(ip);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        serverAddr = IPAddress.Parse(_referenceData.Users.First().Key);//"192.168.1.69");
-    //    }
-    //    TcpClient client = null;
-    //    List<string> filenames = (List<string>)result;
-    //    try
-    //    {
-
-    //        foreach (string path in filenames)
-    //        {
-    //            if (_referenceData.FileToSend[path].Equals("inprogress")) continue;
-
-    //            Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
-    //            client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-
-    //            UTF8Encoding encoder = new UTF8Encoding();
-    //            FileStream file = File.OpenRead(@path);//"Risultati.pdf");
-
-    //            // Invio primo pacchetto con nome e dimensione
-    //            // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-    //            long dim = file.Length;
-    //            string firstmsg = "";
-
-    //            // Da cambiare
-    //            if (_referenceData.hasChangedProfileImage)
-    //            {
-    //                firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-    //                _referenceData.hasChangedProfileImage = false;
-    //            }
-
-    //            string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
-    //            firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
-
-    //            /* 
-    //             * Questa roba merita purtroppo 2 parole:
-    //             * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
-    //             * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
-    //             * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
-    //             */
-    //            byte[] bytes = new byte[bufferSize];
-    //            encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-    //            Random rand = new Random();
-    //            for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
-    //            {
-    //                byte b = 1;
-    //                bytes.Append(b);
-    //            }
-    //            NetworkStream stream = client.GetStream();
-    //            stream.Write(bytes, 0, bufferSize);
-    //            Dictionary<string, FileSendStatus> test;
-    //            //_referenceData.FileToFinish[path] = "inprogress";
-    //            _referenceData.FileToSend.TryGetValue(serverAddr.ToString(), out test);
-    //            _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), (key) => test, (key, oldValue) => { oldValue[path] = FileSendStatus.INPROGRESS; return oldValue; });
-
-    //            /*lock (_referenceData.FileToFinish[serverAddr.ToString()])
-    //            {
-    //                test[path] = "inprogress";
-    //                _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "inprogress"; return oldValue; });
-    //            }*/
-
-    //            // Invio effettivo del file
-    //            //bytes = new byte[bufferSize * 64];
-    //            long numbPackets = dim / (bufferSize * 64);
-    //            for (int i = 0; i <= numbPackets; i++)
-    //            {
-    //                bytes = new byte[bufferSize * 64];
-    //                file.Read(bytes, 0, bytes.Length);
-    //                stream.Write(bytes, 0, bytes.Length);
-    //            }
-    //            file.Close();
-    //            stream.Close();
-    //            stream.Flush();
-    //            string removeValue = "";
-    //            /*Dictionary<string, string> test;
-    //            _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);// TryRemove(path, out removeValue);
-    //            lock (_referenceData.FileToFinish[serverAddr.ToString()]){
-    //                test.Remove(path);
-    //                _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => test);
-    //            }*/
-    //            _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), (key) => test, (key, oldValue) => { oldValue.Remove(path); return oldValue; });
-
-    //            Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
-    //            client.Close();
-
-    //        }
-    //        //_referenceData.PathFileToSend.Clear();
-    //        // OLD CODE
-    //        /*Byte[] bytes = encoder.GetBytes(message);
-    //        NetworkStream stream = client.GetStream();
-    //        stream.Write(bytes, 0, bytes.Length);
-    //        Console.WriteLine($"Send {message} to 192.168.1.69");
-    //        stream.Close();
-    //        client.Close();
-    //        */
-    //    }
-    //    catch (SocketException e)
-    //    {
-    //        Console.WriteLine($"SocketException: {e}");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        Console.WriteLine($"Exception: {e}");
-
-    //    }
-    //    finally
-    //    {
-    //        if (client != null)
-    //            client.Close();
-    //    }
-    //}
-}
+    }
 }
 
-
-/////////////////////////// OLD /////////////////////////////
-///// <summary>
-///// Invia file ad uno o più host.
-///// Per ora invia un singolo file ad un singolo host.
-///// TODO: da fare gestiore di più file e verso più host
-///// </summary>
-///// <param name="message">Nome del file (path assoluto)</param>
-///// TODO: modificare la roba del path, da fare funzioncina che separa ed ottine solo il nome del file
-//public void Send ( Object result)//List<string> filenames )
-//{
-//    // TODO: da cambiare!!!
-//    IPAddress serverAddr = null;
-//    if (!_referenceData.hasChangedProfileImage)
-//    {
-//        if (_referenceData.selectedHosts.Count <= 0) return;
-//        List<string> currentlySelectedHost = _referenceData.selectedHosts.ToList();
-//        foreach (string ip in currentlySelectedHost) {
-//            serverAddr = IPAddress.Parse(ip);
-//        }
-//    }
-//    else
-//    {
-//        serverAddr = IPAddress.Parse(_referenceData.Users.First().Key);//"192.168.1.69");
-//    }
-//    TcpClient client = null;
-//    List<string> filenames = (List<string>) result;
-//    try
-//    {
-
-//        foreach (string path in filenames)
-//        {
-//            if (_referenceData.FileToSend[path].Equals("inprogress")) continue;
-
-//            Console.WriteLine("Send " + path + " to user " + serverAddr.ToString());
-//            client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-
-//            UTF8Encoding encoder = new UTF8Encoding();
-//            FileStream file = File.OpenRead(@path);//"Risultati.pdf");
-
-//            // Invio primo pacchetto con nome e dimensione
-//            // TODO: vedere altro carattere di separazione che non sia lo spazio, potrebbe essere usato dentro il file
-//            long dim = file.Length;
-//            string firstmsg = "";
-
-//            // Da cambiare
-//            if (_referenceData.hasChangedProfileImage)
-//            {
-//                firstmsg += "CHIMAGE "; //Da verificare come inviare il nome del file (NO indirizzo assoluto)
-//                _referenceData.hasChangedProfileImage = false;
-//            }
-
-//            string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
-//            firstmsg += infoImage[infoImage.Length - 1] + " " + dim;
-
-//            /* 
-//             * Questa roba merita purtroppo 2 parole:
-//             * Il primo pacchetto della sequenza ha solo nome + dimensione e poi è rimempito di byte a caso.
-//             * Questo perchè a volte il pacchetto iniziale era vuoto e a volte aveva l'inizio del file.
-//             * Per evitare casini ho fatto la cosa più stupida. Se si possono trovare altre soluzioni sono ben accette
-//             */
-//            byte[] bytes = new byte[bufferSize];
-//            encoder.GetBytes(firstmsg).CopyTo(bytes, 0);
-//            Random rand = new Random();
-//            for (int i = 0; i < (bufferSize - encoder.GetByteCount(firstmsg)); i++)
-//            {
-//                byte b = 1;
-//                bytes.Append(b);
-//            }
-//            NetworkStream stream = client.GetStream();
-//            stream.Write(bytes, 0, bufferSize);
-//            Dictionary<string, FileSendStatus> test;
-//            //_referenceData.FileToFinish[path] = "inprogress";
-//            _referenceData.FileToSend.TryGetValue(serverAddr.ToString(), out test);
-//            _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = FileSendStatus.INPROGRESS; return oldValue; });
-
-//            /*lock (_referenceData.FileToFinish[serverAddr.ToString()])
-//            {
-//                test[path] = "inprogress";
-//                _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue[path] = "inprogress"; return oldValue; });
-//            }*/
-
-//            // Invio effettivo del file
-//            //bytes = new byte[bufferSize * 64];
-//            long numbPackets = dim / (bufferSize*64);
-//            for (int i = 0; i <= numbPackets; i++)
-//            {
-//                bytes = new byte[bufferSize*64];
-//                file.Read(bytes, 0, bytes.Length);
-//                stream.Write(bytes, 0, bytes.Length);
-//            }
-//            file.Close();
-//            stream.Close();
-//            stream.Flush();
-//            string removeValue = "";
-//            /*Dictionary<string, string> test;
-//            _referenceData.FileToFinish.TryGetValue(serverAddr.ToString(), out test);// TryRemove(path, out removeValue);
-//            lock (_referenceData.FileToFinish[serverAddr.ToString()]){
-//                test.Remove(path);
-//                _referenceData.FileToFinish.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => test);
-//            }*/
-//            _referenceData.FileToSend.AddOrUpdate(serverAddr.ToString(), ( key ) => test, ( key, oldValue ) => { oldValue.Remove(path); return oldValue; });
-
-//            Console.WriteLine("Fine invio file " + path + "  stato:" + removeValue);
-//            client.Close();
-
-//        }
-//        //_referenceData.PathFileToSend.Clear();
-//        // OLD CODE
-//        /*Byte[] bytes = encoder.GetBytes(message);
-//        NetworkStream stream = client.GetStream();
-//        stream.Write(bytes, 0, bytes.Length);
-//        Console.WriteLine($"Send {message} to 192.168.1.69");
-//        stream.Close();
-//        client.Close();
-//        */
-//    }
-//    catch (SocketException e)
-//    {
-//        Console.WriteLine($"SocketException: {e}");
-//    }
-//    catch (Exception e)
-//    {
-//        Console.WriteLine($"Exception: {e}");
-
-//    }
-//    finally
-//    {
-//        if (client != null)
-//            client.Close();
-//    }
-//}
-
-//public void SendCallback ()
-//{
-//    if (_referenceData.CallBackIPAddress.Equals("")) return;
-//    IPAddress serverAddr = IPAddress.Parse(_referenceData.CallBackIPAddress);
-//    TcpClient client = null;
-
-//    try
-//    {
-//        client = new TcpClient(serverAddr.ToString(), _referenceData.TCPPort);
-//        NetworkStream stream = client.GetStream();
-//        UTF8Encoding encoder = new UTF8Encoding();
-//        byte[] bytes = new byte[bufferSize];
-//        encoder.GetBytes("CHNETWORK ").CopyTo(bytes, 0);
-//        stream.Write(bytes, 0, bufferSize);
-//        stream.Close();
-//    }
-//    catch (SocketException e)
-//    {
-//        Console.WriteLine($"SocketException: {e}");
-//    }
-//    finally
-//    {
-//        client.Close();
-//    }
-//}

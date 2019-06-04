@@ -12,8 +12,7 @@ namespace PDSProject {
         private string _statusFile;
         private string _estimatedTime;
         private double _dataRecived;
-
-
+        
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string hostName { get { return _hostName; } set { _hostName = value; OnPropertyChanged("hostName"); } }

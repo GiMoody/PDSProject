@@ -49,15 +49,10 @@ namespace PDSProject
 
         private void PipeServer(string path) {
             using (NamedPipeServerStream pipeServer =
-                new NamedPipeServerStream("PSDPipe", PipeDirection.Out))
-            {
-                Console.WriteLine("NamedPipeServerStream object created.");
-
+                new NamedPipeServerStream("PSDPipe", PipeDirection.Out)) {
                 // Wait for a client to connect
-                Console.Write("Waiting for client connection...");
                 pipeServer.WaitForConnection();
 
-                Console.WriteLine("Client connected.");
                 try {
                     // Read user input and send that to the client process.
                     using (StreamWriter sw = new StreamWriter(pipeServer)) {
@@ -68,10 +63,10 @@ namespace PDSProject
                 // Catch the IOException that is raised if the pipe is broken
                 // or disconnected.
                 catch (IOException e) {
-                    Console.WriteLine($"IOException: {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"ERROR: {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
                 }
             }
         }

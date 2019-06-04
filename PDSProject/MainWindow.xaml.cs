@@ -128,7 +128,7 @@ namespace PDSProject {
                 try {
                     await _UDPListener.Listener(source.Token);
                 }catch(Exception e) {
-                    Console.WriteLine($"On _UDPListener Task. Exception {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - On _UDPListener Task. Exception {e.Message}");
                 }
             });
             Task.Run(() => { PipeClient(); });
@@ -173,17 +173,17 @@ namespace PDSProject {
                 comboStatus.Text        = "Offline";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
             }
-                comboStatus.SelectedIndex = currentLocalUser.Status.ToString() == "online" ? 0 : 1;
+            comboStatus.SelectedIndex = currentLocalUser.Status.ToString() == "online" ? 0 : 1;
 
             // Update SavePath & AcceptFileConfiguration
             if (currentLocalUser.SavePath.Equals(_referenceData.defaultPath)) {
                 ChoosePath.IsChecked = true;
-                pathName.Text = _referenceData.defaultPath;
+                pathName.Text        = _referenceData.defaultPath;
             } else {
                 ChoosePath.IsChecked = false;
-                pathName.Text = currentLocalUser.SavePath;
+                pathName.Text        = currentLocalUser.SavePath;
             }
-                AcceptFile.IsChecked = currentLocalUser.AcceptAllFile == true ? true : false;
+            AcceptFile.IsChecked = currentLocalUser.AcceptAllFile == true ? true : false;
 
             //Loading Profile Image, distinguishes defualt or not
             string filename = currentLocalUser.ProfileImagePath;
@@ -280,13 +280,13 @@ namespace PDSProject {
         protected void Status_Click(Object sender, System.EventArgs e) {
             MenuItem statItem = (MenuItem)sender;
             if(statItem.Text == "Online") {
-                Console.WriteLine("ONLINE");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Change status Local host to ONLINE");
                 comboStatus.Text = "Online";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
                 ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
                 _referenceData.UpdateStatusLocalUser("online");
             } else {
-                Console.WriteLine("OFFLINE");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Change status Local host to OFFLINE");
                 comboStatus.Text = "Offline";
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("red_dot.png")));
                 ni.Icon = new System.Drawing.Icon(Utility.FileNameToSystem("share_red.ico"));
@@ -337,7 +337,6 @@ namespace PDSProject {
         /// Combobox Status changed
         /// </summary>
         private void ComboStatus_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            Console.WriteLine("COMBO_STATUS: " + e.AddedItems[0]);
             if(((ComboBoxItem)e.AddedItems[0]).Content.ToString().Equals("Online")) {
                 _referenceData.UpdateStatusLocalUser("online");
                 localStatusImage.Source = new BitmapImage(new Uri(Utility.FileNameToSystem("green_dot.png")));
@@ -429,7 +428,7 @@ namespace PDSProject {
                         _referenceData.ClearPathToSend(currentPathToSend);
                         obj.Release();
                     } catch(Exception ex) {
-                        Console.WriteLine($"Exception on creation zip {ex}");
+                        Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on creation zip {ex.Message}");
 
                         foreach(string file in listFile.Keys) {
                             string fullPath = Utility.PathTmp() + "\\" + file;
@@ -446,7 +445,7 @@ namespace PDSProject {
                 try {
                     await _TCPSender.SendRequest(pathFiles);
                 } catch(Exception ex) {
-                    Console.WriteLine($"Exception on ButtonSend_Click - {ex}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on ButtonSend_Click {ex.Message}");
                 }
             }
         }
@@ -557,7 +556,7 @@ namespace PDSProject {
                     if(_referenceData.GetOnlineUsers().Count > 0)
                         await _TCPSender.SendProfilePicture();
                 } catch(Exception ex) {
-                    Console.WriteLine($"Something went wrong updating user information. Maybe the data are not corrected or unknown exception occured {ex}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - Something went wrong updating user information. Maybe the data are not corrected or unknown exception occured {ex.Message}");
                 }
             }
 
@@ -934,7 +933,7 @@ namespace PDSProject {
                 await _TCPSender.SendResponse(ip, filename, type);
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception on TestResponse Task - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on TestResponse Task - {e.Message}");
             }
         }
         #endregion
@@ -949,7 +948,6 @@ namespace PDSProject {
             if(e.AddedItems.Count > 0) {
                 foreach(Host h in e.AddedItems) {
                     _referenceData.AddSelectedHost(h.Ip);
-                    Console.WriteLine("UTENTE SELEZIONATO " + h.Ip);
                     if (h.Status.Equals("offline")) {
                         friendList.SelectedItems.Remove(h);
                         _referenceData.RemoveSelectedHost(h.Ip);
@@ -959,7 +957,6 @@ namespace PDSProject {
             if(e.RemovedItems.Count > 0) {
                 foreach(Host h in e.RemovedItems) {
                     _referenceData.RemoveSelectedHost(h.Ip);
-                    Console.WriteLine("UTENTE DESELEZIONATO " + h.Ip);
                 }
             }
             if(_referenceData.GetCurrentSelectedHost().Count > 0) {
@@ -995,13 +992,10 @@ namespace PDSProject {
                     new NamedPipeClientStream(".", "PSDPipe", PipeDirection.In)) {
                     pipeClient.Connect();
 
-                    Console.WriteLine("Connected to pipe.");
-                    Console.WriteLine("There are currently {0} pipe server instances open.",
-                        pipeClient.NumberOfServerInstances);
-                    using(StreamReader sr = new StreamReader(pipeClient)) {
+                    using (StreamReader sr = new StreamReader(pipeClient)) {
                         string path;
                         while((path = sr.ReadLine()) != null) {
-                            Console.WriteLine("Received from server: {0}", path);
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - Received from Pipe Server: {0}", path);
                             _referenceData.AddPathToSend(path);
                             string copia = path;
 
@@ -1022,7 +1016,7 @@ namespace PDSProject {
                 try {
                     await _TCPListener.Listener(token);
                 } catch(Exception e) {
-                    Console.WriteLine($"Exception on StartTCPListener Task - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on StartTCPListener Task - {e.Message}");
                 }
             });
         }
@@ -1043,7 +1037,7 @@ namespace PDSProject {
             try {
                 await _TCPSender.SendFile(Utility.PathToFileName(filename), ip);
             } catch(Exception e) {
-                Console.WriteLine($"Exception on SendFile Task -{e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendFile Task - {e.Message}");
             }
         }
 
@@ -1080,21 +1074,21 @@ namespace PDSProject {
                         if(name.Equals("README.txt")) { continue; }
 
                         if(_referenceData.FileSendForAllUsers(name)) {
-                            Console.WriteLine("Cancellazione file..." + Utility.PathToFileName(file));
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - Cancellazione file... {Utility.PathToFileName(file)}");
                             try {
                                 File.Delete(file);
                                 _referenceData.RemoveSendFile(file);
                             } catch(IOException exp) {
-                                Console.WriteLine($"Exception : {exp.Message}");
+                                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception during cleaning temp file: {exp.Message}");
                             }
                         }
                         if(_referenceData.FileReceiveFromAllUsers(name)) {
-                            Console.WriteLine("Cancellazione file..." + file);
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - Cancellazione file... {Utility.PathToFileName(file)}");
                             try {
                                 File.Delete(file);
                                 _referenceData.RemoveRecvFile(name);
                             } catch(IOException exp) {
-                                Console.WriteLine($"Exception : {exp.Message}");
+                                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception during cleaning temp file: {exp.Message}");
                             }
                         }
                     }
@@ -1104,17 +1098,24 @@ namespace PDSProject {
             List<FileRecive> listResent;
             if((listResent = fileReciveList.Where(f => f.statusFile.Equals("Da rinviare")).ToList()).Count > 0) {
                 FileRecive fr = listResent.OrderByDescending(f => f.TimestampResend).First();
-
-                _referenceData.UpdateSendStatusFileForUser(fr.ip, fr.fileName, FileSendStatus.READY);
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                    AddOrUpdateListFile(fr.ip, fr.fileName, FileSendStatus.READY, "", 0.0f);
-                    SendFile(fr.fileName, fr.ip);
-                }));
-
+                if (_referenceData.GetUserStatus(fr.ip).Equals("online")) {
+                    _referenceData.UpdateSendStatusFileForUser(fr.ip, fr.fileName, FileSendStatus.CONFERMED);
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        AddOrUpdateListFile(fr.ip, fr.fileName, FileSendStatus.CONFERMED, "", 0.0f);
+                        SendFile(fr.fileName, fr.ip);
+                    }));
+                }
             }
-              
+            if ((listResent = fileReciveList.Where(f => f.statusFile.Equals("Pronto per l'invio")).ToList()).Count > 0) {
+                FileRecive fr = listResent.First();
+                if (_referenceData.GetUserStatus(fr.ip).Equals("online")) {
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(async () => {
+                        await _TCPSender.SendRequest(new List<string> { fr.fileName });
+                    }));
+                }
+            }
 
-            if(this.IsActive == true) {
+            if (IsActive == true) {
                 main.StopFlashingWindow();
             }
         }
@@ -1156,9 +1157,9 @@ namespace PDSProject {
                         friendList.SelectedItems.Add(item);
                 }
             } catch(UnauthorizedAccessException e) {
-                Console.WriteLine($"File not yet reciced : {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - File not yet reciced : {e.Message}");
             } catch(Exception e) {
-                Console.WriteLine($"Exception on UpdateProfileHost - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on UpdateProfileHost - {e.Message}");
             }
         }
 
@@ -1169,7 +1170,7 @@ namespace PDSProject {
             try {
                 await _TCPSender.SendProfilePicture();
             } catch(Exception e) {
-                Console.WriteLine($"Exception on SendProfileImage - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendProfileImage - {e.Message}");
             }
         }
 

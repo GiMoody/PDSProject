@@ -40,8 +40,7 @@ namespace PDSProject
             return await task;
         }
     }
-
-
+    
     /// <summary>
     /// Classe che gestisce il TCPListener, ovvero il server.
     /// Per ora client e server sono stati separati, ma se non risulta funzionale è possibile unirli in un'unica classe.
@@ -58,8 +57,7 @@ namespace PDSProject
         SemaphoreSlim semaphoreForFile = new SemaphoreSlim(1,1);
         SemaphoreSlim semaphoreProfileImage = new SemaphoreSlim(1,1);
         SemaphoreSlim obj = new SemaphoreSlim(0);
-
-
+        
         public MyTCPListener () {
             _referenceData = SharedInfo.Instance;
         }
@@ -69,13 +67,12 @@ namespace PDSProject
             while (!tokenEndListener.IsCancellationRequested) {
                 source = new CancellationTokenSource();
                 CancellationToken tokenListener = source.Token;
-
-                Console.WriteLine("Wait for change");
+                
                 lock (_referenceData.cvListener) {
                     while (_referenceData.GetLocalIPAddress().Equals(""))
                         Monitor.Wait(_referenceData.cvListener);
                 }
-                Console.WriteLine("Change Listener local IP:" + _referenceData.GetLocalIPAddress());
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Change Listener local IP  {_referenceData.GetLocalIPAddress()}");
 
                 IPAddress localAddr = IPAddress.Parse(_referenceData.GetLocalIPAddress());
 
@@ -86,27 +83,27 @@ namespace PDSProject
 
                     // Loop ascolto
                     while (!tokenListener.IsCancellationRequested) {
-                        Console.WriteLine("Waiting for connection...");
+                        Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener Waiting for connection...");
                         await server.AcceptTcpClientAsync().WithWaitCancellation(tokenListener).ContinueWith(async ( antecedent ) => {
                             try {
                                 TcpClient client = antecedent.Result;
                                 await ServeClient((TcpClient)antecedent.Result);
                             }
                             catch (Exception e) {
-                                Console.WriteLine($"Exception {e}");
+                                Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener Exception {e.Message}");
                             }
                         }, TaskContinuationOptions.OnlyOnRanToCompletion);
                     }
                 }
                 catch (SocketException e) {
-                    Console.WriteLine($"SocketException on Listener - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener SocketException - {e.Message}");
                 }
                 catch (OperationCanceledException e) {
-                    Console.WriteLine($"OperationCanceledException on Listener: {e.Message}");
-                    Console.WriteLine("End execution because of destruction of the cancellation token");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener OperationCanceledException - {e.Message}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - End execution because of destruction of the cancellation token");
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"Exception on Listener - {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener Exception - {e.GetType()} {e.Message}");
                 }
                 finally {
                     if (server != null)
@@ -120,7 +117,7 @@ namespace PDSProject
         /// Metodo chiamato per stoppare il server
         /// </summary>
         public void StopServer () {
-            Console.WriteLine("On stop server");
+            Console.WriteLine($"{DateTime.Now.ToString()} - Current TCPListener stopped");
              source.Cancel();
         }
 
@@ -137,7 +134,7 @@ namespace PDSProject
 
             try {
                 client = (TcpClient)result;
-                Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
 
                 byte[] bytes = new byte[1+256+8];
                 stream = client.GetStream();
@@ -150,7 +147,7 @@ namespace PDSProject
 
                     // In caso il primo byte non rispetti il tipo, viene lanciata un'eccezione
                     if ((int)readPacket[0] > 5)
-                        throw new Exception("Packet not valid");
+                        throw new Exception($"Packet not valid");
 
                     // La seconda parte dell'header corrisponde in ogni caso al nome di un file codificato in UTF8
                     PacketType type = (PacketType)readPacket[0];
@@ -190,7 +187,6 @@ namespace PDSProject
                                     MainWindow.main.AddOrUpdateListFile(ipClient, filename, FileRecvStatus.TOCONF, "-", 0.0f);
                                     MainWindow.main.NotifySistem();
                                 }));
-                                
                             }
                             break;
                         case PacketType.YFILE:
@@ -215,7 +211,6 @@ namespace PDSProject
                             break;
                         case PacketType.FSEND:
                             {
-                                //filename = filename.Substring(0, filename.Length - 1);
                                 if(_referenceData.CheckPacketRecvFileStatus(ipClient, filename))
                                     throw new Exception("File with name " + filename + " never confirmed or need to be resend to the user");
                                 string fileNameOriginal = filename;
@@ -228,7 +223,6 @@ namespace PDSProject
                                 catch (Exception e) {
                                     throw new Exception($"Packet not valid - Reason {e.Message}");
                                 }
-                                
                             await ServeReceiveFile(client, stream, ipClient, filename, dimFile);
                             }
                             break;
@@ -241,17 +235,16 @@ namespace PDSProject
                             catch (Exception e) {
                                 throw new Exception($"Packet not valid - Reason {e.Message}");
                             }
-                            //filename = filename.Substring(0, filename.Length - 1);
                             await ServeReceiveProfileImage(client, stream, ipClient, filename, dimFile);
                             break;
                     }   
                 }
             }
             catch (SocketException e) {
-                Console.WriteLine($"SocketException on ServeClientNewProtocolTest - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Serve TCPClient SocketException - {e.Message}");
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception on ServeClientNewProtocolTest - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - Serve TCPClient Exception - {e.GetType()} {e.Message}");
             }
             finally {
                 stream.Close();
@@ -280,9 +273,10 @@ namespace PDSProject
                 string[] files = Directory.GetFiles(Utility.PathTmp(), Utility.PathToFileName(splits[splits.Length - 2]) + "*" + splits[splits.Length - 1]);
                 splits[splits.Length - 2] += files.Count() > 0 ? ("_" + files.Count()) : "";
                 filename = string.Join(".", splits);
+                _referenceData.UpdateFileName(filename, ip, FileRecvStatus.YSEND);
             }
             file = File.Create(filename);
-            Console.WriteLine($"File Created on path {filename}");
+            Console.WriteLine($"{DateTime.Now.ToString()}\t - ServeReceive created file on path {filename}");
 
             semaphoreForFile.Release();
 
@@ -345,14 +339,12 @@ namespace PDSProject
                         numerator = 0.0;
                         estimatedTimePacketCount = 0;
                     }
-                    string estimatedTimeJet = String.Format("{00:00}", estimatedTime.TotalMinutes) + ":" +
-                                              String.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
-                                              String.Format("{00:00}", estimatedTime.Milliseconds);
+                    string estimatedTimeJet = string.Format("{00:00}", estimatedTime.TotalMinutes) + ":" +
+                                              string.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
+                                              string.Format("{00:00}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                         MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.INPROGRESS, estimatedTimeJet, dataReceivedJet);
                     }));
-                    Console.WriteLine(dataReceivedJet + "%");
-
                 }
                 file.Close();
                 
@@ -371,7 +363,7 @@ namespace PDSProject
                             File.Delete(fileNameToProcess);
                         }
                         catch (Exception e) {
-                            Console.WriteLine($"Exception on ExtractFileToSavePath : {e}");
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - ExtractFileToSavePath Exception - {e.GetType()} {e.Message}");
                             obj.Release();
                         }
                     }
@@ -438,7 +430,7 @@ namespace PDSProject
                             }
                         }
                         catch (Exception e) {
-                            Console.WriteLine($"Exception on unzip file received. Exception {e}");
+                            Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on unzip file received - {e.GetType()} {e.Message}");
                             File.Delete(fileNameToProcess);
                             semaphoreForFile.Release();
                         }
@@ -450,7 +442,7 @@ namespace PDSProject
                 await obj.WaitAsync();
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception on ServeReceiveFile - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - ServeReceiveFile Exception - {e.GetType()} {e.Message}");
                 file.Close();
                 File.Delete(filename);
             }
@@ -502,7 +494,7 @@ namespace PDSProject
             FileStream fileImage = null;
             try {
                 fileImage = File.Create(filename);
-                Console.WriteLine($"File Created on path {filename}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - ProfileImage File Created on path {filename}");
 
                 long dataReceived = dim;
                 //int i = 0;
@@ -529,7 +521,7 @@ namespace PDSProject
                 semaphoreProfileImage.Release();
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception on ServeReceiveProfileImage - {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - ServeReceiveProfileImage Exception - {e.GetType()} {e.Message}");
                 semaphoreProfileImage.Release();
 
                 if (fileImage != null) {
@@ -537,372 +529,5 @@ namespace PDSProject
                 }
             }
         }
-
-        //public async Task ServeClientA ( Object result)
-        //{
-        //    // Gestione base problemi rete
-        //    NetworkStream stream = null;
-        //    TcpClient client = null;
-
-        //    try
-        //    {
-        //        client = (TcpClient)result;
-
-        //        Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
-
-        //        Byte[] bytes = new Byte[bufferSize];
-        //        string data = null;
-
-        //        stream = client.GetStream();
-
-        //        int i = 0;
-        //        if ((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0)
-        //        {
-
-        //            // Il primo pacchetto contiene solo il nome del file e la dimensione del file
-        //            // TODO: vedere quale carattere di terminazione scegliere, lo spazio potrebbe essere all'interno del nome del file
-        //            UTF8Encoding encoder = new UTF8Encoding(); // Da cambiare, mettere almeno UTF-16
-        //            data = encoder.GetString(bytes);
-
-        //            // PER ROSSELLA: QUI SCRIVO STAI RICEVENDO FILE/COSE/BANANE!!!
-        //            Console.WriteLine($"Received {data}");
-
-        //            data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
-        //            string[] info = data.Split(' ');
-        //            long dimfile = 0;
-        //            string file_name = "";
-        //            if (info[0].Equals("CHNETWORK"))
-        //                source.Cancel();
-        //                //Console.WriteLine("On CHNET");
-        //            else
-        //            {
-        //                if (info[0].Equals("CHIMAGE")) {
-        //                    file_name += Utility.PathHost();
-        //                    file_name += /*"puserImage" +*/ "\\" + info[1];
-        //                    dimfile = Convert.ToInt64(info[2]);
-        //                }
-        //                else
-        //                {
-        //                    dimfile = Convert.ToInt64(info[1]);
-        //                    //file_name = _referenceData.LocalUser.SavePath + "\\" + info[0];
-        //                    file_name = Utility.PathTmp() + "\\" + info[0];
-        //                }
-
-        //                // Crea il file e lo riempie
-        //                bool isChImage = false;
-        //                // Crea il file e lo riempie
-        //                if (File.Exists(file_name)) {
-        //                    if (info[0].Equals("CHIMAGE")) {
-        //                        isChImage = true;
-        //                    } else {
-        //                        // TODO: cambiare nome file zip per evitare conflitti multiutente
-        //                        string[] splits = file_name.Split('.');
-        //                        //string[] files = Directory.GetFiles(_referenceData.LocalUser.SavePath, Utility.PathToFileName(splits[splits.Length - 2]) +"*" + splits[splits.Length - 1]);
-        //                        string[] files = Directory.GetFiles(Utility.PathTmp(), Utility.PathToFileName(splits[splits.Length - 2]) + "*" + splits[splits.Length - 1]);
-        //                        splits[splits.Length - 2] += files.Count() > 0 ? ("_"+files.Count()) : "" ;
-        //                        file_name = string.Join(".", splits);
-        //                    }
-        //                }
-
-        //                if (!isChImage) {
-        //                    //TIMER PER CALCOLARE TEMPO RIMANENTE ALLA FINE DEL DOWNLOAD
-        //                    //string secondsElapsed = "";
-        //                    //Stopwatch stopwatch = new Stopwatch();
-        //                    //stopwatch.Start();
-
-        //                    DateTime started = DateTime.Now;
-
-        //                    var file = File.Create(file_name);
-        //                    Console.WriteLine($"File Created on path {file_name}");
-
-        //                    bytes = new byte[bufferSize * 64];
-        //                    long dataReceived = dimfile; // dimFile = dimensione totale del file , dataReceived = totale dei byte che deve ancora ricevere
-        //                    while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
-        //                        double dataReceivedJet = 0.0f;
-
-        //                        if (dataReceived > 0 && dataReceived < i) { //bufferSize)
-        //                            file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-        //                            dataReceivedJet = 100f;
-
-        //                        }
-        //                        else {
-        //                            file.Write(bytes, 0, i);
-        //                            dataReceivedJet = Math.Ceiling((float)(dimfile - dataReceived) / (float)dimfile * 100);
-        //                        }
-        //                        TimeSpan elapsedTime = DateTime.Now - started;
-
-        //                        //OVERFLOW DA CONTROLLARE
-        //                        //TimeSpan estimatedTime = 
-        //                        //    TimeSpan.FromSeconds(
-        //                        //        (dimfile - (dimfile - dataReceived)) / 
-        //                        //        ((double)(dimfile - dataReceived)  / elapsedTime.TotalSeconds));
-
-        //                        //PROGRESS BAR (BOH) -------------------------------
-        //                        //secondsElapsed = stopwatch.Elapsed.TotalSeconds.ToString();
-        //                        //string secondElapsedJet = secondsElapsed;
-        //                        //string estimatedTimeJet = estimatedTime.ToString();
-        //                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-        //                            MainWindow.main.progressFile.SetValue(ProgressBar.ValueProperty, dataReceivedJet);
-        //                            //MainWindow.main.textTime.Text = estimatedTimeJet;
-        //                        }));
-        //                        Console.WriteLine(dataReceivedJet + "%");
-
-        //                        dataReceived -= i;
-        //                    }
-        //                    Console.WriteLine($"File Received {data}");
-        //                    //stopwatch.Stop();
-        //                    ////secondsElapsed += stopwatch.Elapsed.TotalSeconds;
-        //                    file.Close();
-
-        //                    if(!isChImage)
-        //                    ZipFile.ExtractToDirectory(file_name, _referenceData.LocalUser.SavePath);
-
-        //                }
-        //                else
-        //                {
-        //                    Console.WriteLine($"File CHIMAGE already saved " + data );
-        //                    while (stream.Read(bytes, 0, bytes.Length) != 0);
-        //                }
-
-
-
-        //                // Avvisa che un'immagine è stata cambiata
-        //                if (info[0].Equals("CHIMAGE"))
-        //                {
-        //                    //Salvo info e poi udp reciver aggiornerà le info
-
-        //                    using (SHA256 sha = SHA256.Create())
-        //                    {
-        //                        FileStream fs = File.OpenRead(file_name);
-        //                        byte[] hash = sha.ComputeHash(fs);
-        //                        string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
-
-        //                        _referenceData.UserImageChange[hashImage] = file_name;
-        //                        fs.Close();
-        //                    }
-        //                }
-        //            }
-
-        //        }
-        //    }
-        //    catch (SocketException e)
-        //    {
-        //        Console.WriteLine($"SocketException: {e}");
-        //    }
-        //    finally
-        //    {
-        //        stream.Close();
-        //        client.Close();
-        //    }
-        //}
-
-        /// <summary>
-        /// Funzione che avvia il server, viene eseguito in un thread secondario che rimane in esecuzione fino alla fine del programma.
-        /// Per ogni TCPClient viene creato un nuovo thread che lo gestisce (pensare caso troppi thread in esecuzione? evito eccessivo context switching)
-        /// TODO: cercare quanti thread fisici la CPU riesce a gestire in contemporanea
-        /// TODO: gestire correttamente gli accessi concorrenti alle risorse e la terminazione corretta del thread (adesso non gestita)
-        /// </summary>
-        //public void Listener(){
-        //    // Caratteristiche base per tcp lister: porta ed indirizzo
-        //    IPAddress localAddr = IPAddress.Parse(_referenceData.LocalIPAddress);
-        //    TcpListener server = null;
-        //    try
-        //    {
-        //        //Creo server definendo un oggetto TCPListener con porta ed indirizzo
-        //        server = new TcpListener(localAddr, _referenceData.TCPPort);
-        //        server.Start();
-
-        //        //Creo buffer su cui scrivere dati (in questo caso byte generici)
-        //        Byte[] bytes = new Byte[256];
-
-        //        // Loop ascolto
-        //        while (true)
-        //        {
-        //            Console.WriteLine("Waiting for connection...");
-        //            TcpClient client = server.AcceptTcpClient();
-        //            Thread t = new Thread(new ParameterizedThreadStart(ServeClient));
-        //            t.Start(client);
-        //        }
-        //    }
-        //    catch (SocketException e){
-        //        Console.WriteLine($"SocketException: {e}");
-        //    }
-        //    finally{
-        //        server.Stop();
-        //    }
-        //}
-
-
-        //// Alternativa listener precendente in modo tale che supporti i cambi di rete
-        //public void ListenerB ()// CancellationToken tokenEndListener )
-        //{
-        //    while (true)//!tokenEndListener.IsCancellationRequested)
-        //    {
-        //        //source = new CancellationTokenSource();
-        //        //CancellationToken tokenListener = source.Token;
-
-        //        Console.WriteLine("Wait for change");
-        //        lock (_referenceData.cvListener)
-        //        {
-        //            while (_referenceData.LocalIPAddress.Equals(""))
-        //                Monitor.Wait(_referenceData.cvListener);
-        //        }
-        //        Console.WriteLine("Change Listener local IP:" + _referenceData.LocalIPAddress);
-
-        //        IPAddress localAddr = IPAddress.Parse(_referenceData.LocalIPAddress);
-        //        //TcpListener server = null;
-
-        //        try
-        //        {
-        //            //Creo server definendo un oggetto TCPListener con porta ed indirizzo
-        //            server = new TcpListener(localAddr, _referenceData.TCPPort);
-        //            server.Start();
-
-        //            // Loop ascolto
-        //            while (true)
-        //            {
-        //                Console.WriteLine("Waiting for connection...");
-        //                TcpClient client = server.AcceptTcpClient();
-        //                Thread t = new Thread(new ParameterizedThreadStart(ServeClient));
-        //                t.Start(client);
-        //                //await ServeClientA(client);
-        //            }
-        //        }
-        //        catch (SocketException e)
-        //        {
-        //            Console.WriteLine($"SocketException: {e}");
-        //        }
-        //        catch(Exception e)
-        //        {
-        //            Console.WriteLine($"Exception: {e}");
-        //        }
-        //        finally
-        //        {
-        //            if (server != null)
-        //                server.Stop();
-        //        }
-
-        //    }
-        //}
-
-
-        /// <summary>
-        /// Metodo chiamato da un thread secondario che gestisce il client connesso.
-        /// Riceve un file e lo salva nel file system, nel caso esista già per ora lo sovrascrive e non fa nessun controllo in caso non esista o di problemi di rete.
-        /// TODO: vedere caso di file con lo stesso nome e come gestirli, gestire le varie casistiche di congestione di rete etc...
-        /// </summary>
-        /// <param name="result">Oggetto TCPClient connesso al server TCPListener corrente</param>
-        //public void ServeClient(Object result){
-        //    // Gestione base problemi rete
-        //    NetworkStream stream = null;
-        //    TcpClient client = null;
-        //    try
-        //    {
-        //        client = (TcpClient)result;
-
-        //        Console.WriteLine($"Client connected! {((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()}");
-
-
-        //        Byte[] bytes = new Byte[bufferSize];
-        //        string data = null;
-
-        //        stream = client.GetStream();
-
-        //        int i = 0;
-        //        if ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-        //        {
-
-        //            // Il primo pacchetto contiene solo il nome del file e la dimensione del file
-        //            // TODO: vedere quale carattere di terminazione scegliere, lo spazio potrebbe essere all'interno del nome del file
-        //            UTF8Encoding encoder = new UTF8Encoding(); // Da cambiare, mettere almeno UTF-16
-        //            data = encoder.GetString(bytes);
-
-        //            Console.WriteLine($"Received {data}");
-
-        //            data = data.Replace("\0", string.Empty); // problemi con l'encoder e il valore \0
-        //            string[] info = data.Split(' ');
-        //            long dimfile = 0; 
-        //            string file_name = "";
-        //            if (info[0].Equals("CHIMAGE")){
-        //                file_name += Utility.PathHost();
-        //                file_name += /*"puserImage" +*/ "\\" + info[1];
-        //                dimfile = Convert.ToInt64(info[2]);
-        //            }
-        //            else{
-        //                dimfile = Convert.ToInt64(info[1]);
-        //                file_name = info[0];
-        //            }
-
-        //            bool isChImage = false;
-        //            // Crea il file e lo riempie
-        //            if (File.Exists(file_name)) {
-        //                if (info[0].Equals("CHIMAGE")) {
-        //                    isChImage = true;
-        //                } else {
-        //                    string[] splits = file_name.Split('.');
-        //                    splits[splits.Length - 2] += "_Copia";
-        //                    file_name = string.Join(".", splits);
-        //                }
-        //            }
-
-        //            if (!isChImage) {
-        //                var file = File.Create(file_name);
-        //                bytes = new byte[bufferSize * 64];
-        //                long dataReceived = dimfile;
-        //                while (((i = stream.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
-        //                    if (dataReceived > 0 && dataReceived < i) //bufferSize)
-        //                        file.Write(bytes, 0, Convert.ToInt32(dataReceived));
-        //                    else
-        //                        file.Write(bytes, 0, i);
-        //                    dataReceived -= i;
-        //                }
-
-        //                file.Close();
-        //            }
-        //            else{
-        //             while (stream.Read(bytes, 0, bytes.Length) != 0);
-        //            }
-
-        //            // Avvisa che un'immagine è stata cambiata
-        //            if (info[0].Equals("CHIMAGE")){
-        //                //Salvo info e poi udp reciver aggiornerà le info
-
-        //                using (SHA256 sha = SHA256.Create())
-        //                {
-        //                    FileStream fs = File.OpenRead(file_name);
-        //                    byte[] hash = sha.ComputeHash(fs);
-        //                    string hashImage = BitConverter.ToString(hash).Replace("-", String.Empty);
-
-        //                    _referenceData.UserImageChange[hashImage] = file_name;
-        //                    fs.Close();
-        //                }
-        //            }
-        //        }
-        //        /*
-        //        // CODICE VECCHIO, tengo per sicurezza // 
-        //        while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-        //        {
-        //            UTF8Encoding encoder = new UTF8Encoding();
-        //            data = encoder.GetString(bytes);
-        //            Console.WriteLine($"Received {data}");
-        //            data = data.Replace("\0", string.Empty);
-        //            MainWindow.main.textInfoMessage.Dispatcher.BeginInvoke(
-        //            DispatcherPriority.Normal, new Action(() => {
-        //                MainWindow.main.textInfoMessage.Text = $"Received {data}";
-        //            }));
-        //        }
-        //        Thread.Sleep(2000);
-        //        */
-
-        //    }
-        //    catch (SocketException e)
-        //    {
-        //        Console.WriteLine($"SocketException: {e}");
-        //    }
-        //    finally {
-        //        stream.Close();
-        //        client.Close();
-        //    }
-        //    }
     }
 }

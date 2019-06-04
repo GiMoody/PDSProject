@@ -20,8 +20,7 @@ namespace PDSProject
     /// utilizzando la classe Lazy<T>. Questa garantisce che venga sempre inizializzata una singola istanza anche in caso di
     /// esecuzione concorrente.
     /// </summary>
-
-
+    
     public enum FileSendStatus {
         PREPARED,
         READY,
@@ -145,9 +144,7 @@ namespace PDSProject
             }
         }
 
-        /// NETWORK CONFIGURATION METHODS ///
-        ///-------------------------------///
-
+        #region --------------- NETWORK CONFIGURATION ---------------------
         /// <summary>
         /// Per ogni cambio controlla per ogni interfaccia di rete non virtuale o non di callback l'indirizzo IP locale e calcola il corrispondende multicast
         /// </summary>
@@ -173,9 +170,6 @@ namespace PDSProject
 
                         foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses) {
                             if (ip.Address.AddressFamily == AddressFamily.InterNetwork) {
-                                Console.WriteLine("Local Ip on " + item.NetworkInterfaceType + " LAN:" + ip.Address.ToString());
-
-
                                 if (!LocalIps.Contains(ip.Address.ToString()))
                                     LocalIps.Add(ip.Address.ToString());
 
@@ -188,8 +182,6 @@ namespace PDSProject
                                     Ips.Add(BroadcastIPAddress, ip.Address.ToString());
                                 else
                                     Ips[BroadcastIPAddress] = ip.Address.ToString();
-
-                                Console.WriteLine("Multicast address on " + item.NetworkInterfaceType + " LAN:" + BroadcastIPAddress);
                             }
                         }
                     }
@@ -201,7 +193,6 @@ namespace PDSProject
         /// Metodo invocato ad ogni cambio di rete
         /// </summary>
         static void AddressChangedCallback(object sender, EventArgs e) {
-            Console.WriteLine("AddressShcangedCallback");
             Instance.FindAllNetworkInterface();
         }
 
@@ -265,8 +256,6 @@ namespace PDSProject
                         if (BroadcastIps.Contains(MulticastAddrs)) {
                             BroadcastIPAddress = MulticastAddrs;
                             LocalIPAddress = Ips[MulticastAddrs];
-
-                            Console.WriteLine("Find subnet with multicast address: " + MulticastAddrs);
                             return true;
                         }
                     }
@@ -275,10 +264,9 @@ namespace PDSProject
             }
         }
 
-
+        #endregion
         
-        /// LOCAL USER CONFIGURATION METHODS ///
-        ///---------------------------------///
+        #region --------------- LOCAL USER CONFIGURATION ---------------------
 
         /// <summary>
         /// Aggiorna le informazioni del profilo utente salvate sul file JSON
@@ -290,7 +278,7 @@ namespace PDSProject
                     sr.WriteObject(stream, LocalUser);
                 }
             }catch(Exception e) {
-                Console.WriteLine($"On SaveJson method on SharedInfo - Exception thrown: {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - SaveJson Exception - {e.GetType()} {e.Message}");
                 throw e;
             }
         }
@@ -334,7 +322,7 @@ namespace PDSProject
                     SaveJson();
                 }
                 catch(Exception e) {
-                    Console.WriteLine($"On UpdateInfoLocalUser method on SharedInfo - Exception thrown: {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - UpdateInfoLocalUser Exception - {e.GetType()} {e.Message}");
                     throw e;
                 }
             }
@@ -351,7 +339,7 @@ namespace PDSProject
                     SaveJson();
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"On UpdateStatusLocalUser method on SharedInfo - Exception thrown: {e}");
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - UpdateStatusLocalUser Exception - {e.GetType()} {e.Message}");
                     throw e;
                 }
             }
@@ -368,9 +356,9 @@ namespace PDSProject
             return returnData;
         }
 
-
-        /// REMOTE USER CONFIGURATION METHODS ///
-        ///-----------------------------------///
+        #endregion
+        
+        #region --------------- REMOTE USER CONFIGURATION ---------------------
 
         /// <summary>
         /// Ritorna il nickname dell'utente remote dato il suo ip
@@ -382,8 +370,7 @@ namespace PDSProject
                 return null;
             }
         }
-
-
+        
         /// <summary>
         /// Ritorna l'hash dell'immagine di profilo dell'utente remote dato il suo ip
         /// </summary>
@@ -432,17 +419,15 @@ namespace PDSProject
                 // Caso Utente già presente
                 if (Users.ContainsKey(ip)) {
                     if (!Users[ip].Equals(host)) {
-                        Console.WriteLine("Aggiornamento info utente " + ip);
                         Users[ip] = host;
                         IsUserUpdate = true;
                     }
                     else
                         Users[ip].LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 }
-                // Caso Host mom ancora presente
+                // Caso Host non ancora presente
                 else {
                     host.ProfileImageHash = "";
-                    Console.WriteLine("Connesso nuovo utente " + ip);
                     Users[ip] = host;
                     IsUserUpdate = true;
                 }
@@ -596,8 +581,9 @@ namespace PDSProject
             }
         }
 
-        /// RECIVE FILE CONFIGURATION/CHECK METHODS ///
-        ///-----------------------------------------///
+        #endregion
+
+        #region --------------- RECIVE FILE CONFIGURATION/CHECK ---------------------
 
         /// <summary>
         /// Ritorna lo stato dell file da ricevere dati ip del mittente e nome del file
@@ -625,27 +611,26 @@ namespace PDSProject
             
         }
 
-
-            /// <summary>
-            /// Aggiorna status di un file di cui è stata annunciata la ricezione
-            /// </summary>
-            /// <param name="ipUser">Ip host mittente</param>
-            /// <param name="pathFile">Path del file da ricevere</param>
-            /// <param name="status">Status da aggiornare</param>
-            /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
-            public bool UpdateStatusRecvFileForUser ( string ipUser, string pathFile, FileRecvStatus status ) {
-            lock (FileToRecive) {
-                Dictionary<string, FileRecvStatus> currentDictionary;
-                FileToRecive.TryGetValue(ipUser, out currentDictionary);
-                if (currentDictionary.ContainsKey(pathFile)) {
-                    FileToRecive.AddOrUpdate(ipUser, ( key ) => currentDictionary, ( key, oldValue ) => {
-                        oldValue[pathFile] = status;
-                        return oldValue;
-                    });
-                    return true;
-                }
-                return false;
+        /// <summary>
+        /// Aggiorna status di un file di cui è stata annunciata la ricezione
+        /// </summary>
+        /// <param name="ipUser">Ip host mittente</param>
+        /// <param name="pathFile">Path del file da ricevere</param>
+        /// <param name="status">Status da aggiornare</param>
+        /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
+        public bool UpdateStatusRecvFileForUser ( string ipUser, string pathFile, FileRecvStatus status ) {
+        lock (FileToRecive) {
+            Dictionary<string, FileRecvStatus> currentDictionary;
+            FileToRecive.TryGetValue(ipUser, out currentDictionary);
+            if (currentDictionary.ContainsKey(pathFile)) {
+                FileToRecive.AddOrUpdate(ipUser, ( key ) => currentDictionary, ( key, oldValue ) => {
+                    oldValue[pathFile] = status;
+                    return oldValue;
+                });
+                return true;
             }
+            return false;
+        }
         }
 
         /// <summary>
@@ -719,26 +704,6 @@ namespace PDSProject
                         return oldValue.Concat(currentDictionary).ToDictionary(x => x.Key, x => x.Value);
                 });
             }
-            
-            //lock(fileReciveList) { 
-            //    if(fileReciveList.Where(e => e.fileName.Equals(pathFile)).Count() > 0) {
-            //        FileRecive files = fileReciveList.Where(e => e.fileName.Equals(pathFile)).ToList()[0];
-            //        files.statusFile = status.ToString();
-            //        MainWindow.main.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => {
-            //            MainWindow.main.UpdateListFile();
-            //        }));
-            //    } else {
-            //        string currentUsername = "";
-            //        lock(Users) {
-            //            currentUsername = Users[ipUser].Name;
-            //        }
-            //        FileRecive files = new FileRecive(currentUsername, pathFile, status.ToString(), "0", 0);
-            //        MainWindow.main.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => {
-            //            MainWindow.main.AddListFile(files);
-            //        }));
-            //    }
-
-            //}
         }
 
         //public FileRecive GetFileReciveByFileName (string fileName) {
@@ -777,10 +742,31 @@ namespace PDSProject
             }
         }
 
+        /// <summary>
+        /// Aggiorna il nome di un file ricevuto
+        /// </summary>
+        /// <param name="fileName">Nome del file</param>
+        /// <param name="ip">Ip del mittente</param>
+        /// <param name="status">Status del file</param>
+        public void UpdateFileName (string fileName, string ip, FileRecvStatus status ) {
+            lock (FileToRecive) {
+                Dictionary<string, FileRecvStatus> currentDictionary;
+                if (FileToRecive.TryGetValue(ip, out currentDictionary)) {
+                    if (currentDictionary.ContainsKey(fileName) && currentDictionary[fileName] == status) {
+                        currentDictionary.Remove(fileName);
+                        currentDictionary.Add(fileName, status);
+                        FileToRecive.AddOrUpdate(ip, ( key ) => currentDictionary, ( key, oldValue ) => {
+                            oldValue = currentDictionary;
+                            return oldValue;
+                        });
+                    }
+                }
+            }
+        }
 
+        #endregion
 
-        /// SEND FILE CONFIGURATION/CHECK METHODS ///
-        ///---------------------------------------///
+        #region --------------- SEND FILE CONFIGURATION/CHECK ---------------------
 
         /// <summary>
         /// Aggiunge o aggiorna un file d'invio
@@ -911,10 +897,15 @@ namespace PDSProject
             }
         }
 
+        public Dictionary<string, FileSendStatus> GetSendFilesByIp(string ip) {
+            lock (FileToSend) {
+                if (FileToSend.ContainsKey(ip))
+                    return FileToSend[ip];
+                else
+                    return null;
+            }
+        }
 
-
-
-
-
+        #endregion
     }
 }

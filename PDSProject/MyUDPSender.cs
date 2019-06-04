@@ -10,8 +10,7 @@ namespace PDSProject
     /// Classe che gestice il client UDP
     /// Internamente ha solo una classe che invia un messaggio UDP contenente le informazioni del profilo utente.
     /// </summary>
-    class MyUDPSender
-    {
+    class MyUDPSender {
         SharedInfo _referenceData;
 
         public MyUDPSender(){
@@ -33,12 +32,11 @@ namespace PDSProject
                 sender.Close();
             }
             catch (Exception e) {
-                Console.WriteLine($"Exception: {e}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - UDPSender Exception - {e.GetType()} {e.Message}");
             }
             finally {
                 sender.Close();
             }
         }
-        
     }
 }
