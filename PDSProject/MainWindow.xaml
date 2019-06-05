@@ -70,8 +70,8 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="200" />
+                                    <ColumnDefinition Width="100" />
                                 </Grid.ColumnDefinitions>
                                 <Ellipse x:Name="imageFriend" Stroke="White" Height="78" Width="83" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Ellipse.Fill>
@@ -85,7 +85,7 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="22,185,24.8,0" Height="50" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center" />
+                <TextBox x:Name="textInfoMessage" TextWrapping="Wrap" Margin="26,185,24.8,0" Height="50" VerticalAlignment="Top" FontFamily="Lato" VerticalContentAlignment="Center" IsReadOnly="True" />
 
                 <Button x:Name="SendButton" Visibility ="Hidden" Click="ButtonSend_Click" Content="Invia" Height="24" Width="64" Margin="0,0,10.4,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>
                 <Button x:Name="UndoButton" Visibility ="Hidden"  Click="ButtonUndo_Click" Content="Annulla" Height="24" Width="64"  Margin="0,0,91.8,9.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="Lato"/>

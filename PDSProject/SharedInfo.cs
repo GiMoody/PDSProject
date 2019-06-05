@@ -813,7 +813,7 @@ namespace PDSProject
         public bool CheckSendStatusFile ( string ipUser, string pathFile, FileSendStatus status ) {
             lock (FileToSend) {
                 if (FileToSend.ContainsKey(ipUser) && FileToSend[ipUser].ContainsKey(pathFile) &&
-                    (FileToSend[ipUser][pathFile] == FileSendStatus.READY))
+                    (FileToSend[ipUser][pathFile] == status))
                     return true;
                 return false;
             }

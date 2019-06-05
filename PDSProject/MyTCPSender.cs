@@ -332,7 +332,52 @@ namespace PDSProject
 
                         // Successivi 64K di payload (immagine di profilo)
                         bytes = new byte[bufferSize * 64];
-                        await file.CopyToAsync(stream, bufferSize).ConfigureAwait(false);
+                        //await file.CopyToAsync(stream, bufferSize).ConfigureAwait(false);
+                        int i;
+                        long dataReceived = file.Length;
+                        uint estimatedTimePacketCount = 0;
+                        double numerator = 0.0;
+                        double estimateTime = 0.0;
+                        DateTime started = DateTime.Now;
+                        TimeSpan estimatedTime = TimeSpan.FromSeconds(0);
+
+
+                        while(((i = file.Read(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
+                            double dataReceivedJet = 0.0f;
+
+                            if(_referenceData.CheckSendStatusFile(ip, Utility.PathToFileName(filename), FileSendStatus.REJECTED))
+                                throw new RejectedFileException("File is rejected by remote host");
+                                
+
+                            if(dataReceived > 0 && dataReceived < i) {
+                                await stream.WriteAsync(bytes, 0, Convert.ToInt32(dataReceived));
+                                dataReceivedJet = 100f;
+                            } else {
+                                await stream.WriteAsync(bytes, 0, i);
+                                dataReceivedJet = Math.Ceiling((double)(file.Length - dataReceived) / ((double)file.Length) * 100);
+                            }
+                            dataReceived -= i;
+
+
+                            if(estimatedTimePacketCount < 5) {
+                                numerator += (double)(file.Length - dataReceived);
+                                estimatedTimePacketCount++;
+                            } else {
+                                TimeSpan elapsedTime = DateTime.Now - started;
+
+                                estimateTime = elapsedTime.TotalSeconds * dataReceived / numerator;
+                                estimatedTime = TimeSpan.FromSeconds(estimateTime);
+
+                                numerator = 0.0;
+                                estimatedTimePacketCount = 0;
+                            }
+                            string estimatedTimeJet = string.Format("{00:00}", estimatedTime.Minutes) + ":" +
+                                                      string.Format("{00:00}", estimatedTime.Seconds) + ":" +
+                                                      string.Format("{00:00}", estimatedTime.Milliseconds);
+                            await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.INPROGRESS, estimatedTimeJet, dataReceivedJet);
+                            }));
+                        }
                     }
                     _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.END);
 
@@ -340,8 +385,15 @@ namespace PDSProject
                         MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.END, "-", 0);
                     }));
                     break;
-                }
-                catch (SocketException e) {
+
+                } catch(RejectedFileException e) {
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - RejectedFileException on SendFile - {e.Message}");
+
+                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.REJECTED, "-", 0);
+                    }));
+
+                } catch (SocketException e) {
                     Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendFile - {e.Message}");
 
                     // In caso l'host si sia disconnesso mentre si inviava la richiesta si passa al successivo, appena ritornerà

@@ -116,6 +116,7 @@
     <Compile Include="MyTCPSender.cs" />
     <Compile Include="MyUDPListener.cs" />
     <Compile Include="MyUDPSender.cs" />
+    <Compile Include="RejectedFileException.cs" />
     <Compile Include="SharedInfo.cs" />
     <Compile Include="MyTCPListener.cs" />
     <Compile Include="Utility.cs" />

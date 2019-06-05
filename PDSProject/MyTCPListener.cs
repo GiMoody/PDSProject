@@ -339,8 +339,8 @@ namespace PDSProject
                         numerator = 0.0;
                         estimatedTimePacketCount = 0;
                     }
-                    string estimatedTimeJet = string.Format("{00:00}", estimatedTime.TotalMinutes) + ":" +
-                                              string.Format("{00:00}", estimatedTime.TotalSeconds) + ":" +
+                    string estimatedTimeJet = string.Format("{00:00}", estimatedTime.Minutes) + ":" +
+                                              string.Format("{00:00}", estimatedTime.Seconds) + ":" +
                                               string.Format("{00:00}", estimatedTime.Milliseconds);
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                         MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.INPROGRESS, estimatedTimeJet, dataReceivedJet);
@@ -432,6 +432,15 @@ namespace PDSProject
                         catch (Exception e) {
                             Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on unzip file received - {e.GetType()} {e.Message}");
                             File.Delete(fileNameToProcess);
+                            FileRecvStatus status = FileRecvStatus.RESENT;
+                            if(_referenceData.GetUserStatus(ipUser).Equals("online")) {
+                                status = FileRecvStatus.NSEND;
+                            }
+
+                            _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), status);
+                            MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, status, "-", 0);
+                            }));
                             semaphoreForFile.Release();
                         }
                         finally {

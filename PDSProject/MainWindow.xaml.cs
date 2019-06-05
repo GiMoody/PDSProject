@@ -118,7 +118,7 @@ namespace PDSProject {
             
             dispatcherTimer_FileCleanUp = new DispatcherTimer();
             dispatcherTimer_FileCleanUp.Tick += new EventHandler(DispatcherTimer_ClearFileList);
-            dispatcherTimer_FileCleanUp.Interval = new TimeSpan(0, 0, 20);
+            dispatcherTimer_FileCleanUp.Interval = new TimeSpan(0, 0, 50);
             dispatcherTimer_FileCleanUp.Start();
 
             flashTimer.Tick += new EventHandler(IconBlinking);
@@ -841,9 +841,9 @@ namespace PDSProject {
 
                 yesButton.Visibility = Visibility.Hidden;
                 noButton.Visibility = Visibility.Hidden;
-                stopButton.Visibility = Visibility.Hidden;
-                textTime.Visibility = Visibility.Hidden;
-                progressFile.Visibility = Visibility.Hidden;
+                stopButton.Visibility = Visibility.Visible;
+                textTime.Visibility = Visibility.Visible;
+                progressFile.Visibility = Visibility.Visible;
 
             }
         }
@@ -899,8 +899,13 @@ namespace PDSProject {
             string[] packetPart = fileName.Split('_');
             string IpTAG = packetPart[packetPart.Length - 5] + "." + packetPart[packetPart.Length - 4] + "." + packetPart[packetPart.Length - 3] + "." + packetPart[packetPart.Length - 2];
 
-            SendResponse(fileName, IpTAG, PacketType.NFILE);
-
+            if(((FileRecive)button.Tag).isRecived) {
+                SendResponse(fileName, IpTAG, PacketType.NFILE);
+            } else {
+                AddOrUpdateListFile(((FileRecive)button.Tag).ip, fileName, FileSendStatus.REJECTED, "-", 0);
+                _referenceData.UpdateSendStatusFileForUser(((FileRecive)button.Tag).ip, fileName, FileSendStatus.REJECTED);
+            }
+                
             yesButton.Visibility = Visibility.Hidden;
             noButton.Visibility = Visibility.Hidden;
             stopButton.Visibility = Visibility.Hidden;
@@ -1124,7 +1129,7 @@ namespace PDSProject {
             for (int i=0; i<fileReciveList.Count; i++) {
                 if(fileReciveList[i].statusFile.Equals("Annullato") ||
                    fileReciveList[i].statusFile.Equals("Ricevuto")  ||
-                   fileReciveList[i].statusFile.Equals("Fine invio")  ) {
+                   fileReciveList[i].statusFile.Equals("Fine invio") ) {
                     fileReciveList.RemoveAt(i);
                 }
             }
