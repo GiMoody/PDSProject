@@ -1069,6 +1069,16 @@ namespace PDSProject {
                     if((currentTime - u.LastPacketTime) > 10000) {
                         _referenceData.UpdateStatusUser(u.Ip, "offline");
                         UpdateProfileHost(u.Ip);
+                        _referenceData.GetRecvFileIP(u.Ip);
+                        foreach(string file in _referenceData.GetRecvFileIP(u.Ip)) {
+                            if(_referenceData.CheckRecvFileStatus(u.Ip, file, FileRecvStatus.INPROGRESS)) {
+                                _referenceData.UpdateStatusRecvFileForUser(u.Ip, file, FileRecvStatus.RESENT);
+                                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    AddOrUpdateListFile(u.Ip, file, FileRecvStatus.RESENT, "", 0.0f);
+                                }));
+                            }
+
+                        }
                     }
                 }
 
