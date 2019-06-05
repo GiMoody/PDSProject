@@ -28,13 +28,20 @@ namespace PDSProject
         static bool isMutexCreated = false;
         static Mutex mut = new Mutex(true, Process.GetCurrentProcess().ProcessName, out isMutexCreated);
 
+        static bool isMutexCreatedPipe = false;
+        static Mutex muPipe = new Mutex(false, Process.GetCurrentProcess().ProcessName + "Pipe", out isMutexCreatedPipe);
+        
         protected override void OnStartup(StartupEventArgs e) {
             
-            if (!isMutexCreated){//Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1){
+            if (!isMutexCreated){
                 string path = string.Join(" ", e.Args);
                 PipeServer(path);
                 ActivateOtherWindow();
                 Environment.Exit(0);
+            }
+            else if(e.Args.Length > 0){
+                string path = string.Join(" ", e.Args);
+                PipeServerAsync(path);
             }
         }
 
@@ -47,29 +54,65 @@ namespace PDSProject
             }
         }
 
-        private void PipeServer(string path) {
-            using (NamedPipeServerStream pipeServer =
-                new NamedPipeServerStream("PSDPipe", PipeDirection.Out)) {
-                // Wait for a client to connect
-                pipeServer.WaitForConnection();
-
-                try {
+        private async void PipeServerAsync (string path) {
+            try {
+                muPipe.WaitOne();
+                using (NamedPipeServerStream pipeServer =
+                    new NamedPipeServerStream("PSDPipe", PipeDirection.Out)){
+                    // Wait for a client to connect
+                    await pipeServer.WaitForConnectionAsync();
                     // Read user input and send that to the client process.
-                    using (StreamWriter sw = new StreamWriter(pipeServer)) {
-                        sw.AutoFlush = true;
+                    using (StreamWriter sw = new StreamWriter(pipeServer))
+                    {
+                        //sw.AutoFlush = true;
+                        await sw.WriteLineAsync(path);
+                    }
+                }
+                muPipe.ReleaseMutex();
+            }
+            // Catch the IOException that is raised if the pipe is broken
+            // or disconnected.
+            catch (IOException e)
+            {
+                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
+            }
+        }
+
+        private void PipeServer(string path) {
+            try {
+                muPipe.WaitOne();
+                using (NamedPipeServerStream pipeServer =
+                    new NamedPipeServerStream("PSDPipe", PipeDirection.Out)) {
+                    // Wait for a client to connect
+                    pipeServer.WaitForConnection();
+                    // Read user input and send that to the client process.
+                    using (StreamWriter sw = new StreamWriter(pipeServer))
+                    {
+                        //sw.AutoFlush = true;
                         sw.WriteLine(path);
                     }
                 }
-                // Catch the IOException that is raised if the pipe is broken
-                // or disconnected.
-                catch (IOException e) {
-                    Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
-                }
-                catch (Exception e) {
-                    Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
-                }
+                muPipe.ReleaseMutex();
+            }
+            // Catch the IOException that is raised if the pipe is broken
+            // or disconnected.
+            catch (IOException e) {
+                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
+                Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
             }
         }
     }
-    
 }
+    
+
