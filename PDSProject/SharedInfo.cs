@@ -155,6 +155,39 @@ namespace PDSProject
                 Users.Clear();
             }
             
+            lock (FileToRecive){
+                foreach(KeyValuePair<string, Dictionary<string, FileRecvStatus>> value in FileToRecive){
+                    foreach (KeyValuePair<string, FileRecvStatus> file in value.Value) {
+                        string path = Utility.PathTmp() + "\\" + file.Key;
+                        if (File.Exists(path))
+                            File.Delete(path);
+                    }
+                }
+                FileToRecive.Clear();
+            }
+
+            lock (FileToSend) {
+                foreach (KeyValuePair<string, Dictionary<string, FileSendStatus>> value in FileToSend) {
+                    foreach (KeyValuePair<string, FileSendStatus> file in value.Value) {
+                        string path = Utility.PathTmp() + "\\" + file.Key;
+                        if (File.Exists(path))
+                            File.Delete(path);
+                    }
+                }
+                FileToSend.Clear();
+            }
+
+            lock (selectedHosts) {
+                selectedHosts.Clear();
+            }
+
+            lock (PathFileToSend) {
+                PathFileToSend.Clear();
+            }
+
+            lock (UserImageChange) {
+                UserImageChange.Clear();
+            }
             // Lock usato per assicurare l'accesso alle strutture dati di supporto per la ricerca dei vari indirizzi
             // delle interfaccie di rete che dispone il sistema 
             lock (lockIps) {
@@ -608,7 +641,15 @@ namespace PDSProject
                 List<String> listFile = currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).ToDictionary(v => v.Key, v => v.Value).Keys.ToList();
                 return listFile;
             }
-            
+        }
+
+        public List<String> GetListRecvFileIP (string ipUser) {
+            lock (FileToRecive) {
+                Dictionary<string, FileRecvStatus> currentDictionary;
+                FileToRecive.TryGetValue(ipUser, out currentDictionary);
+                List<String> listFile = currentDictionary.Keys.ToList();
+                return listFile;
+            }
         }
 
         /// <summary>

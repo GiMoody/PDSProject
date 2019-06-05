@@ -625,7 +625,22 @@ namespace PDSProject {
             switch(result) {
                 case MessageBoxResult.Yes:
                     e.Cancel = false;
-                    source.Cancel();
+                    
+                    if (Directory.GetFiles(Utility.PathTmp()).Count() > 1) {
+                        foreach (string file in Directory.GetFiles(Utility.PathTmp())) {
+                            string name = Utility.PathToFileName(file);
+                            if (name.Equals("README.txt")) { continue; }
+
+                            try {
+                                File.Delete(file);
+                            }
+                            catch (IOException exp) {
+                                Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception during cleaning temp file: {exp.Message}");
+                            }
+                    }
+            }
+
+            source.Cancel();
                     _TCPListener.StopServer();
                 break;
                 case MessageBoxResult.No:
@@ -633,6 +648,7 @@ namespace PDSProject {
                     e.Cancel = true;
                 break;
             }
+
         }
 
         /// <summary>
@@ -1070,11 +1086,12 @@ namespace PDSProject {
                         _referenceData.UpdateStatusUser(u.Ip, "offline");
                         UpdateProfileHost(u.Ip);
                         _referenceData.GetRecvFileIP(u.Ip);
-                        foreach(string file in _referenceData.GetRecvFileIP(u.Ip)) {
+                        List<string> listCurrentRecvFile = _referenceData.GetListRecvFileIP(u.Ip);
+                        foreach (string file in listCurrentRecvFile) {
                             if(_referenceData.CheckRecvFileStatus(u.Ip, file, FileRecvStatus.INPROGRESS)) {
-                                _referenceData.UpdateStatusRecvFileForUser(u.Ip, file, FileRecvStatus.RESENT);
+                                _referenceData.UpdateStatusRecvFileForUser(u.Ip, file, FileRecvStatus.NSEND);
                                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                                    AddOrUpdateListFile(u.Ip, file, FileRecvStatus.RESENT, "", 0.0f);
+                                    AddOrUpdateListFile(u.Ip, file, FileRecvStatus.NSEND, "", 0.0f);
                                 }));
                             }
 
