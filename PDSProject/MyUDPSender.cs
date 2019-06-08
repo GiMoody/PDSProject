@@ -7,8 +7,7 @@ using System.Runtime.Serialization.Json;
 namespace PDSProject
 {
     /// <summary>
-    /// Classe che gestice il client UDP
-    /// Internamente ha solo una classe che invia un messaggio UDP contenente le informazioni del profilo utente.
+    /// Class that manage a UDP Client
     /// </summary>
     class MyUDPSender {
         SharedInfo _referenceData;
@@ -20,7 +19,7 @@ namespace PDSProject
         public void Sender(string multicastAddr){
             UdpClient sender = new UdpClient();
 
-            // Serializza il contenuto e lo invia
+            // It serialize the file content and send it
             DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(Host));
             try
             {
@@ -28,7 +27,7 @@ namespace PDSProject
                 ser.WriteObject(ms, _referenceData.GetInfoLocalUser().ConvertToHost());
                 ms.Position = 0;
                 byte[] buffer = ms.ToArray();
-                sender.Send(buffer, buffer.Length, multicastAddr, _referenceData.UDPReceivedPort);
+                sender.Send(buffer, buffer.Length, multicastAddr, SharedInfo.UDPReceivedPort);
                 sender.Close();
             }
             catch (Exception e) {

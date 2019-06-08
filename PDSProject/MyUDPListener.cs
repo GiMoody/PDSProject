@@ -16,8 +16,7 @@ using System.Windows.Threading;
 namespace PDSProject
 {
     /// <summary>
-    /// Classe che gestisce l'UDPListener, ovvero il server.
-    /// Sta in ascolto per ricevere profilo dei vari utenti connessi alla rete locale.
+    /// Class that manage the UDPListener (server)
     /// </summary>
     class MyUDPListener
     {
@@ -28,15 +27,14 @@ namespace PDSProject
         }
         
         /// <summary>
-        /// Si mette in ascolto di pachetti UDP per eseguire l'operazione di Host discovery
+        /// It listens all the UDP packets to excute the operation of Host discovery
         /// </summary>
         public async Task Listener (CancellationToken token) {
-            UdpClient receiver = new UdpClient(_referenceData.UDPReceivedPort);
+            UdpClient receiver = new UdpClient(SharedInfo.UDPReceivedPort);
             while (!token.IsCancellationRequested)
             {
                 IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 try {
-                    //var result = 
                     await receiver.ReceiveAsync().WithWaitCancellation(token).ContinueWith(async ( antecedent ) => {
                         try {
                             await ServeClient((UdpReceiveResult)antecedent.Result);
@@ -68,6 +66,9 @@ namespace PDSProject
             receiver.Close();
         }
 
+        /// <summary>
+        /// Serve the current UDP client
+        /// </summary>
         async Task ServeClient(UdpReceiveResult result ) {
             try {
                 byte[] receivedBytes = result.Buffer;
@@ -78,10 +79,10 @@ namespace PDSProject
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(Host));
                 Host received = (Host)ser.ReadObject(stream);
 
-                // Controlla che il mittente non siamo noi
-                if (_referenceData.LocalIps.Contains(receivedIpEndPoint.Address.ToString())) return;
+                // Check if the remote user is not us
+                if (_referenceData.GetListIps().Contains(receivedIpEndPoint.Address.ToString())) return;
 
-                // Nel caso ci sia stat un cambio di rete avvisa in questo modo
+                // Update network information if needed
                 if (_referenceData.UpdateNetworkConfiguration(receivedIpEndPoint.Address.ToString())) {
                     if (!_referenceData.isFirst) {
                         await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
@@ -91,11 +92,13 @@ namespace PDSProject
                     else
                         _referenceData.isFirst = false;
 
-                    // Avviso il TCPListener di attivarsi
+                    // Pulse monitor to advise the TCPlistener to start
                     lock (_referenceData.cvListener) {
                         Monitor.Pulse(_referenceData.cvListener);
                     }
                 }
+
+                // Update user data if needed
                 if (_referenceData.UpdateUsersInfo(received, receivedIpEndPoint.Address.ToString())) {
                     string ip = receivedIpEndPoint.Address.ToString();
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {

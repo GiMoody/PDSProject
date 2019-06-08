@@ -8,12 +8,11 @@ namespace PDSProject
     class Utility
     {
         /// <summary>
-        /// Dal nome del file ottiene il path assoluto dell' immagine di profilo di default
-        /// ma sarà usata poi per ogni immagine di profilo degli altri hosts salvata all'interno di una specifica cartella
+        /// Giving the file name it return the absolute path of the user's profile image
         /// </summary>
-        /// <param name="directory">Directory in cui si trova il file a partire dalla working directory</param>
-        /// <param name="filename">Nome del file</param>
-        /// <returns>Path assoluto del file</returns>
+        /// <param name="directory">Directory in wich the file is located starting from the working directory</param>
+        /// <param name="filename">File name</param>
+        /// <returns>Absolute path of the file, if it exists</returns>
         static public string FileNameToPath(string directory, string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             string archiveFolder = currentDirectory;
@@ -31,10 +30,10 @@ namespace PDSProject
 
 
         /// <summary>
-        /// Dal nome del file ottiene il path assoluto del file contenuto nlla cartella System di Resources
+        /// Get the absolute path of a file contained in the "System" directory on the Application Resources
         /// </summary>
-        /// <param name="filename">Nome del file</param>
-        /// <returns>Path assoluto del file</returns>
+        /// <param name="filename">File Name</param>
+        /// <returns>Absolute path, if it exists</returns>
         public static string FileNameToSystem(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -50,9 +49,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la stringa del path della cartella Resources
+        /// Return the absolute path of the "Resources" directory of the application
         /// </summary>
-        /// <returns>Path assoluto della directory Resources</returns>
+        /// <returns>Absolute path of the "Resources" directory</returns>
         public static string PathResources () {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
@@ -61,9 +60,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la stringa del path della cartella System in Resources
+        /// Return the absolute path of the "System" directory of the application contained in Resources
         /// </summary>
-        /// <returns>Path assoluto della directory System in Resources</returns>
+        /// <returns>Absolute path of the "System" directory</returns>
         public static string PathSystem() {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -73,11 +72,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la stringa del path della cartella Tmp in Resources
+        /// Return the absolute path of the "Tmp" directory of the application contained in Resources
         /// </summary>
-        /// <returns>Path assoluto della directory Tmp in Resources</returns>
+        /// <returns>Absolute path of the "Tmp" directory</returns>
         public static string PathTmp () {
-            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
             string archiveFolder = Path.Combine(currentDirectory, "Resources");
             archiveFolder = Path.Combine(archiveFolder, "Tmp");
@@ -85,11 +84,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la stringa del path della cartella Host in Resources
+        /// Return the absolute path of the "Host" directory of the application contained in Resources
         /// </summary>
-        /// <returns>Path assoluto della directory Host in Resources</returns>
+        /// <returns>Absolute path of the "Host" directory</returns>
         public static string PathHost() {
-            string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
             string archiveFolder = Path.Combine(currentDirectory, "Resources");
             archiveFolder = Path.Combine(archiveFolder, "Host");
@@ -97,10 +96,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna il path dell'immagine di profilo contenuta nella cartella Host in Resources
+        /// Return the path of an profile image of a remote host contained in the "Host" directory in Resources
         /// </summary>
-        /// <param name="filename">Nome del file</param>
-        /// <returns>Path assoluto del file se esiste</returns>
+        /// <param name="filename">File name</param>
+        /// <returns>Absolute path of the image</returns>
         public static string FileNameToHost(string filename) {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             
@@ -116,10 +115,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Dal path assoluto ottiene il nome del file
+        /// Give the file name starting from the absolute path of the file
         /// </summary>
-        /// <param name="path">Path assoluto</param>
-        /// <returns>Nome del file</returns>
+        /// <param name="path">Absolute path</param>
+        /// <returns>File's name</returns>
         static public string PathToFileName(string path) {
             string[] infoImage = path.Split(new string[] { "\\" }, StringSplitOptions.None);
 
@@ -127,10 +126,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna l'indirizzo multicast dell'indirizzo IP ricevuto come paramentro
+        /// Return the multicast address of an ip address
         /// </summary>
-        /// <param name="IP">Indirizzo IP</param>
-        /// <returns>Indirizzo multicast</returns>
+        /// <param name="IP">Ip address</param>
+        /// <returns>Multicast address</returns>
         static public string GetMulticastAddress(string IP) {
             string[] parts = IP.Split('.');
             parts[3] = "255";

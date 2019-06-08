@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PDSProject {
+    /// <summary>
+    /// Class used for the listbox object to show wich file is sended/received
+    /// </summary>
     public class FileRecive : INotifyPropertyChanged {
         private string _hostName;
         private string _fileName;
@@ -15,14 +18,14 @@ namespace PDSProject {
         
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public string hostName { get { return _hostName; } set { _hostName = value; OnPropertyChanged("hostName"); } }
-        public string fileName { get { return _fileName; } set { _fileName = value; OnPropertyChanged("fileName"); } }
-        public string statusFile { get { return _statusFile; } set { _statusFile = value; OnPropertyChanged("statusFile"); } }
-        public string estimatedTime { get { return _estimatedTime; } set { _estimatedTime = value; OnPropertyChanged("estimatedTime"); } }
-        public double dataRecived { get { return _dataRecived; } set { _dataRecived = value; OnPropertyChanged("dataRecived"); } }
-        public bool isRecived { get; set; }
-        public long TimestampResend { get; set; }
-        public string ip { get; set; }
+        public string hostName          { get { return _hostName; } set { _hostName = value; OnPropertyChanged("hostName"); } }
+        public string fileName          { get { return _fileName; } set { _fileName = value; OnPropertyChanged("fileName"); } }
+        public string statusFile        { get { return _statusFile; } set { _statusFile = value; OnPropertyChanged("statusFile"); } }
+        public string estimatedTime     { get { return _estimatedTime; } set { _estimatedTime = value; OnPropertyChanged("estimatedTime"); } }
+        public double dataRecived       { get { return _dataRecived; } set { _dataRecived = value; OnPropertyChanged("dataRecived"); } }
+        public bool   isRecived         { get; set; }
+        public long   TimestampResend   { get; set; }
+        public string ip                { get; set; }
 
         public FileRecive (string hostName, string fileName, FileRecvStatus? statusFile, string estimatedTime, double dataRecived) {
             this.hostName = hostName;

@@ -12,15 +12,8 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
 
-namespace PDSProject
-{
-    /// <summary>
-    /// Mantiene le informazioni condivise da ogni classe del programma.
-    /// Per garantire che esista una sola istanza durante l'esecuzione del programma è stata implementata come singleton 
-    /// utilizzando la classe Lazy<T>. Questa garantisce che venga sempre inizializzata una singola istanza anche in caso di
-    /// esecuzione concorrente.
-    /// </summary>
-    
+namespace PDSProject {
+    // Enum status for send file
     public enum FileSendStatus {
         PREPARED,
         READY,
@@ -31,6 +24,7 @@ namespace PDSProject
         RESENT
     }
 
+    // Enum status for recv file
     public enum FileRecvStatus {
         TOCONF,
         YSEND,
@@ -41,6 +35,10 @@ namespace PDSProject
         RESENT
     }
 
+    /// <summary>
+    /// Shared info between classes.
+    /// It exits as a singleton using the Lazy<T> class.
+    /// </summary>
     public class SharedInfo {
         // Singleton 
         //---------------------------------------------
@@ -49,32 +47,32 @@ namespace PDSProject
         // Hosts in network 
         //---------------------------------------------
         public Dictionary<string, Host> Users = new Dictionary<string, Host>();
-        public List<string> selectedHosts = new List<string>();
-        public Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
+        private List<string> selectedHosts = new List<string>();
+        private Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
         // Info for the current user
         //---------------------------------------------
-        public CurrentHostProfile LocalUser = new CurrentHostProfile();
+        private CurrentHostProfile LocalUser = new CurrentHostProfile();
         
-        //Default Value
+        // Default Value
         public string defaultImage = "user.png"; 
         public string defaultPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory).ToString();
         string currentHostPath = Utility.PathResources() + "\\userProfile.json";
 
         // Network Confugration
         //---------------------------------------------
-        public Int32 TCPPort = 13000;
-        public Int32 UDPReceivedPort = 20000;
+        public const Int32 TCPPort = 13000;
+        public const Int32 UDPReceivedPort = 20000;
 
         // Current network information 
-        public string LocalIPAddress = "";
-        public string BroadcastIPAddress = "";
+        private string LocalIPAddress = "";
+        private string BroadcastIPAddress = "";
 
-        // Data structures di supporto da usare nella ricerca della sottorete in cui sono presenti degli Host
-        public List<string> LocalIps = new List<string>();
-        public List<string> BroadcastIps = new List<string>();
-        public Dictionary<string, string> Ips =new Dictionary<string, string>();
-        public object lockIps = new object();
+        // Support data structures used to search a subnetwork with at least one host
+        private List<string> LocalIps = new List<string>();
+        private List<string> BroadcastIps = new List<string>();
+        private Dictionary<string, string> Ips =new Dictionary<string, string>();
+        private object lockIps = new object();
 
         // TCP listener Condition Variable in case of changed network
         public object cvListener = new object();
@@ -82,21 +80,21 @@ namespace PDSProject
 
         // Files to send information
         //---------------------------------------------
-        public List<string> PathFileToSend = new List<string>();
-        public ConcurrentDictionary<string, Dictionary<string, FileSendStatus>> FileToSend = new ConcurrentDictionary<string, Dictionary<string, FileSendStatus>>();
+        private List<string> PathFileToSend = new List<string>();
+        private ConcurrentDictionary<string, Dictionary<string, FileSendStatus>> FileToSend = new ConcurrentDictionary<string, Dictionary<string, FileSendStatus>>();
 
         // File to recive information
         //---------------------------------------------
-        public ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>> FileToRecive = new ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>>();
+        private ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>> FileToRecive = new ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>>();
         
         /// <summary>
-        /// Costruttore privato, evita che possano esistere più istanze della stessa classe 
+        /// Private Constructor, used to avoid call from other classes
         /// </summary>
         private SharedInfo () {
-            // Controlla se esiste già un profilo dell'utente corrente, se noi lo crea
+            // Check if an instance of the singleton already exists
             if (File.Exists(currentHostPath)) {
                 lock (LocalUser) {
-                    // Operaizione di deserializzazione
+                    // Deserialization of the current local user data saved as a JSON
                     DataContractJsonSerializer sr = new DataContractJsonSerializer(typeof(CurrentHostProfile));
                     using (var stream = File.OpenRead(currentHostPath)) {
                         stream.Position = 0;
@@ -106,37 +104,36 @@ namespace PDSProject
             }
             else {
                 lock (LocalUser) {
-                    // Nel caso non sia presente un file JSON (prima accensione) ne genera uno di default.
+                    // If the file doesn't exist, a default one is created.
                     LocalUser.Name = "Username";
                     LocalUser.Status = "offline";
                     LocalUser.AcceptAllFile = false;
                     LocalUser.SavePath = defaultPath;
 
-                    // Crea l'hash dell'immagine di default
+                    // Create the hash of the profile image
                     using (SHA256 sha = SHA256.Create()) {
                         string file_name = Utility.FileNameToHost(defaultImage);
                         FileStream file = File.OpenRead(file_name);
-
-                        // Calcolo effettivo dell'hash
+                        
                         byte[] hash = sha.ComputeHash(file);
                         LocalUser.ProfileImageHash = BitConverter.ToString(hash).Replace("-", String.Empty);
                         LocalUser.ProfileImagePath = defaultImage;
                     }
 
-                    // Operazione di deserializzazione
+                    // Deserialization operation
                     DataContractJsonSerializer sr = new DataContractJsonSerializer(typeof(CurrentHostProfile));
                     using (var stream = File.Create(currentHostPath)) {
                         sr.WriteObject(stream, LocalUser);
                     }
                 }
             }
-            // Aggiunto come delegato il metodo 'AddressChangedCallback' in caso di cambio di rete
+            // Add delegate to the 'AddressChangedCallback' event in case of a network change configuration
             NetworkChange.NetworkAddressChanged += new NetworkAddressChangedEventHandler(AddressChangedCallback); 
             FindAllNetworkInterface();
         }
 
         /// <summary>
-        /// Proprietà che ritorna una copia del riferimento all'istanza
+        /// Return a copy of the singleton's instance
         /// </summary>
         public static SharedInfo Instance {
             get {
@@ -146,12 +143,11 @@ namespace PDSProject
 
         #region --------------- NETWORK CONFIGURATION ---------------------
         /// <summary>
-        /// Per ogni cambio controlla per ogni interfaccia di rete non virtuale o non di callback l'indirizzo IP locale e calcola il corrispondende multicast
+        /// In case of network configuration change, change the ip and calculate the correspondend brodacast address
         /// </summary>
         private void FindAllNetworkInterface() {
-            // Prima di tutto pulisco le strutture dati di supporto
+            // Clean all the support structures
             lock (Users) {
-                // Lock usato per assicurare la pulizia della struttura dati in mutua esclusione
                 Users.Clear();
             }
             
@@ -188,14 +184,14 @@ namespace PDSProject
             lock (UserImageChange) {
                 UserImageChange.Clear();
             }
-            // Lock usato per assicurare l'accesso alle strutture dati di supporto per la ricerca dei vari indirizzi
-            // delle interfaccie di rete che dispone il sistema 
+
+            // Lock to ensure the mutual exclusion of the data structured used in case of a network change
             lock (lockIps) {
                 Ips.Clear();
                 LocalIPAddress = "";
                 BroadcastIPAddress = "";
 
-                // Listo tutte i possibili IP delle Network Interface attive sul dispositivo che non siano Loopback o Virtuali
+                // List all the network address's IP of the active network interfaces (excluded Virtual and Loopback)
                 foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) {
                     if (item.OperationalStatus == OperationalStatus.Up &&
                         !item.Description.Contains("Virtual") &&
@@ -223,16 +219,16 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Metodo invocato ad ogni cambio di rete
+        /// It been called at each network configuration change
         /// </summary>
         static void AddressChangedCallback(object sender, EventArgs e) {
             Instance.FindAllNetworkInterface();
         }
 
         /// <summary>
-        /// Controlla se c'è adesso una configurazione di rete
+        /// Check if a network configuration is setted
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Return true if the a configuration is setted, false otherwise</returns>
         public bool CheckIfConfigurationIsSet () {
             lock (lockIps) {
                 if (LocalIPAddress.Equals("") && BroadcastIPAddress.Equals(""))
@@ -242,9 +238,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la lista di tutti gli IPs delle varie interfaccie di rete
+        /// Return the list of all ips
         /// </summary>
-        /// <returns></returns>
+        /// <returns>List of all the ips</returns>
         public List<string> GetListIps () {
             lock (lockIps) {
                 return Ips.Keys.ToList();
@@ -252,9 +248,9 @@ namespace PDSProject
         }
         
         /// <summary>
-        /// Ritorna copia dell'indirizzo multicast corrente
+        /// Return a copy of the current broadcast address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current broadcast address</returns>
         public string GetBroadcastIPAddress() {
             lock (lockIps) {
                 return BroadcastIPAddress;
@@ -262,9 +258,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna copia dell'indirizzo corrente
+        /// Return a copy of the current ip address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current local ip address</returns>
         public string GetLocalIPAddress () {
             lock (lockIps) {
                 return LocalIPAddress;
@@ -272,19 +268,15 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggirona configurazioni di rete
+        /// Update network configuration
         /// </summary>
-        /// <param name="ip">Ip locale a cui si è ricevuto risposta</param>
-        /// <returns>Ritorna true se l'ip è di una delle interfaccie di rete della macchina, falso altrimenti</returns>
+        /// <param name="ip">Local Ip that reply</param>
+        /// <returns>True if the ip subnetwork belongs to one of the network interface of the system</returns>
         public bool UpdateNetworkConfiguration ( string ip ) {
             lock (lockIps) {
-                // Accesso in mutua esclusione alle strutture dati
                 if (LocalIPAddress.Equals("") && BroadcastIPAddress.Equals("")) {
-                    // Solo nel caso ci sia almeno un indirizzo di rete...
+                    // In case at least one address exists...
                     if (Ips.Count > 0) {
-
-                        // Controllo se l'IP dell'host di cui ho ricevuto il pacchetto ha l'IP di una delle interfaccie di rete
-                        // della macchina corrente
                         string MulticastAddrs = Utility.GetMulticastAddress(ip);
                         if (BroadcastIps.Contains(MulticastAddrs)) {
                             BroadcastIPAddress = MulticastAddrs;
@@ -302,7 +294,7 @@ namespace PDSProject
         #region --------------- LOCAL USER CONFIGURATION ---------------------
 
         /// <summary>
-        /// Aggiorna le informazioni del profilo utente salvate sul file JSON
+        /// Update the user interface data on the JSON file
         /// </summary>
         public void SaveJson(){
             try {
@@ -317,13 +309,13 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna le informazioni dell'utente locale tranne lo status
+        /// Update all user data except the status
         /// </summary>
-        /// <param name="name">Nuovo nome utente</param>
-        /// <param name="pathImage">Nuovo path immagine profilo</param>
-        /// <param name="pathSave">Nuovo path di salvataggio file</param>
-        /// <param name="isPathDefault">Bool per controllare se path default o no</param>
-        /// <param name="acceptAll">Bool che definisce la configurazione di salvataggio automatico</param>
+        /// <param name="name">New Username</param>
+        /// <param name="pathImage">New Profile Image Path</param>
+        /// <param name="pathSave">New Save Path</param>
+        /// <param name="isPathDefault">Bool value, true if the path is default (false otherwise)</param>
+        /// <param name="acceptAll">Bool value, true if the user accept all files (false otherwise)</param>
         public void UpdateInfoLocalUser(string name, string pathImage, string pathSave, bool? isPathDefault, bool? acceptAll) {
             lock (LocalUser) {
                 LocalUser.Name = name.Equals("") ? LocalUser.Name : name;
@@ -334,7 +326,8 @@ namespace PDSProject
                     else
                         LocalUser.SavePath = defaultPath;
                 }
-                // Contolla se l'immagine è la stessa (controlla hash)
+
+                // Check if the image is the same (hash check)
                 if (!pathImage.Equals("")) {
                     using (SHA256 sha = SHA256.Create()) {
                         FileStream file = File.OpenRead(pathImage);
@@ -362,9 +355,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna lo status dell'utente corrente
+        /// Update local user current status
         /// </summary>
-        /// <param name="status">Nuovo status (online/offline)</param>
+        /// <param name="status">New status (online/offline)</param>
         public void UpdateStatusLocalUser ( string status ) {
             lock (LocalUser) {
                 LocalUser.Status = status.Equals("") ? LocalUser.Status : status;
@@ -379,7 +372,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna l'oggetto currentHost corrente
+        /// Return the CurrentLocalHost object
         /// </summary>
         public CurrentHostProfile GetInfoLocalUser () {
             CurrentHostProfile returnData;
@@ -393,8 +386,9 @@ namespace PDSProject
         
         #region --------------- REMOTE USER CONFIGURATION ---------------------
 
+        
         /// <summary>
-        /// Ritorna il nickname dell'utente remote dato il suo ip
+        /// Return the username of a remote user giving its IP
         /// </summary>
         public string GetRemoteUserName(string ip) {
             lock(Users) {
@@ -405,7 +399,7 @@ namespace PDSProject
         }
         
         /// <summary>
-        /// Ritorna l'hash dell'immagine di profilo dell'utente remote dato il suo ip
+        /// Return the hash value of a remote user's profile image giving its ip
         /// </summary>
         public string GetRemoteUserHashImage ( string ip ) {
             lock (Users) {
@@ -416,7 +410,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna il path dell'immagine di profilo dell'utente remote dato il suo ip
+        /// Return the path of the profile image of a remote user's profile image giving its ip
         /// </summary>
         public string GetRemoteUserProfileImage ( string ip ) {
             lock (Users) {
@@ -427,15 +421,15 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna o inserisce informazioni di un utente remoto
+        /// Update or Add data of a remote user
         /// </summary>
-        /// <param name="host">Istanza Host</param>
-        /// <param name="ip">Ip Host remoto</param>
-        /// <returns>Ritorna true se l'host è stato aggiornato o inserito, falso altrimenti</returns>
+        /// <param name="host">Remote user object</param>
+        /// <param name="ip">Ip remote user</param>
+        /// <returns>Return true if the host was added or updated, false otherwise</returns>
         public bool UpdateUsersInfo ( Host host, string ip ) {
             lock (Users) {
                 bool IsUserUpdate = false;
-                // Aggiungo informazioni utili oggetto dati Host
+                
                 string Path = Utility.PathHost() + "\\" + Utility.PathToFileName(host.ProfileImagePath);
                 try {
                     File.OpenRead(Path);
@@ -449,7 +443,7 @@ namespace PDSProject
                 host.Ip = ip;
                 host.LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-                // Caso Utente già presente
+                // User already exists
                 if (Users.ContainsKey(ip)) {
                     if (!Users[ip].Equals(host)) {
                         Users[ip] = host;
@@ -458,8 +452,8 @@ namespace PDSProject
                     else
                         Users[ip].LastPacketTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 }
-                // Caso Host non ancora presente
                 else {
+                    // User doesn't exists
                     host.ProfileImageHash = "";
                     Users[ip] = host;
                     IsUserUpdate = true;
@@ -475,13 +469,13 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna info immagine di profilo utente. In caso non siano state ricevute ancora informazioni utente
-        /// questo viene salvato su una struttura dati apposita
+        /// Update profile image data of a remote user. 
+        /// In case the file doesn't exists on the filesystem the hash and the name are saved into a data structure
         /// </summary>
-        /// <param name="newHash">Valore hash dell'immagine di profilo</param>
-        /// <param name="newPath">Path immagine di profilo</param>
-        /// <param name="ip">Ip host remoto</param>
-        /// <returns>Ritorna true se l'immagine di profilo dell'host è stata aggiornata, falso altrimenti</returns>
+        /// <param name="newHash">New hash's value</param>
+        /// <param name="newPath">New path file</param>
+        /// <param name="ip">Remote Ip host</param>
+        /// <returns>Return true if the profile image was update, false otherwise</returns>
         public bool ProfileImageUpdate(string newHash, string newPath, string ip ){
             lock (Users) {
                 if (Users.ContainsKey(ip) && Users[ip].ProfileImageHash.Equals(newHash))
@@ -496,7 +490,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la lista degli utenti attualmente selezionati
+        /// Return the list of the current selected user
         /// </summary>
         public List<string> GetCurrentSelectedHost () {
             lock (selectedHosts) {
@@ -505,10 +499,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna lo status dell'host remoto
+        /// Return remote user status giving its ip
         /// </summary>
-        /// <param name="ip">Ip host remoto</param>
-        /// <returns>Status dell'host se questo esiste</returns>
+        /// <param name="ip">Remote user IP</param>
+        /// <returns>Status of the remote user</returns>
         public string GetUserStatus ( string ip ) {
             lock (Users) {
                 if (Users.ContainsKey(ip))
@@ -519,7 +513,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la lista degli utenti attualmente in linea
+        /// Return the list of the online remote users
         /// </summary>
         public List<Host> GetOnlineUsers () {
             lock (Users) {
@@ -528,10 +522,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna lo status dell'utente remoto
+        /// Update remote user's status
         /// </summary>
-        /// <param name="ip">Ip host remoto</param>
-        /// <param name="status">Status dav aggiornare</param>
+        /// <param name="ip">IP remote user</param>
+        /// <param name="status">Status to update</param>
         public void UpdateStatusUser ( string ip, string status ) {
             lock (Users) {
                 if (Users.ContainsKey(ip))
@@ -540,10 +534,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna il path dell'immagine di profilo dell'host da aggiornare
+        /// Return the path of image profile of the remote user that need to be update
         /// </summary>
-        /// <param name="ip">Ip host remoto</param>
-        /// <returns>Path del file se esiste</returns>
+        /// <param name="ip">Remote user Ip</param>
+        /// <returns>Path of the remote user, if exist</returns>
         public string GetPathProfileImageHost ( string ip ) {
             string filename = "";
             string tmp_name = "";
@@ -571,7 +565,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna la lista degli host attualmente selezionati
+        /// Return the list of all the selected remote users 
         /// </summary>
         public List<string> GetSelectedHosts () {
             lock (selectedHosts) {
@@ -580,9 +574,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiunge alla lista degli host selezionati un host
+        /// Add a remote user to the selected user's list
         /// </summary>
-        /// <param name="ip">Ip host da inserire</param>
+        /// <param name="ip">IP of the remote user to add</param>
         public void AddSelectedHost ( string ip ) {
             lock (selectedHosts) {
                 if (!selectedHosts.Contains(ip))
@@ -591,9 +585,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Rimuove dalla lista degli host selezionati un host
+        /// Remove a host to the list of selected host
         /// </summary>
-        /// <param name="ip">Ip host da eliminare</param>
+        /// <param name="ip">Remote user's Ip</param>
         public void RemoveSelectedHost ( string ip ) {
             lock (selectedHosts) {
                 if (selectedHosts.Contains(ip))
@@ -602,9 +596,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Rimuove dalla lista degli host selezionati un set di Host
+        /// Remove a set of host on the user's selected listHost
         /// </summary>
-        /// <param name="ip">Ip host da eliminare</param>
+        /// <param name="ip">List of remote user's Ip</param>
         public void RemoveSelectedHosts ( List<string> listHosts ) {
             lock (selectedHosts) {
                 foreach (string ip in listHosts) {
@@ -619,11 +613,11 @@ namespace PDSProject
         #region --------------- RECIVE FILE CONFIGURATION/CHECK ---------------------
 
         /// <summary>
-        /// Ritorna lo stato dell file da ricevere dati ip del mittente e nome del file
+        /// Return the status of the recived file status
         /// </summary>
-        /// <param name="ipUser">Ip mittente file</param>
-        /// <param name="pathFile">Path del file di cui ha inviato la richiesta </param>
-        /// <returns>Ritorna lo stato del file se questo è stato già annunciato, null altrimenti</returns>
+        /// <param name="ipUser">Sender Ip</param>
+        /// <param name="pathFile">Path of the file</param>
+        /// <returns>Return the status of the recived file, if it was already announced</returns>
         public FileRecvStatus? GetStatusRecvFileForUser(string ipUser, string pathFile) {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
@@ -634,6 +628,11 @@ namespace PDSProject
             return null;
         }
 
+        /// <summary>
+        /// Get the list of received file that need to be configured giving the remote user's ip
+        /// </summary>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <returns>List of files</returns>
         public List<String> GetRecvFileIP(string ipUser) {
             lock(FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
@@ -643,6 +642,11 @@ namespace PDSProject
             }
         }
 
+        /// <summary>
+        /// Get the list of all received file giving the remote user's ip
+        /// </summary>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <returns>List of files</returns>
         public List<String> GetListRecvFileIP (string ipUser) {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
@@ -653,12 +657,12 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna status di un file di cui è stata annunciata la ricezione
+        /// Update the status of the announced file
         /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file da ricevere</param>
-        /// <param name="status">Status da aggiornare</param>
-        /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <param name="pathFile">Path file to receive</param>
+        /// <param name="status">File Status</param>
+        /// <returns>True if the file status was update, false otherwise</returns>
         public bool UpdateStatusRecvFileForUser ( string ipUser, string pathFile, FileRecvStatus status ) {
         lock (FileToRecive) {
             Dictionary<string, FileRecvStatus> currentDictionary;
@@ -675,11 +679,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Controlla se status file da ricevere è stato confermato dall'utente o si vuole rinviare
+        /// Check if the status of the file was confirmed or need to be resended
         /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <returns>Ritorna true se il file da ricevere ha le corrente impostazioni, falso altrimenti </returns>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <param name="pathFile">Path file to update</param>
+        /// <returns>Return true if the file has the correct settings, false otherwise</returns>
         public bool CheckPacketRecvFileStatus ( string ipUser, string pathFile ) {
             lock (FileToRecive) {
                 if (FileToRecive.ContainsKey(ipUser) && FileToRecive[ipUser].ContainsKey(pathFile) &&
@@ -691,11 +695,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna status file in ricezione in InProgress se e solo se il file non è stato rifiutato
+        /// Update status of received file only if it was accepted
         /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <returns>Ritorna true se il file è stato aggiornato, falso altrimenti</returns>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <param name="pathFile">Path file to update</param>
+        /// <returns>Return true if the file was updated, false otherwise</returns>
         public bool CheckAndUpdateRecvFileStatus ( string ipUser, string pathFile ) {
             lock (FileToRecive) {
                 if (FileToRecive.ContainsKey(ipUser) && FileToRecive[ipUser].ContainsKey(pathFile) &&
@@ -703,18 +707,17 @@ namespace PDSProject
                     FileToRecive[ipUser][pathFile] = FileRecvStatus.INPROGRESS;
                     return false;
                 }
-
                 return true;
             }
         }
 
         /// <summary>
-        /// Controlla se lo status del file in ricezione è uguale a quello ricevuto come argomento
+        /// Check the status of a received file is the same of the one passed as argument
         /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <param name="status">Status da confrontare</param>
-        /// <returns>Ritorna true se il file è stato aggiornato, falso altrimenti</returns>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <param name="pathFile">Path file to update</param>
+        /// <param name="status">File Status</param>
+        /// <returns>Return true if the file was update, false otherwise</returns>
         public bool CheckRecvFileStatus ( string ipUser, string pathFile, FileRecvStatus status ) {
             lock (FileToRecive) {
                 if (FileToRecive.ContainsKey(ipUser) && FileToRecive[ipUser].ContainsKey(pathFile) &&
@@ -725,11 +728,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiunge o aggiorna un file in ricezione
+        /// Add or update a received file
         /// </summary>
-        /// <param name="ipUser">Ip host mittente</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <param name="status">Status aggiornare</param>
+        /// <param name="ipUser">Remote user's ip</param>
+        /// <param name="pathFile">Path file to update</param>
+        /// <param name="status">File Status</param>
         public void AddOrUpdateRecvStatus ( string ipUser, string pathFile, FileRecvStatus status ) {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
@@ -747,20 +750,12 @@ namespace PDSProject
             }
         }
 
-        //public FileRecive GetFileReciveByFileName (string fileName) {
-        //    lock(fileReciveList) {
-        //        if(fileReciveList.Where(e => e.fileName.Equals(fileName)).Count() > 0) {
-        //            return fileReciveList.Where(e => e.fileName.Equals(fileName)).ToList()[0];
-        //        } else
-        //            return null;
-        //    }
-        //}
-
+        
         /// <summary>
-        /// Controlla se un file è stato ricevuto o no
+        /// Check if the file was received or not
         /// </summary>
-        /// <param name="fileName">Nome del file</param>
-        /// <returns>Ritorna true se il file è stato ricevuto, falso altrimenti</returns>
+        /// <param name="fileName">FileName</param>
+        /// <returns>True if the file was received, false otherwisw</returns>
         public bool FileReceiveFromAllUsers ( string fileName ) {
             lock (FileToRecive) {
                 int users = FileToRecive.Where(c => c.Value.ContainsKey(fileName)).Count();
@@ -772,9 +767,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Cancella un file dalla lista dei file ricevuti
+        /// Delete a file if it was received
         /// </summary>
-        /// <param name="fileName">Nome del file</param>
+        /// <param name="fileName">FileName</param>
         public void RemoveRecvFile ( string fileName ) {
             lock (FileToRecive) {
                 foreach (KeyValuePair<string, Dictionary<string, FileRecvStatus>> element in FileToRecive) {
@@ -784,17 +779,18 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna il nome di un file ricevuto
+        /// Update the name of a received file
         /// </summary>
-        /// <param name="fileName">Nome del file</param>
-        /// <param name="ip">Ip del mittente</param>
-        /// <param name="status">Status del file</param>
-        public void UpdateFileName (string fileName, string ip, FileRecvStatus status ) {
+        /// <param name="OriginalFileName">original filename</param>
+        /// <param name="fileName">update filename</param>
+        /// <param name="ip">Remote user's ip</param>
+        /// <param name="status">Status of the file</param>
+        public void UpdateFileName (string originalFileName, string fileName, string ip, FileRecvStatus status ) {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
                 if (FileToRecive.TryGetValue(ip, out currentDictionary)) {
-                    if (currentDictionary.ContainsKey(fileName) && currentDictionary[fileName] == status) {
-                        currentDictionary.Remove(fileName);
+                    if (currentDictionary.ContainsKey(originalFileName) && currentDictionary[originalFileName] == status) {
+                        currentDictionary.Remove(originalFileName);
                         currentDictionary.Add(fileName, status);
                         FileToRecive.AddOrUpdate(ip, ( key ) => currentDictionary, ( key, oldValue ) => {
                             oldValue = currentDictionary;
@@ -810,10 +806,10 @@ namespace PDSProject
         #region --------------- SEND FILE CONFIGURATION/CHECK ---------------------
 
         /// <summary>
-        /// Aggiunge o aggiorna un file d'invio
+        /// Add or update a sended file
         /// </summary>
-        /// <param name="ipUser">Ip destinazione</param>
-        /// <param name="dictionary">Set di file da aggiungere/aggiornare</param>
+        /// <param name="ipUser">Destination ip</param>
+        /// <param name="dictionary">Set of file to add/update</param>
         public void AddOrUpdateSendFile ( string ipUser, Dictionary<string, FileSendStatus> dictionary ) {
             lock (FileToSend) {
                 FileToSend.AddOrUpdate(ipUser, ( key ) => dictionary, ( key, oldValue ) => {
@@ -823,12 +819,12 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Aggiorna status di un file che si vuole inviare ad uno o più utenti
+        /// Update send file status
         /// </summary>
-        /// <param name="ipUser">Ip host desitnazione</param>
-        /// <param name="pathFile">Path del file da inviare</param>
-        /// <param name="status">Status da aggiornare</param>
-        /// <returns>Ritorna true se lo stato viene aggiornato, falso altrimenti</returns>
+        /// <param name="ipUser">Destination ip</param>
+        /// <param name="pathFile">Path file</param>
+        /// <param name="status">Status to update</param>
+        /// <returns>True if the status is update, false otherwise</returns>
         public bool UpdateSendStatusFileForUser ( string ipUser, string pathFile, FileSendStatus status ) {
             lock (FileToSend) {
                 Dictionary<string, FileSendStatus> currentDictionary;
@@ -845,12 +841,12 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Controlla se lo status del file in ricezione è uguale a quello ricevuto come argomento
+        /// CHeck if the send file status is the same as the one received as argument
         /// </summary>
-        /// <param name="ipUser">Ip host destinazione</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <param name="status">Status da confrontare</param>
-        /// <returns>Ritorna true se il file è stato aggiornato, falso altrimenti</returns>
+        /// <param name="ipUser">Destination Ip</param>
+        /// <param name="pathFile">Path file</param>
+        /// <param name="status">Status to update</param>
+        /// <returns>Return true if the status is the same, false otherwise</returns>
         public bool CheckSendStatusFile ( string ipUser, string pathFile, FileSendStatus status ) {
             lock (FileToSend) {
                 if (FileToSend.ContainsKey(ipUser) && FileToSend[ipUser].ContainsKey(pathFile) &&
@@ -861,10 +857,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Controllo se il file è stato inviato a tutti gli host
+        /// Check if the file was sended to all the remote hosts
         /// </summary>
-        /// <param name="fileName">Nome file</param>
-        /// <returns>Ritorna true se il file è stato inviato a tutti, falso altrimenti</returns>
+        /// <param name="fileName">File Name</param>
+        /// <returns>Return true if the file was sended to everyone, false otherwise</returns>
         public bool FileSendForAllUsers ( string fileName ) {
             lock (FileToSend) {
                 int users = FileToSend.Where(c => c.Value.ContainsKey(fileName)).Count();
@@ -876,11 +872,11 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Controlla se status file da inviare è stato confermato dall'utente o si vuole rinviare
+        /// Check if the sended file status was confirmed or need to be resended
         /// </summary>
-        /// <param name="ipUser">Ip host destinazione</param>
-        /// <param name="pathFile">Path del file</param>
-        /// <returns>Ritorna true se il file da ricevere ha le corrente impostazioni, falso altrimenti </returns>
+        /// <param name="ipUser">Destination ip</param>
+        /// <param name="pathFile">Path file</param>
+        /// <returns>Return true if the file has the correct configuration, false otherwise</returns>
         public bool CheckPacketSendFileStatus ( string ipUser, string pathFile ) {
             lock (FileToSend) {
                 if (FileToSend.ContainsKey(ipUser) && FileToSend[ipUser].ContainsKey(pathFile) &&
@@ -892,9 +888,9 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Rimuove un file da inviare nella lista
+        /// Remove an sended file to the list
         /// </summary>
-        /// <param name="path">Path del file da inviare</param>
+        /// <param name="path">Path file to remove</param>
         public void RemoveSendFile ( string fileName ) {
             lock (FileToSend) {
                 foreach (KeyValuePair<string, Dictionary<string, FileSendStatus>> element in FileToSend) {
@@ -904,7 +900,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Pulisco lista file da inviare
+        /// Clean the list of file to send
         /// </summary>
         public void ClearPathToSend (List<string> listCurrent ) {
             lock (PathFileToSend) {
@@ -914,9 +910,9 @@ namespace PDSProject
         }
         
         /// <summary>
-        /// Aggiunge un file da inviare nella lista
+        /// Add a file to the list of file to send
         /// </summary>
-        /// <param name="path">Path del file da inviare</param>
+        /// <param name="path">File path</param>
         public void AddPathToSend(string path ) {
             lock (PathFileToSend) {
                 PathFileToSend.Add(path);
@@ -924,20 +920,29 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Ritorna lista corrente dei file da inviare
+        /// Return list of the current files to send
         /// </summary>
+        /// <returns>List of the files to send</returns>
         public List<string> GetPathFileToSend () {
             lock (PathFileToSend) {
                 return PathFileToSend.ToList();
             }
         }
 
+        /// <summary>
+        /// Clear the Path file to send list
+        /// </summary>
         public void ClearPathFileToSend() {
             lock(PathFileToSend) {
                 PathFileToSend.Clear();
             }
         }
 
+        /// <summary>
+        /// Get dictionary of all the file to send giving the destination ip
+        /// </summary>
+        /// <param name="ip">Destination ip</param>
+        /// <returns>Dictionary with all the files and status</returns>
         public Dictionary<string, FileSendStatus> GetSendFilesByIp(string ip) {
             lock (FileToSend) {
                 if (FileToSend.ContainsKey(ip))

@@ -72,14 +72,10 @@ namespace PDSProject
             }
             // Catch the IOException that is raised if the pipe is broken
             // or disconnected.
-            catch (IOException e)
-            {
-                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
+            catch (IOException e) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
             }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
+            catch (Exception e) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
             }
         }
@@ -103,12 +99,9 @@ namespace PDSProject
             // Catch the IOException that is raised if the pipe is broken
             // or disconnected.
             catch (IOException e) {
-                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer IOException: {e.Message}");
             }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
+            catch (Exception e) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - PipeServer Exception - {e.GetType()} - {e.Message}");
             }
         }

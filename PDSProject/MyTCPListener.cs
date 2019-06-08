@@ -20,6 +20,9 @@ using System.Linq;
 
 namespace PDSProject
 {
+    /// <summary>
+    /// Class used to manage the CancellationToken for the UDP/TCP listener
+    /// </summary>
     static class TestCancellation
     {
         public static async Task<T> WithWaitCancellation<T> (
@@ -42,12 +45,9 @@ namespace PDSProject
     }
     
     /// <summary>
-    /// Classe che gestisce il TCPListener, ovvero il server.
-    /// Per ora client e server sono stati separati, ma se non risulta funzionale è possibile unirli in un'unica classe.
-    /// Internamente ha un riferimento a SharedInfo al quale può accedere all'IP dell'utente locale, IP broadcast dell'attuale sottorete e reltive porte.
+    /// Class that manage the TCP Listener (server).
     /// </summary>
-    public class MyTCPListener
-    {
+    public class MyTCPListener {
         SharedInfo _referenceData;
         const long bufferSize = 1024;
         CancellationTokenSource source;
@@ -57,12 +57,19 @@ namespace PDSProject
         SemaphoreSlim semaphoreForFile = new SemaphoreSlim(1,1);
         SemaphoreSlim semaphoreProfileImage = new SemaphoreSlim(1,1);
         SemaphoreSlim obj = new SemaphoreSlim(0);
-        
+
+        /// <summary>
+        /// MyTCPListener Constructor
+        /// </summary>
         public MyTCPListener () {
             _referenceData = SharedInfo.Instance;
         }
 
-        // Alternativa listener precendente in modo tale che supporti i cambi di rete
+        /// <summary>
+        /// Main Listener function that wait for any client that wants to send file or profile images
+        /// </summary>
+        /// <param name="tokenEndListener">Cancellation token from the MainWindows</param>
+        /// <returns>Return a task, it is used to allow the Task asynchronous programming model (TAP)</returns>
         public async Task Listener (CancellationToken tokenEndListener) {
             while (!tokenEndListener.IsCancellationRequested) {
                 source = new CancellationTokenSource();
@@ -77,11 +84,11 @@ namespace PDSProject
                 IPAddress localAddr = IPAddress.Parse(_referenceData.GetLocalIPAddress());
 
                 try {
-                    //Creo server definendo un oggetto TCPListener con porta ed indirizzo
-                    server = new TcpListener(localAddr, _referenceData.TCPPort);
+                    // Create a TCPLIstenr object
+                    server = new TcpListener(localAddr, SharedInfo.TCPPort);
                     server.Start();
 
-                    // Loop ascolto
+                    // Listener loop
                     while (!tokenListener.IsCancellationRequested) {
                         Console.WriteLine($"{DateTime.Now.ToString()}\t - TCPListener Waiting for connection...");
                         await server.AcceptTcpClientAsync().WithWaitCancellation(tokenListener).ContinueWith(async ( antecedent ) => {
@@ -114,7 +121,7 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Metodo chiamato per stoppare il server
+        /// It stops the server
         /// </summary>
         public void StopServer () {
             Console.WriteLine($"{DateTime.Now.ToString()} - Current TCPListener stopped");
@@ -122,10 +129,10 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Metodo che gestisce i vari client connessi
+        /// Manage the connected client
         /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
+        /// <param name="result">TCPClient object</param>
+        /// <returns>Return a task, it is used to allow the Task asynchronous programming model (TAP)</returns>
         public async Task ServeClient( object result) {
             NetworkStream stream = null;
             TcpClient client = null;
@@ -141,22 +148,22 @@ namespace PDSProject
 
                 int i = 0;
                 if ((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) {
-                    // Il primo pacchetto cambia a seconda del tipo di pacchetto ricevuto
+                    // The first byte define the type of the packet
                     byte[] readPacket = new byte[1];
                     Array.Copy(bytes, 0, readPacket, 0, 1);
 
-                    // In caso il primo byte non rispetti il tipo, viene lanciata un'eccezione
+                    // If it is not correct, send an Exception
                     if ((int)readPacket[0] > 5)
                         throw new Exception($"Packet not valid");
 
-                    // La seconda parte dell'header corrisponde in ogni caso al nome di un file codificato in UTF8
+                    // The following 256 bytes are the name of the file (UTF8 coding)
                     PacketType type = (PacketType)readPacket[0];
                     readPacket = new byte[256];
                     Array.Copy(bytes, 1, readPacket, 0, 256);
                     string filename = "";
                     UTF8Encoding encoder;
 
-                    // In caso di eccezione, questa viene rilanciata
+                    // Trown an exception in case the sequence of bytes cannot be converted as a stirng
                     try {
                         encoder = new UTF8Encoding();
                         filename = encoder.GetString(readPacket);
@@ -253,18 +260,18 @@ namespace PDSProject
         }
         
         /// <summary>
-        /// Metodo che gestisce il salvataggio di un file inviato da un host
+        /// Manage the download of a file sended by a remote host
         /// </summary>
-        /// <param name="client">TCPClient, il mittente</param>
-        /// <param name="stream">il NetworkStream per accedere ai dati</param>
-        /// <param name="ip">Ip mittente</param>
-        /// <param name="fileOriginal">Nome del file</param>
-        /// <param name="dim">Dimesione del file</param>
+        /// <param name="client">TCPClient object</param>
+        /// <param name="stream">NetworkStream of the client</param>
+        /// <param name="ip">Remote Ip user</param>
+        /// <param name="fileOriginal">File Name</param>
+        /// <param name="dim">File lenght(bytes)</param>
         async Task ServeReceiveFile ( TcpClient client, NetworkStream stream, string ip, string fileOriginal, long dim ) {
             string filename = "";
             FileStream file;
 
-            // Aspetto operazione sincrona per controllare se esiste un file con lo stesso nome
+            // Wait the asyncronous operation to chec if the same file exists in the filesystem
             await semaphoreForFile.WaitAsync();
 
             filename = Utility.PathTmp() + "\\" + fileOriginal;
@@ -273,22 +280,22 @@ namespace PDSProject
                 string[] files = Directory.GetFiles(Utility.PathTmp(), Utility.PathToFileName(splits[splits.Length - 2]) + "*" + splits[splits.Length - 1]);
                 splits[splits.Length - 2] += files.Count() > 0 ? ("_" + files.Count()) : "";
                 filename = string.Join(".", splits);
-                _referenceData.UpdateFileName(filename, ip, FileRecvStatus.YSEND);
+                _referenceData.UpdateFileName(fileOriginal,Utility.PathToFileName(filename), ip, FileRecvStatus.YSEND);
             }
             file = File.Create(filename);
             Console.WriteLine($"{DateTime.Now.ToString()}\t - ServeReceive created file on path {filename}");
 
             semaphoreForFile.Release();
 
-            // Inizio ricezione file
+            // Start file dowload
             // ---------------------------------------------------------------
            
             byte[] bytes = new byte[bufferSize * 64];
             bool first = true;
             bool noFlag = false;
             
-            // dimFile = dimensione totale del file
-            // dataReceived = totale dei byte che deve ancora ricevere
+            // dimFile = total file dimension
+            // dataReceived = total bytes that aren't received yet
             long dataReceived = dim; 
             int i = 0;
             uint estimatedTimePacketCount = 0;
@@ -348,12 +355,12 @@ namespace PDSProject
                 }
                 file.Close();
                 
-                // Fine ricezione file, inizio unzip!
+                // End file download, start unzip!
                 // ---------------------------------------------------------------
                 string fileNameToProcess = filename;
                 string ipUser = ip;
 
-                // Creo un nuovo Task per eseguire l'unzip del file in modo asincrono
+                // Create a new task to execute the unzip asynchronously
                 await Task.Run(() => {
                     FileRecvStatus? currentStatusFile = _referenceData.GetStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess));
                     if (currentStatusFile == null) return;
@@ -371,12 +378,12 @@ namespace PDSProject
                         try {
                             string savePathLocalUser = _referenceData.GetInfoLocalUser().SavePath;
 
-                            // Caso Cartella
+                            // Create directory
                             if (fileNameToProcess.Contains("Dir")) {
                                 string nameFile = Utility.PathToFileName(fileNameToProcess);
                                 nameFile = fileNameToProcess.Replace("_" + ipUser.Replace(".","_"), String.Empty);
 
-                                // Ottengo il nome della cartella
+                                // Get directory name
                                 string[] parts = nameFile.Split('_');
                                 nameFile = nameFile.Replace(parts[0] + "_", string.Empty);
 
@@ -393,16 +400,16 @@ namespace PDSProject
                                     destPath += "_(" + numb + ")";
                                 }
 
-                                // Estraggo effettivamente i file
+                                // Unzip files
                                 ZipFile.ExtractToDirectory(fileNameToProcess, destPath);
                                 _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), FileRecvStatus.RECIVED);
                                 semaphoreForFile.Release();
 
                             }
                             else if (fileNameToProcess.Contains("Files")) {
-                                // Caso Files
+                                // In case of a zip full of files
                                 using (ZipArchive archive = ZipFile.OpenRead(fileNameToProcess)) {
-                                    // Per ogni file dell'archivio controllo se esiste lo stesso file o no
+                                    // Check of each file if it already exists a file with the same name
                                     semaphoreForFile.Wait();
                                     foreach (ZipArchiveEntry entry in archive.Entries) {
                                         string nameFileToExtract = "";
@@ -458,13 +465,13 @@ namespace PDSProject
         }
 
         /// <summary>
-        /// Metodo che gestisce il salvataggio dell'immagine di profilo di un host
+        /// Manage a profile image dowload of a remote user
         /// </summary>
-        /// <param name="client">TCPClient, il mittente</param>
-        /// <param name="stream">il NetworkStream per accedere ai dati</param>
-        /// <param name="ip">Ip mittente</param>
-        /// <param name="fileOriginal">Nome dell'immagine di profilo</param>
-        /// <param name="dim">Dimesione del file</param>
+        /// <param name="client">TCPClient</param>
+        /// <param name="stream">NetworkStream of the client</param>
+        /// <param name="ip">Remote Ip</param>
+        /// <param name="fileOriginal">Original file name</param>
+        /// <param name="dim">Lenght of the file (bytes)</param>
         async Task ServeReceiveProfileImage ( TcpClient client, NetworkStream stream, string ip, string fileOriginal, long dim ) {
             string filename = Utility.PathHost() + "\\" + fileOriginal;
             int i = 0;
@@ -481,7 +488,7 @@ namespace PDSProject
             }
             else throw new Exception("Pacchetto inviato non corretto"); ;
 
-            // Aspetto operazione sincrona per controllare se esiste un file con lo stesso nome
+            // Wait end asyncronous operation to check if a file already exists or not with the same name
             await semaphoreProfileImage.WaitAsync();
 
             if (_referenceData.GetRemoteUserHashImage(ip).Equals(hash_s)) {
@@ -490,8 +497,6 @@ namespace PDSProject
             }
             bytes = new byte[bufferSize * 64];
 
-            // Aspetto operazione sincrona per controllare se esiste un file con lo stesso nome
-            //wait semaphoreProfileImage.WaitAsync();
             if (File.Exists(filename)) {
                 string[] parts = fileOriginal.Split('.');
                 string extension = parts[parts.Length - 1];
@@ -506,7 +511,7 @@ namespace PDSProject
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - ProfileImage File Created on path {filename}");
 
                 long dataReceived = dim;
-                //int i = 0;
+                
                 while (((i = await stream.ReadAsync(bytes, 0, bytes.Length)) != 0) && dataReceived >= 0) {
                     if (dataReceived > 0 && dataReceived < i)
                         await fileImage.WriteAsync(bytes, 0, Convert.ToInt32(dataReceived));

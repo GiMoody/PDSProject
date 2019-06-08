@@ -40,10 +40,10 @@ namespace PDSProject
         
 
         /// <summary>
-        /// Controlla se due Host sono uguali o no
+        /// Check if two users are the same or not
         /// </summary>
-        /// <param name="obj">Oggetto di tipo Host da controllare</param>
-        /// <returns>Bool -> vero se sono uguali, falso se no</returns>
+        /// <param name="obj">Object to comapre</param>
+        /// <returns>Bool -> true if they are the same, false otherwise</returns>
         public override bool Equals(Object obj)
         {
             return (obj is Host) && (((Host)obj).Name.Equals(Name) && ((Host)obj).Status.Equals(Status) &&
@@ -52,8 +52,7 @@ namespace PDSProject
     }
 
     /// <summary>
-    /// Classe che identifica le informazioni dell'utente corrente.
-    /// Contiene le informazioni comuni con Host più le informaizioni di configurazione utente
+    /// Contains all the local user data
     /// </summary>
     /// 
     [DataContract]
@@ -76,7 +75,7 @@ namespace PDSProject
         public bool AcceptAllFile { get; set; }
 
         /// <summary>
-        /// Converte l'host corrente in un oggetto serializzato di tipo Host
+        /// Convert a CurrentHostProfile object into a Host one
         /// </summary>
         /// <returns>Host</returns>
         public Host ConvertToHost () {
