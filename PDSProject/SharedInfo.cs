@@ -238,15 +238,25 @@ namespace PDSProject {
         }
 
         /// <summary>
+        /// Return the list of all broadcast ips
+        /// </summary>
+        /// <returns>List of all the ips</returns>
+        public List<string> GetListBroadcastIps () {
+            lock (lockIps) {
+                return Ips.Keys.ToList();
+            }
+        }
+
+        /// <summary>
         /// Return the list of all ips
         /// </summary>
         /// <returns>List of all the ips</returns>
         public List<string> GetListIps () {
             lock (lockIps) {
-                return Ips.Keys.ToList();
+                return Ips.Values.ToList();
             }
         }
-        
+
         /// <summary>
         /// Return a copy of the current broadcast address
         /// </summary>

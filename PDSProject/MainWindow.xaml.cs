@@ -1095,7 +1095,7 @@ namespace PDSProject {
             if(!_referenceData.CheckIfConfigurationIsSet()) {
                 // If the network is not configurated yet, send the UDP packets to all the address related 
                 // to all the network interfaces of the sysyem
-                foreach(string ip in _referenceData.GetListIps()) {
+                foreach(string ip in _referenceData.GetListBroadcastIps()) {
                     _UDPSender.Sender(ip);
                 }
                 friendList.Items.Refresh();
