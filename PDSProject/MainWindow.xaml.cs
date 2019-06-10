@@ -146,9 +146,6 @@ namespace PDSProject {
             this.icons = new Icon[2];
             this.icons[0] = new System.Drawing.Icon(Utility.FileNameToSystem("share_green.ico"));
             this.icons[1] = new System.Drawing.Icon(Utility.FileNameToSystem("share_black.ico"));
-            
-            //Adding registers for contextMenu
-            AddOptionContextMenu();
         }
 
         /// <summary>
@@ -678,36 +675,7 @@ namespace PDSProject {
             }
 
         }
-
-        /// <summary>
-        /// Add option "PDS_APP Invio File" to Win ContextMenù
-        /// </summary>
-        private void AddOptionContextMenu() {
-            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            if(principal.IsInRole(WindowsBuiltInRole.Administrator)) {
-                string nameExe = Process.GetCurrentProcess().ProcessName + ".exe";
-                string pathExe = Utility.FileNameToPath("", nameExe);
-
-                // Set RegistryKey per file
-                 RegistryKey _key = Registry.ClassesRoot.OpenSubKey("*\\Shell", true);
-                RegistryKey newkey = _key.CreateSubKey("PDSApp Invia File");
-                RegistryKey subNewkey = newkey.CreateSubKey("Command");
-
-                subNewkey.SetValue("", pathExe + " %1");
-
-                // Set RegistryKey per directory
-                _key = Registry.ClassesRoot.OpenSubKey("Directory\\Shell", true);
-                newkey = _key.CreateSubKey("PDSApp Invia Cartella");
-                subNewkey = newkey.CreateSubKey("Command");
-
-                subNewkey.SetValue("", pathExe + " %1");
-
-                subNewkey.Close();
-                newkey.Close();
-                _key.Close();
-            }
-        }
-
+        
         #endregion
 
         #region --------------- File ListBox ----------------------

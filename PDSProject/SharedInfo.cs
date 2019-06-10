@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace PDSProject {
     // Enum status for send file
@@ -126,6 +127,12 @@ namespace PDSProject {
                         sr.WriteObject(stream, LocalUser);
                     }
                 }
+                // Execute program as Admin to change registry
+                Process proc = new Process();
+                proc.StartInfo.FileName = Utility.FileNameToPath("", "PDSProjectSetRegistry.exe");
+                proc.StartInfo.UseShellExecute = true;
+                proc.StartInfo.Verb = "runas";
+                proc.Start();
             }
             // Add delegate to the 'AddressChangedCallback' event in case of a network change configuration
             NetworkChange.NetworkAddressChanged += new NetworkAddressChangedEventHandler(AddressChangedCallback); 
