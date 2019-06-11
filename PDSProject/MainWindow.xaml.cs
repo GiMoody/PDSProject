@@ -651,7 +651,10 @@ namespace PDSProject {
             switch(result) {
                 case MessageBoxResult.Yes:
                     e.Cancel = false;
-                    
+                    dispatcherTimer_CleanUp.Stop();
+                    dispatcherTimer_FileCleanUp.Stop();
+                    flashTimer.Stop();
+
                     if (Directory.GetFiles(Utility.PathTmp()).Count() > 1) {
                         foreach (string file in Directory.GetFiles(Utility.PathTmp())) {
                             string name = Utility.PathToFileName(file);

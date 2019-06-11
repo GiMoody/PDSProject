@@ -443,10 +443,7 @@ namespace PDSProject
                         catch (Exception e) {
                             Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on unzip file received - {e.GetType()} {e.Message}");
                             File.Delete(fileNameToProcess);
-                            FileRecvStatus status = FileRecvStatus.RESENT;
-                            if(_referenceData.GetUserStatus(ipUser).Equals("online") && !_referenceData.GetInfoLocalUser().Status.Equals("online")) {
-                                status = FileRecvStatus.NSEND;
-                            }
+                            FileRecvStatus status = FileRecvStatus.NSEND;
 
                             _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), status);
                             MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {

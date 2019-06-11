@@ -35,15 +35,6 @@ namespace PDSProject
             if (!_referenceData.UpdateStatusRecvFileForUser(ip, nameFile, type == PacketType.YFILE ? FileRecvStatus.YSEND : FileRecvStatus.NSEND))
                 throw new Exception("File don't exists in collection");
 
-            //lock (_referenceData.FileToRecive) {
-            //    if (_referenceData.FileToRecive.ContainsKey(ip) && _referenceData.FileToRecive[ip].ContainsKey(nameFile)) {
-            //        if (type == PacketType.YFILE)
-            //            _referenceData.FileToRecive[ip][nameFile] = FileRecvStatus.YSEND;
-            //        else
-            //            _referenceData.FileToRecive[ip][nameFile] = FileRecvStatus.NSEND;
-            //    }
-            //}
-
             int attempts = 0;
             // In case of exception resend the packet three times
             do {
@@ -288,14 +279,12 @@ namespace PDSProject
             int attempts = 0;
 
             // In case of exception resend the packet three times
-            do {
                 TcpClient client = null;
                 NetworkStream stream = null;
 
                 if (!_referenceData.CheckPacketSendFileStatus(ip, filename)) return;
 
                 try {
-                    attempts++;
                     client = new TcpClient();
                     await client.ConnectAsync(serverAddr.ToString(), SharedInfo.TCPPort).ConfigureAwait(false);
 
@@ -380,7 +369,6 @@ namespace PDSProject
                     await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                         MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.END, "-", 100);
                     }));
-                    break;
 
                 } catch(RejectedFileException e) {
                     Console.WriteLine($"{DateTime.Now.ToString()}\t - RejectedFileException on SendFile - {e.Message}");
@@ -392,68 +380,25 @@ namespace PDSProject
                 } catch (SocketException e) {
                     Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendFile - {e.Message}");
 
-                    // If the remote host was offline, try to resend it for three times
-                    string CurrentUserStatus = _referenceData.GetUserStatus(serverAddr.ToString());
-                    if (!CurrentUserStatus.Equals("") && CurrentUserStatus.Equals("offline")) {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
+                    _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.REJECTED);
 
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
-                        }));
-
-                        //File.Delete(filename);
-                        break;
-                    }
-                    else if (attempts == 3) {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
-
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
-                        }));
-
-                        break;
-                    }
-                    else {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.CONFERMED);
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.CONFERMED, "-", 0);
-                        }));
-                        await Task.Delay(10).ConfigureAwait(false);
-                    } 
+                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.REJECTED, "-", 0);
+                    }));
                 }
                 catch (Exception e) {
                     Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendFile - {e.Message}");
                     // If the remote host was offline, try to resend it for three times
-                    string CurrentUserStatus = _referenceData.GetUserStatus(serverAddr.ToString());
-                    if (!CurrentUserStatus.Equals("") && CurrentUserStatus.Equals("offline")) {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
+                    _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.REJECTED);
 
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
-                        }));
-
-                        break;
-                    }
-                    else if(attempts == 3) {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
-                        }));
-                        break;
-                    }
-                    else {
-                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.CONFERMED);
-                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.CONFERMED, "-", 0);
-                        }));
-                        await Task.Delay(10).ConfigureAwait(false);
-                    }
+                    await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.REJECTED, "-", 0);
+                    }));
                 }
                 finally {
                     client.Close();
                     stream.Close();
                 }
-            } while (true);
 
         }
     }
