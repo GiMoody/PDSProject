@@ -276,8 +276,7 @@ namespace PDSProject
                 return;
             }
             IPAddress serverAddr = IPAddress.Parse(ip);
-            int attempts = 0;
-
+            
             // In case of exception resend the packet three times
                 TcpClient client = null;
                 NetworkStream stream = null;

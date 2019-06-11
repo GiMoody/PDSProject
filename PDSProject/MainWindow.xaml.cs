@@ -470,6 +470,7 @@ namespace PDSProject {
                 // Clean the selected host list
                 _referenceData.RemoveSelectedHosts(currentSelectedHost);
                 textInfoMessage.Text = "";
+                UndoButton.Visibility = Visibility.Hidden;
                 await obj.WaitAsync();
                 try {
                     // Send all the requests
