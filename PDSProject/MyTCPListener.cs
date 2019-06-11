@@ -403,6 +403,10 @@ namespace PDSProject
                                 // Unzip files
                                 ZipFile.ExtractToDirectory(fileNameToProcess, destPath);
                                 _referenceData.UpdateStatusRecvFileForUser(ipUser, Utility.PathToFileName(fileNameToProcess), FileRecvStatus.RECIVED);
+                                MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                                    MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, FileRecvStatus.RECIVED, "-", 100);
+                                    MainWindow.main.StopNotify();
+                                }));
                                 semaphoreForFile.Release();
 
                             }
