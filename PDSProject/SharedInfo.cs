@@ -47,7 +47,7 @@ namespace PDSProject {
 
         // Hosts in network 
         //---------------------------------------------
-        public Dictionary<string, Host> Users = new Dictionary<string, Host>();
+        private Dictionary<string, Host> Users = new Dictionary<string, Host>();
         private List<string> selectedHosts = new List<string>();
         private Dictionary<string, string> UserImageChange = new Dictionary<string, string>(); // Key = hash - Value = namefile
 
@@ -87,7 +87,7 @@ namespace PDSProject {
         // File to recive information
         //---------------------------------------------
         private ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>> FileToRecive = new ConcurrentDictionary<string, Dictionary<string, FileRecvStatus>>();
-        
+
         /// <summary>
         /// Private Constructor, used to avoid call from other classes
         /// </summary>
@@ -625,6 +625,16 @@ namespace PDSProject {
             }
         }
 
+        /// <summary>
+        /// Return the whole hosts collection
+        /// </summary>
+        /// <returns>The Hosts whole dictionary</returns>
+        public Dictionary<string, Host> GetHosts () {
+            lock (Users) {
+                return Users;
+            }
+        }
+
         #endregion
 
         #region --------------- RECIVE FILE CONFIGURATION/CHECK ---------------------
@@ -654,8 +664,11 @@ namespace PDSProject {
             lock(FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
                 FileToRecive.TryGetValue(ipUser, out currentDictionary);
-                List<String> listFile = currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).ToDictionary(v => v.Key, v => v.Value).Keys.ToList();
-                return listFile;
+                if (currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).Count() > 0) {
+                    List<String> listFile = currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).ToDictionary(v => v.Key, v => v.Value).Keys.ToList();
+                    return listFile;
+                }
+                return new List<string>();
             }
         }
 

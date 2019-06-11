@@ -83,9 +83,9 @@ namespace PDSProject {
             this._UDPSender = new MyUDPSender();
 
             this.source = new CancellationTokenSource();
-      
+
             // Initialize friendList data
-            this.friendList.ItemsSource = _referenceData.Users.Values;
+            this.friendList.ItemsSource = _referenceData.GetHosts().Values;//.Users.Values;
            
             // Initialize contextMenu 
             this.contextMenu = new System.Windows.Forms.ContextMenu();

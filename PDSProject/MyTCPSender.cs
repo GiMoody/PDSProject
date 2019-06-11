@@ -68,7 +68,7 @@ namespace PDSProject
                     Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendResponse - {e.Message}");
 
                     // If the remote host was offline, try to resend it for three times
-                    if (_referenceData.Users[ip].Status.Equals("offline"))
+                    if (_referenceData.GetUserStatus(ip).Equals("offline"))
                         break;
                     else if (attempts == 3)
                         break;
@@ -86,7 +86,7 @@ namespace PDSProject
                     client.Close();
                     stream.Close();
                 }
-                if (attempts == 3 && _referenceData.Users[ip].Status.Equals("offline"))
+                if (attempts == 3 && _referenceData.GetUserStatus(ip).Equals("offline"))
                     break;
             } while (true);
         }

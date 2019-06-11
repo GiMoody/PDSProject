@@ -110,12 +110,21 @@ namespace PDSProject
             }
             catch (AggregateException ae) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - UDPListener AggregateException: {ae.Message}");
+                lock (_referenceData.cvListener) {
+                    Monitor.Pulse(_referenceData.cvListener);
+                }
             }
             catch (SerializationException se) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - UDPListener SerializationException - UDP Packet is in the wrong format: {se.Message}");
+                lock (_referenceData.cvListener) {
+                    Monitor.Pulse(_referenceData.cvListener);
+                }
             }
             catch (Exception se) {
                 Console.WriteLine($"{DateTime.Now.ToString()}\t - UDPListener Exception - {se.Message}");
+                lock (_referenceData.cvListener) {
+                    Monitor.Pulse(_referenceData.cvListener);
+                }
             }
         }       
     }
