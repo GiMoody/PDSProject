@@ -16,14 +16,14 @@ namespace PDSProject
     /// </summary>
     public partial class App : Application
     {
-        [DllImport("user32", CharSet = CharSet.Unicode)]
-        private static extern IntPtr FindWindow(string cls, string win);
-        [DllImport("user32")]
-        private static extern IntPtr SetForegroundWindow(IntPtr hWnd);
-        [DllImport("user32")]
-        private static extern bool IsIconic(IntPtr hWnd);
-        [DllImport("user32")]
-        private static extern bool OpenIcon(IntPtr hWnd);
+        //[DllImport("user32", CharSet = CharSet.Unicode)]
+        //private static extern IntPtr FindWindow(string cls, string win);
+        //[DllImport("user32")]
+        //private static extern IntPtr SetForegroundWindow(IntPtr hWnd);
+        //[DllImport("user32")]
+        //private static extern bool IsIconic(IntPtr hWnd);
+        //[DllImport("user32")]
+        //private static extern bool OpenIcon(IntPtr hWnd);
 
         static bool isMutexCreated = false;
         static Mutex mut = new Mutex(true, Process.GetCurrentProcess().ProcessName, out isMutexCreated);
@@ -36,7 +36,7 @@ namespace PDSProject
             if (!isMutexCreated){
                 string path = string.Join(" ", e.Args);
                 PipeServer(path);
-                ActivateOtherWindow();
+                //ActivateOtherWindow();
                 Environment.Exit(0);
             }
             else if(e.Args.Length > 0){
@@ -45,14 +45,15 @@ namespace PDSProject
             }
         }
 
-        private static void ActivateOtherWindow() {
-            var other = FindWindow(null, "Condividi");
-            if (other != IntPtr.Zero) {
-                SetForegroundWindow(other);
-                if (IsIconic(other))
-                    OpenIcon(other);
-            }
-        }
+        //private static void ActivateOtherWindow() {
+        //    var other = FindWindow(null, "Condividi");
+        //    if (other != IntPtr.Zero) {
+        //        SetForegroundWindow(other);
+        //        if (IsIconic(other)) {
+        //            OpenIcon(other);
+        //        }
+        //    }
+        //}
 
         private async void PipeServerAsync (string path) {
             try {
