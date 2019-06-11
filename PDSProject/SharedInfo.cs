@@ -664,7 +664,8 @@ namespace PDSProject {
             lock(FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
                 FileToRecive.TryGetValue(ipUser, out currentDictionary);
-                if (currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).Count() > 0) {
+
+                if (currentDictionary!= null && currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).Count() > 0) {
                     List<String> listFile = currentDictionary.Where(e => e.Value == FileRecvStatus.TOCONF).ToDictionary(v => v.Key, v => v.Value).Keys.ToList();
                     return listFile;
                 }
