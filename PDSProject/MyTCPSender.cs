@@ -341,9 +341,11 @@ namespace PDSProject
 
                             if(_referenceData.CheckSendStatusFile(ip, Utility.PathToFileName(filename), FileSendStatus.REJECTED))
                                 throw new RejectedFileException("File is rejected by remote host");
-                                
+                            
+                            if(_referenceData.GetUserStatus(ip).Equals("offline"))
+                                throw new Exception("User offline");
 
-                            if(dataReceived > 0 && dataReceived < i) {
+                            if (dataReceived > 0 && dataReceived < i) {
                                 await stream.WriteAsync(bytes, 0, Convert.ToInt32(dataReceived));
                                 dataReceivedJet = 100f;
                             } else {

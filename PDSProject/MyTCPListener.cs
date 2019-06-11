@@ -452,7 +452,8 @@ namespace PDSProject
                             MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                 MainWindow.main.AddOrUpdateListFile(ip, fileOriginal, status, "-", 0);
                             }));
-                            semaphoreForFile.Release();
+                            if(semaphoreForFile.CurrentCount < 1)
+                                semaphoreForFile.Release();
                         }
                         finally {
                             obj.Release();
