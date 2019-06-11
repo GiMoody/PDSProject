@@ -1017,11 +1017,11 @@ namespace PDSProject {
                             // Update Gui with path of the files/directory to be sended
                             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                                 ShowCurrentListSendFile(copia);
-                                if (WindowState == System.Windows.WindowState.Minimized) {
+                                //if (WindowState == System.Windows.WindowState.Minimized) {
                                     Show();
                                     Activate();
                                     WindowState = WindowState.Normal;
-                                }
+                                //}
                             }));
 
                         }

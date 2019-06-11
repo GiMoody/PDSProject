@@ -682,8 +682,13 @@ namespace PDSProject {
             lock (FileToRecive) {
                 Dictionary<string, FileRecvStatus> currentDictionary;
                 FileToRecive.TryGetValue(ipUser, out currentDictionary);
-                List<String> listFile = currentDictionary.Keys.ToList();
-                return listFile;
+                if(currentDictionary != null) {
+                    List<String> listFile = currentDictionary.Keys.ToList();
+                    return listFile;
+                } else {
+                    return new List<String>();
+                }
+
             }
         }
 
