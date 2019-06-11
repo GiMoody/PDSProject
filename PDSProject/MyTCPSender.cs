@@ -401,7 +401,7 @@ namespace PDSProject
                             MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
                         }));
 
-                        File.Delete(filename);
+                        //File.Delete(filename);
                         break;
                     }
                     else if (attempts == 3) {
@@ -411,24 +411,43 @@ namespace PDSProject
                             MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
                         }));
 
-                        File.Delete(filename);
                         break;
                     }
-                    else
+                    else {
+                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.CONFERMED);
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.CONFERMED, "-", 0);
+                        }));
                         await Task.Delay(10).ConfigureAwait(false);
+                    } 
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"{DateTime.Now.ToString()}\t - SocketException on SendFile - {e.Message}");
-                    if (attempts == 3) {
+                    Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on SendFile - {e.Message}");
+                    // If the remote host was offline, try to resend it for three times
+                    string CurrentUserStatus = _referenceData.GetUserStatus(serverAddr.ToString());
+                    if (!CurrentUserStatus.Equals("") && CurrentUserStatus.Equals("offline")) {
+                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
+
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
+                        }));
+
+                        break;
+                    }
+                    else if(attempts == 3) {
                         _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.RESENT);
                         await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                             MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.RESENT, "-", 0);
                         }));
-                        File.Delete(filename);
                         break;
                     }
-                    else
+                    else {
+                        _referenceData.UpdateSendStatusFileForUser(serverAddr.ToString(), Utility.PathToFileName(filename), FileSendStatus.CONFERMED);
+                        await MainWindow.main.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                            MainWindow.main.AddOrUpdateListFile(ip, Utility.PathToFileName(filename), FileSendStatus.CONFERMED, "-", 0);
+                        }));
                         await Task.Delay(10).ConfigureAwait(false);
+                    }
                 }
                 finally {
                     client.Close();

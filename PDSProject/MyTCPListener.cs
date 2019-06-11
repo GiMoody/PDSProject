@@ -444,7 +444,7 @@ namespace PDSProject
                             Console.WriteLine($"{DateTime.Now.ToString()}\t - Exception on unzip file received - {e.GetType()} {e.Message}");
                             File.Delete(fileNameToProcess);
                             FileRecvStatus status = FileRecvStatus.RESENT;
-                            if(_referenceData.GetUserStatus(ipUser).Equals("online")) {
+                            if(_referenceData.GetUserStatus(ipUser).Equals("online") && !_referenceData.GetInfoLocalUser().Status.Equals("online")) {
                                 status = FileRecvStatus.NSEND;
                             }
 
