@@ -254,17 +254,19 @@ namespace PDSProject {
             FileRecive fileTAG = (FileRecive)((NotifyIcon)sender).Tag;
             fileList.SelectedItems.Add(fileTAG);
 
-            // Set as visible the Yes/No buttons of the selected element
-            var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex((int)fileList.Items.IndexOf(fileTAG)) as ListBoxItem;
+            if (!_referenceData.GetInfoLocalUser().AcceptAllFile){
+                // Set as visible the Yes/No buttons of the selected element
+                var currentSelectedListBoxItem = this.fileList.ItemContainerGenerator.ContainerFromIndex((int)fileList.Items.IndexOf(fileTAG)) as ListBoxItem;
 
-            // Get all the buttons and set the visibility value
-            Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
-            Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
-            Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
+                // Get all the buttons and set the visibility value
+                Button yesButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "yesButton");
+                Button noButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "noButton");
+                Button stopButton = MainWindow.FindChild<Button>(currentSelectedListBoxItem, "stopButton");
 
-            yesButton.Visibility = Visibility.Visible;
-            noButton.Visibility = Visibility.Visible;
-            stopButton.Visibility = Visibility.Hidden;
+                yesButton.Visibility = Visibility.Visible;
+                noButton.Visibility = Visibility.Visible;
+                stopButton.Visibility = Visibility.Hidden;
+            }
         }
 
         #endregion
