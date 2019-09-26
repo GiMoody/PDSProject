@@ -1,6 +1,7 @@
-# PDSProject - LAN File Sharing
+# LAN File Sharing - A PDS Project
 
-PDSProject (scegliere altro nome plz) is a LAN file sharing application developed for the PDS (Programmazione di Sistema) course at Politecnico di Torino. With it you can:
+LAN File Sharing is a file sharing application developed for the PDS (Programmazione di Sistema) course at Politecnico di Torino.
+With it you can:
 * Send files and directory
 * Customize your user profile
 
