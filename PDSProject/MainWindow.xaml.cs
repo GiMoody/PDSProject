@@ -191,6 +191,7 @@ namespace PDSProject {
 
             ImageBrush imgBrush  = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+            imgBrush.Stretch = Stretch.UniformToFill;
             ImageProfile.Fill    = imgBrush;
         }
 
@@ -329,6 +330,7 @@ namespace PDSProject {
             
             ImageBrush imgBrush = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+            imgBrush.Stretch = Stretch.UniformToFill;
             ImageSettingsProfile.Fill = imgBrush;
 
             // Upload the most recent username
@@ -518,7 +520,7 @@ namespace PDSProject {
                         .Equals(_referenceData.GetInfoLocalUser().ProfileImageHash)) {
                         ImageBrush imgBrush = new ImageBrush();
                         imgBrush.ImageSource = new BitmapImage(new Uri(filename));
-
+                        imgBrush.Stretch = Stretch.UniformToFill;
                         ImageProfile.Fill = imgBrush;
                         ImageSettingsProfile.Fill = imgBrush;
                     }
@@ -542,6 +544,7 @@ namespace PDSProject {
             
             ImageBrush imgBrush = new ImageBrush();
             imgBrush.ImageSource = new BitmapImage(new Uri(filename));
+            imgBrush.Stretch = Stretch.UniformToFill;
             ImageProfile.Fill = imgBrush;
         }
 
@@ -574,7 +577,7 @@ namespace PDSProject {
                         if(!BitConverter.ToString(hash).Replace("-", string.Empty).Equals(_referenceData.GetInfoLocalUser().ProfileImageHash)) {
                             ImageBrush imgBrush  = new ImageBrush();
                             imgBrush.ImageSource = new BitmapImage(new Uri(pathProfileImage));
-
+                            imgBrush.Stretch = Stretch.UniformToFill;
                             ImageProfile.Fill         = imgBrush;
                             ImageSettingsProfile.Fill = imgBrush;
                         }
