@@ -9,7 +9,7 @@ It uses UDP to discover other users on the network and TCP to send the actual fi
 
 <img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media1.png" width="400">  <img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media4.png" width="400">
 
-<img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media2.png" width="400">  <img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media3.png" width="400">
+<img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media3.png" width="400">  <img src="https://github.com/GiMoody/PDSProject/blob/master/sample-images/media2.png" width="400">
 
 ### Authors
 Maria Giulia Canu
